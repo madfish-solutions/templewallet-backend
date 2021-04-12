@@ -1,14 +1,46 @@
-const express = require("express")
-const app = express()
+const express = require("express");
+const pinoHttp = require("pino-http");
+const getDAppsStats = require("./getDAppsStats");
+const logger = require("./utils/logger");
+const SingleQueryDataProvider = require("./utils/SingleQueryDataProvider");
 
-// use the express-static middleware
-app.use(express.static("public"))
+const PINO_LOGGER = {
+  logger: logger.child({ name: "web" }),
+  serializers: {
+    req: (req) => ({
+      method: req.method,
+      url: req.url,
+      body: req.body,
+      remoteAddress: req.remoteAddress,
+      remotePort: req.remotePort,
+      id: req.id,
+    }),
+    err: (err) => {
+      const { type, message } = pino.stdSerializers.err(err);
+      return { type, message };
+    },
+    res: (res) => ({
+      statusCode: res.statusCode,
+    }),
+  },
+};
 
+const app = express();
+app.use(pinoHttp(PINO_LOGGER));
+
+const dAppsProvider = new SingleQueryDataProvider(
+  15 * 60 * 3600,
+  getDAppsStats
+);
 // define the first route
-app.get("/", function (req, res) {
-  res.send("<h1>Hello World!</h1>")
-})
+app.get("/", async function(_req, res) {
+  const { data, error } = await dAppsProvider.getState();
+  if (error) {
+    res.status(500).send(error);
+  } else {
+    res.json(data);
+  }
+});
 
 // start the server listening for requests
-app.listen(process.env.PORT || 3000, 
-  () => console.log("Server is running..."));
+app.listen(process.env.PORT || 3000, () => console.log("Server is running..."));
