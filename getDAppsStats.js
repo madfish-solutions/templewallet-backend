@@ -351,14 +351,14 @@ const getDAppsStats = async() => {
   return {
     dApps: dApps.map((dApp, index) => ({
       ...dApp,
-      tvl: dAppsStats[index].tvl.toString(),
+      tvl: dAppsStats[index].tvl.toFixed(6),
     })),
     tvl: dAppsStats
       .reduce(
         (sum, { allDAppsTvlSummand }) => sum.plus(allDAppsTvlSummand),
         new BigNumber(0)
       )
-      .toString(),
+      .toFixed(6),
   };
 };
 
