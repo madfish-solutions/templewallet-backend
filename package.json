@@ -8,12 +8,15 @@
   "dependencies": {
     "@taquito/rpc": "^8.1.0",
     "@taquito/taquito": "^8.1.0",
+    "@taquito/tzip12": "^8.1.1",
     "bignumber.js": "^9.0.1",
     "cross-fetch": "^3.1.4",
     "express": "^4.17.1",
+    "memoizee": "^0.4.15",
     "pino": "^6.11.2",
     "pino-http": "^5.5.0",
     "pino-pretty": "^4.7.1",
+    "qs": "^6.10.1",
     "semaphore": "^1.1.0"
   },
   "scripts": {

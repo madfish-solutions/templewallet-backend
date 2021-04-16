@@ -29,7 +29,7 @@ const app = express();
 app.use(pinoHttp(PINO_LOGGER));
 
 const dAppsProvider = new SingleQueryDataProvider(
-  15 * 60 * 3600,
+  15 * 60 * 1000,
   getDAppsStats
 );
 // define the first route
