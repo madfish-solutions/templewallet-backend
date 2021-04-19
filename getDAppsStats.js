@@ -85,6 +85,12 @@ const getDAppStats = async(dAppData, exchangableTokensWithPrices) => {
         allDAppsTvlSummand: dexterTotalTezLocked,
         tvl: dexterTotalTezLocked.multipliedBy(2),
       };
+    case slug === "tzbutton":
+      const tzButtonTvl = (await getBalance(contracts[0].address)).div(1e6);
+      return {
+        allDAppsTvlSummand: tzButtonTvl,
+        tvl: tzButtonTvl,
+      };
     case slug === "tzcolors":
       const mutezBalance = await getBalance(
         "KT1CpeSQKdkhWi4pinYcseCFKmDhs5M74BkU"
@@ -351,14 +357,15 @@ const getDAppsStats = async() => {
   return {
     dApps: dApps.map((dApp, index) => ({
       ...dApp,
-      tvl: dAppsStats[index].tvl.toFixed(6),
+      tvl: dAppsStats[index].tvl.decimalPlaces(6).toFixed(),
     })),
     tvl: dAppsStats
       .reduce(
         (sum, { allDAppsTvlSummand }) => sum.plus(allDAppsTvlSummand),
         new BigNumber(0)
       )
-      .toFixed(6),
+      .decimalPlaces(6)
+      .toFixed(),
   };
 };
 

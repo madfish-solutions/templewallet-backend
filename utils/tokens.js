@@ -8,64 +8,96 @@ const { getTokenDescriptor, getStorage } = require("./tezos");
 const SingleQueryDataProvider = require("./SingleQueryDataProvider");
 
 const getQuipuswapExchangers = async() => {
-  const fa12FactoryStorage = await getStorage(
-    "KT1K7whn5yHucGXMN7ymfKiX5r534QeaJM29"
+  const fa12FactoryStorages = await Promise.all(
+    [
+      "KT1K7whn5yHucGXMN7ymfKiX5r534QeaJM29",
+      "KT1Lw8hCoaBrHeTeMXbqHPG4sS4K1xn7yKcD",
+    ].map((factoryAddress) => getStorage(factoryAddress))
   );
-  const fa2FactoryStorage = await getStorage(
-    "KT1MMLb2FVrrE9Do74J3FH1RNNc4QhDuVCNX"
+  const fa2FactoryStorages = await Promise.all(
+    [
+      "KT1MMLb2FVrrE9Do74J3FH1RNNc4QhDuVCNX",
+      "KT1GDtv3sqhWeSsXLWgcGsmoH5nRRGJd8xVc",
+    ].map((factoryAddress) => getStorage(factoryAddress))
   );
-  const rawFa12FactoryTokens = await fa12FactoryStorage.token_list.getMultipleValues(
-    Array(fa12FactoryStorage.counter.toNumber())
-    .fill(0)
-    .map((_x, index) => index)
-  );
-  const fa12FactoryTokens = Object.values(rawFa12FactoryTokens);
-  const rawFa12Exchangers = await fa12FactoryStorage.token_to_exchange.getMultipleValues(
-    fa12FactoryTokens
-  );
-  const fa12Exchangers = await Promise.all(
-    Object.entries(rawFa12Exchangers).map(
-      async([tokenAddress, exchangerAddress]) => {
-        const tokensMetadata = await getContractTokens({
-          network: "mainnet",
-          address: tokenAddress,
-        });
-        return {
-          tokenAddress,
-          exchangerAddress,
-          tokenMetadata: tokensMetadata ? tokensMetadata[0] : undefined,
-        };
-      }
+  const rawFa12FactoryTokens = await Promise.all(
+    fa12FactoryStorages.map((storage) =>
+      storage.token_list.getMultipleValues(
+        Array(storage.counter.toNumber())
+        .fill(0)
+        .map((_x, index) => index)
+      )
     )
   );
+  const rawFa12Exchangers = await Promise.all(
+    fa12FactoryStorages.map((storage, index) =>
+      storage.token_to_exchange.getMultipleValues(
+        Object.values(rawFa12FactoryTokens[index])
+      )
+    )
+  );
+  const fa12Exchangers = (
+    await Promise.all(
+      rawFa12Exchangers.map((rawFa12ExchangersChunk) => {
+        return Promise.all(
+          Object.entries(rawFa12ExchangersChunk).map(
+            async([tokenAddress, exchangerAddress]) => {
+              const tokensMetadata = await getContractTokens({
+                network: "mainnet",
+                address: tokenAddress,
+              });
+              return {
+                tokenAddress,
+                exchangerAddress,
+                tokenMetadata: tokensMetadata ? tokensMetadata[0] : undefined,
+              };
+            }
+          )
+        );
+      })
+    )
+  ).reduce((result, chunk) => [...result, ...chunk], []);
 
-  const rawFa2FactoryTokens = await fa2FactoryStorage.token_list.getMultipleValues(
-    Array(fa2FactoryStorage.counter.toNumber())
-    .fill(0)
-    .map((_x, index) => index)
+  const rawFa2FactoryTokens = await Promise.all(
+    fa2FactoryStorages.map((storage) =>
+      storage.token_list.getMultipleValues(
+        Array(storage.counter.toNumber())
+        .fill(0)
+        .map((_x, index) => index)
+      )
+    )
   );
-  const fa2FactoryTokens = Object.values(rawFa2FactoryTokens);
   const rawFa2Exchangers = await Promise.all(
-    fa2FactoryTokens.map(async(token) => [
-      token,
-      await fa2FactoryStorage.token_to_exchange.get(token),
-    ])
-  );
-  const fa2Exchangers = await Promise.all(
-    rawFa2Exchangers.map(async([tokenDescriptor, exchangerAddress]) => {
-      const tokensMetadata = await getContractTokens({
-        network: "mainnet",
-        address: tokenDescriptor[0],
-        token_id: tokenDescriptor[1].toNumber(),
-      });
-      return {
-        exchangerAddress,
-        tokenAddress: tokenDescriptor[0],
-        tokenId: tokenDescriptor[1].toNumber(),
-        tokenMetadata: tokensMetadata ? tokensMetadata[0] : undefined,
-      };
+    rawFa2FactoryTokens.map((rawTokens, index) => {
+      return Promise.all(
+        Object.values(rawTokens).map(async(token) => [
+          token,
+          await fa2FactoryStorages[index].token_to_exchange.get(token),
+        ])
+      );
     })
   );
+  const fa2Exchangers = (
+    await Promise.all(
+      rawFa2Exchangers.map((exchangersPart) => {
+        return Promise.all(
+          exchangersPart.map(async([tokenDescriptor, exchangerAddress]) => {
+            const tokensMetadata = await getContractTokens({
+              network: "mainnet",
+              address: tokenDescriptor[0],
+              token_id: tokenDescriptor[1].toNumber(),
+            });
+            return {
+              exchangerAddress,
+              tokenAddress: tokenDescriptor[0],
+              tokenId: tokenDescriptor[1].toNumber(),
+              tokenMetadata: tokensMetadata ? tokensMetadata[0] : undefined,
+            };
+          })
+        );
+      })
+    )
+  ).reduce((result, chunk) => [...result, ...chunk], []);
   return [...fa12Exchangers, ...fa2Exchangers];
 };
 const quipuswapExchangersDataProvider = new SingleQueryDataProvider(
