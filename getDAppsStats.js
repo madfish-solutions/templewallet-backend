@@ -217,31 +217,53 @@ big_map_contents", {
           const mutezBalance = await getBalance(address);
           const allDAppsTvlSummand = mutezBalance.div(1e6);
           let dAppTvlSummand = allDAppsTvlSummand;
-          let outOfTokens = false;
-          let offset = 0;
-          while (!outOfTokens) {
-            const { balances } = await getAccountTokenBalances({
-              address,
-              network,
-              offset,
-            });
-            offset += balances.length;
-            balances.forEach(({ contract, token_id, decimals, balance }) => {
-              const exchangableToken = exchangableTokensWithPrices.find(
-                ({ contract: candidateContract, token_id: candidateTokenId }) =>
-                candidateContract === contract &&
-                candidateTokenId === token_id
+          if (slug === "hen") {
+            const hDAOAddress = "KT1AFA2mwNUMNd4SsujE1YYp29vd8BZejyKW";
+            const hDAOExchangeableToken = exchangableTokensWithPrices.find(
+              ({ contract: candidateContract, token_id: candidateTokenId }) =>
+              candidateContract === hDAOAddress && candidateTokenId === 0
+            );
+            if (hDAOExchangeableToken) {
+              const hDAOBalance = await getBalance(
+                address,
+                "KT1AFA2mwNUMNd4SsujE1YYp29vd8BZejyKW",
+                0
               );
-              if (!exchangableToken) {
-                return;
-              }
+              console.log(hDAOBalance.toString());
               dAppTvlSummand = dAppTvlSummand.plus(
-                new BigNumber(balance)
-                .div(new BigNumber(10).pow(decimals))
-                .multipliedBy(exchangableToken.price)
+                hDAOBalance.div(1e6).multipliedBy(hDAOExchangeableToken.price)
               );
-            });
-            outOfTokens = balances.length === 0;
+            }
+          } else {
+            let outOfTokens = false;
+            let offset = 0;
+            while (!outOfTokens) {
+              const { balances } = await getAccountTokenBalances({
+                address,
+                network,
+                offset,
+              });
+              offset += balances.length;
+              balances.forEach(({ contract, token_id, decimals, balance }) => {
+                const exchangableToken = exchangableTokensWithPrices.find(
+                  ({
+                    contract: candidateContract,
+                    token_id: candidateTokenId,
+                  }) =>
+                  candidateContract === contract &&
+                  candidateTokenId === token_id
+                );
+                if (!exchangableToken) {
+                  return;
+                }
+                dAppTvlSummand = dAppTvlSummand.plus(
+                  new BigNumber(balance)
+                  .div(new BigNumber(10).pow(decimals))
+                  .multipliedBy(exchangableToken.price)
+                );
+              });
+              outOfTokens = balances.length === 0;
+            }
           }
           return {
             allDAppsTvlSummand,
