@@ -282,17 +282,6 @@ big_map_contents", {
   }
 };
 
-const noDetailedDataRequiredDApps = ["quipuswap", "trianon", "tzcolors"];
-const dAppsDetailsSubscriptionsSlugs = [
-  "dexter",
-  "tzbtc",
-  "kolibri",
-  "usdtz",
-  "ethtz",
-  "stakerdao",
-  "aspencoin",
-];
-
 let dAppsSubscriptionsReady = false;
 const getDAppsStats = async() => {
   logger.info("Getting dApps list...");
@@ -300,13 +289,8 @@ const getDAppsStats = async() => {
   const dAppsWithDetails = await Promise.all(
     dApps.map(async(dApp) => {
       const { slug } = dApp;
-      if (!dAppsSubscriptionsReady &&
-        dAppsDetailsSubscriptionsSlugs.includes(slug)
-      ) {
+      if (!dAppsSubscriptionsReady) {
         detailedDAppDataProvider.subscribe(slug);
-      }
-      if (noDetailedDataRequiredDApps.includes(slug)) {
-        return dApp;
       }
       const { data, error } = await detailedDAppDataProvider.get(slug);
       if (error) {
@@ -315,6 +299,8 @@ const getDAppsStats = async() => {
       return data;
     })
   );
+  dAppsSubscriptionsReady = true;
+  console.log(dAppsWithDetails);
 
   logger.info("Getting exchangable tokens and their prices...");
   const {
@@ -376,10 +362,20 @@ const getDAppsStats = async() => {
   logger.info("Aggregating results...");
 
   return {
-    dApps: dApps.map((dApp, index) => ({
-      ...dApp,
-      tvl: dAppsStats[index].tvl.decimalPlaces(6).toFixed(),
-    })),
+    dApps: dApps
+      .map((dApp, index) => ({
+        ...dApp,
+        tvl: dAppsStats[index].tvl.decimalPlaces(6).toFixed(),
+      }))
+      .sort(({ slug: aSlug }, { slug: bSlug }) => {
+        const aEstimatedUsersPerMonth = dAppsWithDetails.find(
+          ({ slug }) => slug === aSlug
+        ).estimatedUsersPerMonth;
+        const bEstimatedUsersPerMonth = dAppsWithDetails.find(
+          ({ slug }) => slug === bSlug
+        ).estimatedUsersPerMonth;
+        return bEstimatedUsersPerMonth - aEstimatedUsersPerMonth;
+      }),
     tvl: dAppsStats
       .reduce(
         (sum, { allDAppsTvlSummand }) => sum.plus(allDAppsTvlSummand),
