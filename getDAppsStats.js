@@ -229,7 +229,6 @@ big_map_contents", {
                 "KT1AFA2mwNUMNd4SsujE1YYp29vd8BZejyKW",
                 0
               );
-              console.log(hDAOBalance.toString());
               dAppTvlSummand = dAppTvlSummand.plus(
                 hDAOBalance.div(1e6).multipliedBy(hDAOExchangeableToken.price)
               );
