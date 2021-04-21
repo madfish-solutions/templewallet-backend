@@ -3,7 +3,7 @@ const qs = require("qs");
 const DataProvider = require("./DataProvider");
 const { fetch } = require("./fetch");
 
-const BCD_BASE_URL = "https://api.better-call.dev/v1";
+const BCD_BASE_URL = "https://better-call.dev/v1";
 
 function pick(obj, keys) {
   const newObj = {};
