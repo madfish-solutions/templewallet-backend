@@ -124,22 +124,40 @@ const getTokenExchangeRate = memoizee(
     let dexterExchangeRate = new BigNumber(0);
     let dexterWeight = new BigNumber(0);
     const tokenElementaryParts = new BigNumber(10).pow(decimals);
-    const quipuswapExchanger = quipuswapExchangers.find(
+    const matchingQuipuswapExchangers = quipuswapExchangers.filter(
       ({ tokenAddress: swappableTokenAddress, tokenId: swappableTokenId }) =>
       tokenAddress === swappableTokenAddress &&
       (swappableTokenId === undefined || swappableTokenId === token_id)
     );
-    const exchangerAddress =
-      quipuswapExchanger && quipuswapExchanger.exchangerAddress;
-    if (exchangerAddress) {
-      const {
-        storage: { tez_pool, token_pool },
-      } = await getStorage(exchangerAddress);
-      if (!tez_pool.eq(0) && !token_pool.eq(0)) {
-        quipuswapWeight = tez_pool;
-        quipuswapExchangeRate = tez_pool
-          .div(1e6)
-          .div(token_pool.div(tokenElementaryParts));
+    if (matchingQuipuswapExchangers.length > 0) {
+      const exchangersCharacteristics = await Promise.all(
+        matchingQuipuswapExchangers.map(async({ exchangerAddress }) => {
+          const {
+            storage: { tez_pool, token_pool },
+          } = await getStorage(exchangerAddress);
+          if (!tez_pool.eq(0) && !token_pool.eq(0)) {
+            return {
+              weight: tez_pool,
+              exchangeRate: tez_pool
+                .div(1e6)
+                .div(token_pool.div(tokenElementaryParts)),
+            };
+          }
+          return { weight: new BigNumber(0), exchangeRate: new BigNumber(0) };
+        })
+      );
+      quipuswapWeight = exchangersCharacteristics.reduce(
+        (sum, { weight }) => sum.plus(weight),
+        new BigNumber(0)
+      );
+      if (!quipuswapWeight.eq(0)) {
+        quipuswapExchangeRate = exchangersCharacteristics
+          .reduce(
+            (sum, { weight, exchangeRate }) =>
+            sum.plus(weight.multipliedBy(exchangeRate)),
+            new BigNumber(0)
+          )
+          .div(quipuswapWeight);
       }
     }
     for (const contractData of dexterDAppData.contracts) {

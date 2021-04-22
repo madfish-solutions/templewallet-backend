@@ -228,7 +228,7 @@ big_map_contents", {
           const mutezBalance = await getBalance(address);
           const allDAppsTvlSummand = mutezBalance.div(1e6);
           let dAppTvlSummand = allDAppsTvlSummand;
-          if (slug === "hen") {
+          /* if (slug === "hen") {
             const hDAOAddress = "KT1AFA2mwNUMNd4SsujE1YYp29vd8BZejyKW";
             const hDAOExchangeableToken = exchangeableTokensWithPrices.find(
               ({ contract: candidateContract, token_id: candidateTokenId }) =>
@@ -244,16 +244,47 @@ big_map_contents", {
                 hDAOBalance.div(1e6).multipliedBy(hDAOExchangeableToken.price)
               );
             }
-          } else {
-            let outOfTokens = false;
-            let offset = 0;
-            while (!outOfTokens) {
-              const { balances } = await getAccountTokenBalances({
-                address,
-                network,
-                offset,
-              });
-              offset += balances.length;
+          } else { */
+          let outOfTokens = false;
+          let offset = 0;
+          while (!outOfTokens) {
+            const { balances, total } = await getAccountTokenBalances({
+              address,
+              network,
+              offset,
+            });
+            offset += balances.length;
+            if (total > exchangeableTokensWithPrices.length) {
+              await Promise.all(
+                exchangeableTokensWithPrices.map(
+                  async({ contract, token_id, decimals, price, symbol }) => {
+                    const rawBalance = await getBalance(
+                      address,
+                      contract,
+                      token_id
+                    );
+                    if (rawBalance.gt(0)) {
+                      console.log(
+                        slug,
+                        address,
+                        symbol,
+                        contract,
+                        token_id,
+                        rawBalance.toString(),
+                        decimals,
+                        price.toString()
+                      );
+                    }
+                    dAppTvlSummand = dAppTvlSummand.plus(
+                      new BigNumber(rawBalance)
+                      .div(new BigNumber(10).pow(decimals))
+                      .multipliedBy(price)
+                    );
+                  }
+                )
+              );
+              outOfTokens = true;
+            } else {
               balances.forEach(({ contract, token_id, decimals, balance }) => {
                 const exchangeableToken = exchangeableTokensWithPrices.find(
                   ({
@@ -263,17 +294,17 @@ big_map_contents", {
                   candidateContract === contract &&
                   candidateTokenId === token_id
                 );
-                if (!exchangeableToken) {
-                  return;
+                if (exchangeableToken) {
+                  dAppTvlSummand = dAppTvlSummand.plus(
+                    new BigNumber(balance)
+                    .div(new BigNumber(10).pow(decimals))
+                    .multipliedBy(exchangeableToken.price)
+                  );
                 }
-                dAppTvlSummand = dAppTvlSummand.plus(
-                  new BigNumber(balance)
-                  .div(new BigNumber(10).pow(decimals))
-                  .multipliedBy(exchangeableToken.price)
-                );
               });
               outOfTokens = balances.length === 0;
             }
+            // }
           }
           return {
             allDAppsTvlSummand,
@@ -312,7 +343,7 @@ const getDAppsStats = async() => {
   );
   dAppsSubscriptionsReady = true;
 
-  logger.info("Getting exchangeable tokens and their prices...");
+  logger.info("Getting exchangeable tokens...");
   const {
     data: dexterDAppData,
     error: dexterDAppError,
@@ -331,9 +362,7 @@ const getDAppsStats = async() => {
     throw quipuswapExchangersError;
   }
   const exchangeableTokens = [
-    ...dexterExchangeableTokens,
-    ...quipuswapExchangers
-    .map(
+    ...quipuswapExchangers.map(
       ({ tokenMetadata, tokenId, tokenAddress }) =>
       tokenMetadata || {
         token_id: tokenId || 0,
@@ -341,15 +370,19 @@ const getDAppsStats = async() => {
         symbol: tokenAddress,
         decimals: 0,
       }
-    )
-    .filter(
-      ({ contract: candidateContract, token_id: candidateTokenId }) =>
-      !dexterExchangeableTokens.some(
-        ({ contract, token_id }) =>
-        contract === candidateContract && token_id === candidateTokenId
-      )
     ),
-  ];
+    ...dexterExchangeableTokens,
+  ].reduce((uniqueTokens, token) => {
+    if (!uniqueTokens.find(
+        ({ token_id, contract }) =>
+        contract === token.contract && token_id === token.token_id
+      )) {
+      uniqueTokens.push(token);
+    }
+    return uniqueTokens;
+  }, []);
+
+  logger.info("Getting exchangeable tokens prices...");
   const exchangeableTokensWithPrices = await Promise.all(
     exchangeableTokens.map(async(token) => {
       const price = await getTokenExchangeRate(token);
