@@ -228,23 +228,6 @@ big_map_contents", {
           const mutezBalance = await getBalance(address);
           const allDAppsTvlSummand = mutezBalance.div(1e6);
           let dAppTvlSummand = allDAppsTvlSummand;
-          /* if (slug === "hen") {
-            const hDAOAddress = "KT1AFA2mwNUMNd4SsujE1YYp29vd8BZejyKW";
-            const hDAOExchangeableToken = exchangeableTokensWithPrices.find(
-              ({ contract: candidateContract, token_id: candidateTokenId }) =>
-              candidateContract === hDAOAddress && candidateTokenId === 0
-            );
-            if (hDAOExchangeableToken) {
-              const hDAOBalance = await getBalance(
-                address,
-                "KT1AFA2mwNUMNd4SsujE1YYp29vd8BZejyKW",
-                0
-              );
-              dAppTvlSummand = dAppTvlSummand.plus(
-                hDAOBalance.div(1e6).multipliedBy(hDAOExchangeableToken.price)
-              );
-            }
-          } else { */
           let outOfTokens = false;
           let offset = 0;
           while (!outOfTokens) {
@@ -292,7 +275,6 @@ big_map_contents", {
               });
               outOfTokens = balances.length === 0;
             }
-            // }
           }
           return {
             allDAppsTvlSummand,
