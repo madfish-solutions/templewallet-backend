@@ -263,18 +263,6 @@ big_map_contents", {
                       contract,
                       token_id
                     );
-                    if (rawBalance.gt(0)) {
-                      console.log(
-                        slug,
-                        address,
-                        symbol,
-                        contract,
-                        token_id,
-                        rawBalance.toString(),
-                        decimals,
-                        price.toString()
-                      );
-                    }
                     dAppTvlSummand = dAppTvlSummand.plus(
                       new BigNumber(rawBalance)
                       .div(new BigNumber(10).pow(decimals))
