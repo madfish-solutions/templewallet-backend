@@ -1,3 +1,4 @@
+const cors = require("cors");
 const express = require("express");
 const pinoHttp = require("pino-http");
 const getDAppsStats = require("./getDAppsStats");
@@ -27,6 +28,7 @@ const PINO_LOGGER = {
 
 const app = express();
 app.use(pinoHttp(PINO_LOGGER));
+app.use(cors());
 
 const dAppsProvider = new SingleQueryDataProvider(
   15 * 60 * 1000,
