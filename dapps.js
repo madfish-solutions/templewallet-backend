@@ -34,8 +34,8 @@ const dAppsProvider = new SingleQueryDataProvider(
   15 * 60 * 1000,
   getDAppsStats
 );
-// define the first route
-app.get("/", async function(_req, res) {
+
+app.get("/api/dapps", async function(_req, res) {
   const { data, error } = await dAppsProvider.getState();
   if (error) {
     res.status(500).send(error);
