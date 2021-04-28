@@ -1,5 +1,6 @@
 const cors = require("cors");
 const express = require("express");
+const pino = require("pino");
 const pinoHttp = require("pino-http");
 const getDAppsStats = require("./getDAppsStats");
 const logger = require("./utils/logger");
@@ -35,14 +36,23 @@ const dAppsProvider = new SingleQueryDataProvider(
   getDAppsStats
 );
 
-app.get("/api/dapps", async function (_req, res) {
-  const { data, error } = await dAppsProvider.getState();
-  if (error) {
-    res.status(500).send({ error: error.message });
-  } else {
-    res.json(data);
-  }
-});
+const makeProviderDataRequestHandler = (provider) => {
+  return async (_req, res) => {
+    const { data, error } = await Promise.race([
+      provider.getState(),
+      new Promise((res) =>
+        setTimeout(() => res({ error: new Error("Response timed out") }), 10000)
+      ),
+    ]);
+    if (error) {
+      res.status(500).send({ error: error.message });
+    } else {
+      res.json(data);
+    }
+  };
+};
+
+app.get("/api/dapps", makeProviderDataRequestHandler(dAppsProvider));
 
 // start the server listening for requests
 app.listen(process.env.PORT || 3000, () => console.log("Server is running..."));
