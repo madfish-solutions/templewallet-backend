@@ -16,18 +16,24 @@ const {
   quipuswapExchangersDataProvider,
 } = require("./utils/tokens");
 
-const getTotalSupplyPrice = async(dAppData, exchangeableTokensWithPrices) => {
-  const token = dAppData.tokens && dAppData.tokens[0];
+const getTotalSupplyPrice = async (dAppData, exchangeableTokensWithPrices) => {
+  const tokens = dAppData.tokens || dAppData.contracts;
+  const token = tokens[0];
   if (!token) {
     return new BigNumber(0);
   }
   const exchangeableToken = exchangeableTokensWithPrices.find(
     ({ contract, token_id }) =>
-    contract === token.contract && token_id === token.token_id
+      contract === token.contract && token_id === token.token_id
   );
-  const tokenPrice = exchangeableToken ?
-    exchangeableToken.price :
-    new BigNumber(0);
+  const tokenPrice = exchangeableToken
+    ? exchangeableToken.price
+    : new BigNumber(0);
+  let tokenSupply = token.supply;
+  if (tokenSupply === undefined) {
+    const storage = await getStorage(contracts[0].address);
+    totalSupply = storage.total_supply || storage.totalSupply || 0;
+  }
   const tvl = new BigNumber(token.supply)
     .div(new BigNumber(10).pow(token.decimals))
     .multipliedBy(tokenPrice);
@@ -35,7 +41,7 @@ const getTotalSupplyPrice = async(dAppData, exchangeableTokensWithPrices) => {
 };
 
 const noValueLockedProjects = ["trianon", "equisafe"];
-const getDAppStats = async(dAppData, exchangeableTokensWithPrices) => {
+const getDAppStats = async (dAppData, exchangeableTokensWithPrices) => {
   const { slug, contracts, categories } = dAppData;
   const {
     data: tzExchangeRate,
@@ -54,7 +60,7 @@ const getDAppStats = async(dAppData, exchangeableTokensWithPrices) => {
         throw quipuswapExchangersError;
       }
       const contractsMutezLocked = await Promise.all(
-        quipuswapExchangers.map(async({ exchangerAddress }) => {
+        quipuswapExchangers.map(async ({ exchangerAddress }) => {
           const {
             storage: { tez_pool },
           } = await getStorage(exchangerAddress);
@@ -70,7 +76,7 @@ const getDAppStats = async(dAppData, exchangeableTokensWithPrices) => {
       };
     case slug === "dexter":
       const dexterContractsMutezLocked = await Promise.all(
-        contracts.map(async({ network, address }) => {
+        contracts.map(async ({ network, address }) => {
           if (network !== "mainnet") {
             return new BigNumber(0);
           }
@@ -105,7 +111,8 @@ const getDAppStats = async(dAppData, exchangeableTokensWithPrices) => {
       );
       const bigmapContents = await fetch(
         "https://tezos-mainnet-conseil.prod.gke.papers.tech/v2/data/tezos/mainnet/\
-big_map_contents", {
+big_map_contents",
+        {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -119,7 +126,8 @@ big_map_contents", {
               "big_map_id",
               "value",
             ],
-            predicates: [{
+            predicates: [
+              {
                 field: "big_map_id",
                 operation: "eq",
                 set: [bigmapId],
@@ -136,25 +144,25 @@ big_map_contents", {
       const nowTimestamp = Date.now();
       const biddedActiveAuctions = bigmapContents.filter(
         ({ key, value }) =>
-        bidsCounters[key] &&
-        Number(
-          value
-          .slice(2, -2)
-          .split(";")
-          .map((value) => value.trim())[3]
-        ) >=
-        nowTimestamp / 1000
+          bidsCounters[key] &&
+          Number(
+            value
+              .slice(2, -2)
+              .split(";")
+              .map((value) => value.trim())[3]
+          ) >=
+            nowTimestamp / 1000
       );
       const tzcolorsTvl = mutezBalance
         .plus(
           biddedActiveAuctions.reduce(
             (sum, { value }) =>
-            sum.plus(
-              value
-              .slice(2, -2)
-              .split(";")
-              .map((value) => value.trim())[5]
-            ),
+              sum.plus(
+                value
+                  .slice(2, -2)
+                  .split(";")
+                  .map((value) => value.trim())[5]
+              ),
             new BigNumber(0)
           )
         )
@@ -172,11 +180,14 @@ big_map_contents", {
       const latestValidEntry = priceHistory.priceHistories.find(
         ({ close }) => close !== null
       );
-      const tokenPrice = latestValidEntry ?
-        new BigNumber(latestValidEntry.close) :
-        new BigNumber(0);
+      const tokenPrice = latestValidEntry
+        ? new BigNumber(latestValidEntry.close)
+        : new BigNumber(0);
+      const aspenTotalSupply = dAppData.tokens
+        ? dAppData.tokens[0].supply
+        : (await getStorage(contracts[0].address)).total_supply;
       const aspenTvl = tokenPrice
-        .multipliedBy(dAppData.tokens[0].supply)
+        .multipliedBy(aspenTotalSupply)
         .div(tzExchangeRate);
       return { allDAppsTvlSummand: aspenTvl, tvl: aspenTvl };
     case slug === "kolibri":
@@ -218,7 +229,7 @@ big_map_contents", {
         return { allDAppsTvlSummand: new BigNumber(0), tvl: new BigNumber(0) };
       }
       const contractsStats = await Promise.all(
-        contracts.map(async({ address, network }) => {
+        contracts.map(async ({ address, network }) => {
           if (network !== "mainnet") {
             return {
               allDAppsTvlSummand: new BigNumber(0),
@@ -240,7 +251,7 @@ big_map_contents", {
             if (total > exchangeableTokensWithPrices.length) {
               await Promise.all(
                 exchangeableTokensWithPrices.map(
-                  async({ contract, token_id, decimals, price, symbol }) => {
+                  async ({ contract, token_id, decimals, price, symbol }) => {
                     const rawBalance = await getBalance(
                       address,
                       contract,
@@ -248,8 +259,8 @@ big_map_contents", {
                     );
                     dAppTvlSummand = dAppTvlSummand.plus(
                       new BigNumber(rawBalance)
-                      .div(new BigNumber(10).pow(decimals))
-                      .multipliedBy(price)
+                        .div(new BigNumber(10).pow(decimals))
+                        .multipliedBy(price)
                     );
                   }
                 )
@@ -262,14 +273,14 @@ big_map_contents", {
                     contract: candidateContract,
                     token_id: candidateTokenId,
                   }) =>
-                  candidateContract === contract &&
-                  candidateTokenId === token_id
+                    candidateContract === contract &&
+                    candidateTokenId === token_id
                 );
                 if (exchangeableToken) {
                   dAppTvlSummand = dAppTvlSummand.plus(
                     new BigNumber(balance)
-                    .div(new BigNumber(10).pow(decimals))
-                    .multipliedBy(exchangeableToken.price)
+                      .div(new BigNumber(10).pow(decimals))
+                      .multipliedBy(exchangeableToken.price)
                   );
                 }
               });
@@ -288,18 +299,19 @@ big_map_contents", {
             stats.allDAppsTvlSummand
           ),
           tvl: acc.tvl.plus(stats.dAppTvlSummand),
-        }), { allDAppsTvlSummand: new BigNumber(0), tvl: new BigNumber(0) }
+        }),
+        { allDAppsTvlSummand: new BigNumber(0), tvl: new BigNumber(0) }
       );
       return result;
   }
 };
 
 let dAppsSubscriptionsReady = false;
-const getDAppsStats = async() => {
+const getDAppsStats = async () => {
   logger.info("Getting dApps list...");
   const dApps = await getDApps();
   const dAppsWithDetails = await Promise.all(
-    dApps.map(async(dApp) => {
+    dApps.map(async (dApp) => {
       const { slug } = dApp;
       if (!dAppsSubscriptionsReady) {
         detailedDAppDataProvider.subscribe(slug);
@@ -334,19 +346,21 @@ const getDAppsStats = async() => {
   const exchangeableTokens = [
     ...quipuswapExchangers.map(
       ({ tokenMetadata, tokenId, tokenAddress }) =>
-      tokenMetadata || {
-        token_id: tokenId || 0,
-        contract: tokenAddress,
-        symbol: tokenAddress,
-        decimals: 0,
-      }
+        tokenMetadata || {
+          token_id: tokenId || 0,
+          contract: tokenAddress,
+          symbol: tokenAddress,
+          decimals: 0,
+        }
     ),
     ...dexterExchangeableTokens,
   ].reduce((uniqueTokens, token) => {
-    if (!uniqueTokens.find(
+    if (
+      !uniqueTokens.find(
         ({ token_id, contract }) =>
-        contract === token.contract && token_id === token.token_id
-      )) {
+          contract === token.contract && token_id === token.token_id
+      )
+    ) {
       uniqueTokens.push(token);
     }
     return uniqueTokens;
@@ -354,7 +368,7 @@ const getDAppsStats = async() => {
 
   logger.info("Getting exchangeable tokens prices...");
   const exchangeableTokensWithPrices = await Promise.all(
-    exchangeableTokens.map(async(token) => {
+    exchangeableTokens.map(async (token) => {
       const price = await getTokenExchangeRate(token);
       logger.info(token.symbol);
       return {
@@ -366,7 +380,7 @@ const getDAppsStats = async() => {
 
   logger.info("Getting TVL stats...");
   const dAppsStats = await Promise.all(
-    dAppsWithDetails.map(async(dapp) => {
+    dAppsWithDetails.map(async (dapp) => {
       const stats = await getDAppStats(dapp, exchangeableTokensWithPrices);
       logger.info(dapp.slug);
       return stats;

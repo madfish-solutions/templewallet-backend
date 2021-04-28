@@ -35,10 +35,10 @@ const dAppsProvider = new SingleQueryDataProvider(
   getDAppsStats
 );
 
-app.get("/api/dapps", async function(_req, res) {
+app.get("/api/dapps", async function (_req, res) {
   const { data, error } = await dAppsProvider.getState();
   if (error) {
-    res.status(500).send(error);
+    res.status(500).send({ error: error.message });
   } else {
     res.json(data);
   }

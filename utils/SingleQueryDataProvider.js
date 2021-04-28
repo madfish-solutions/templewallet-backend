@@ -28,7 +28,9 @@ class SingleQueryDataProvider {
       await this.state.setData({ data: result });
     } catch (e) {
       const timeSlot = 1000;
-      logger.error("Error in SingleQueryDataProvider", e);
+      logger.error(
+        `Error in SingleQueryDataProvider: ${e.message}\n${e.stack}`
+      );
       if (this.shouldGiveUp(e, c)) {
         await this.state.setData({ error: e });
       } else {
