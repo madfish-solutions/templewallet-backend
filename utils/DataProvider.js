@@ -9,7 +9,7 @@ function argsAreEqual(a, b) {
 class DataProvider {
   subscriptions = [];
 
-  constructor(refreshParams, fetchFn, shouldGiveUp = () => false) {
+  constructor(refreshParams, fetchFn, shouldGiveUp) {
     this.refreshParams = refreshParams;
     this.fetchFn = fetchFn;
     this.shouldGiveUp = shouldGiveUp;

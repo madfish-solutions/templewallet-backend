@@ -1,8 +1,11 @@
+const logger = require("./logger");
 const MutexProtectedData = require("./MutexProtectedData");
 const PromisifiedSemaphore = require("./PromisifiedSemaphore");
 
+const defaultShouldGiveUp = (e, c) => c > 9;
+
 class SingleQueryDataProvider {
-  constructor(refreshParams, fetchFn, shouldGiveUp = () => false) {
+  constructor(refreshParams, fetchFn, shouldGiveUp = defaultShouldGiveUp) {
     this.refreshParams = refreshParams;
     this.fetchFn = fetchFn;
     this.shouldGiveUp = shouldGiveUp;
@@ -25,12 +28,12 @@ class SingleQueryDataProvider {
       await this.state.setData({ data: result });
     } catch (e) {
       const timeSlot = 1000;
-      console.error("Error in SingleQueryDataProvider", e);
+      logger.error("Error in SingleQueryDataProvider", e);
       if (this.shouldGiveUp(e, c)) {
         await this.state.setData({ error: e });
       } else {
         await new Promise((resolve) => {
-          this.refetchRetryTimeout = setTimeout(async() => {
+          this.refetchRetryTimeout = setTimeout(async () => {
             await this.makeFetchAttempt(c + 1);
             resolve();
           }, Math.round((timeSlot * (2 ** c - 1)) / 2));
