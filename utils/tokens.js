@@ -2,12 +2,13 @@ const BigNumber = require("bignumber.js");
 const memoizee = require("memoizee");
 const {
   detailedDAppDataProvider,
-  getContractTokens,
+  contractTokensProvider,
 } = require("./better-call-dev");
 const { getTokenDescriptor, getStorage } = require("./tezos");
 const SingleQueryDataProvider = require("./SingleQueryDataProvider");
+const { range } = require("./helpers");
 
-const getQuipuswapExchangers = async() => {
+const getQuipuswapExchangers = async () => {
   const fa12FactoryStorages = await Promise.all(
     [
       "KT1K7whn5yHucGXMN7ymfKiX5r534QeaJM29",
@@ -17,17 +18,15 @@ const getQuipuswapExchangers = async() => {
   const fa2FactoryStorages = await Promise.all(
     [
       "KT1MMLb2FVrrE9Do74J3FH1RNNc4QhDuVCNX",
-      "KT1GDtv3sqhWeSsXLWgcGsmoH5nRRGJd8xVc",
+      "KT1SwH9P1Tx8a58Mm6qBExQFTcy2rwZyZiXS",
     ].map((factoryAddress) => getStorage(factoryAddress))
   );
   const rawFa12FactoryTokens = await Promise.all(
-    fa12FactoryStorages.map((storage) =>
-      storage.token_list.getMultipleValues(
-        Array(storage.counter.toNumber())
-        .fill(0)
-        .map((_x, index) => index)
-      )
-    )
+    fa12FactoryStorages.map((storage) => {
+      return storage.token_list.getMultipleValues(
+        range(0, storage.counter.toNumber())
+      );
+    })
   );
   const rawFa12Exchangers = await Promise.all(
     fa12FactoryStorages.map((storage, index) =>
@@ -41,11 +40,15 @@ const getQuipuswapExchangers = async() => {
       rawFa12Exchangers.map((rawFa12ExchangersChunk) => {
         return Promise.all(
           Object.entries(rawFa12ExchangersChunk).map(
-            async([tokenAddress, exchangerAddress]) => {
-              const tokensMetadata = await getContractTokens({
-                network: "mainnet",
-                address: tokenAddress,
-              });
+            async ([tokenAddress, exchangerAddress]) => {
+              await contractTokensProvider.subscribe("mainnet", tokenAddress);
+              const {
+                data: tokensMetadata,
+                error,
+              } = await contractTokensProvider.get("mainnet", tokenAddress);
+              if (error) {
+                throw error;
+              }
               return {
                 tokenAddress,
                 exchangerAddress,
@@ -56,21 +59,17 @@ const getQuipuswapExchangers = async() => {
         );
       })
     )
-  ).reduce((result, chunk) => [...result, ...chunk], []);
+  ).flat();
 
   const rawFa2FactoryTokens = await Promise.all(
     fa2FactoryStorages.map((storage) =>
-      storage.token_list.getMultipleValues(
-        Array(storage.counter.toNumber())
-        .fill(0)
-        .map((_x, index) => index)
-      )
+      storage.token_list.getMultipleValues(range(0, storage.counter.toNumber()))
     )
   );
   const rawFa2Exchangers = await Promise.all(
     rawFa2FactoryTokens.map((rawTokens, index) => {
       return Promise.all(
-        Object.values(rawTokens).map(async(token) => [
+        Object.values(rawTokens).map(async (token) => [
           token,
           await fa2FactoryStorages[index].token_to_exchange.get(token),
         ])
@@ -81,23 +80,32 @@ const getQuipuswapExchangers = async() => {
     await Promise.all(
       rawFa2Exchangers.map((exchangersPart) => {
         return Promise.all(
-          exchangersPart.map(async([tokenDescriptor, exchangerAddress]) => {
-            const tokensMetadata = await getContractTokens({
-              network: "mainnet",
-              address: tokenDescriptor[0],
-              token_id: tokenDescriptor[1].toNumber(),
-            });
+          exchangersPart.map(async ([tokenDescriptor, exchangerAddress]) => {
+            const address = tokenDescriptor[0];
+            const token_id = tokenDescriptor[1].toNumber();
+            await contractTokensProvider.subscribe(
+              "mainnet",
+              address,
+              token_id
+            );
+            const {
+              data: tokensMetadata,
+              error,
+            } = await contractTokensProvider.get("mainnet", address, token_id);
+            if (error) {
+              throw error;
+            }
             return {
               exchangerAddress,
-              tokenAddress: tokenDescriptor[0],
-              tokenId: tokenDescriptor[1].toNumber(),
+              tokenAddress: address,
+              tokenId: token_id,
               tokenMetadata: tokensMetadata ? tokensMetadata[0] : undefined,
             };
           })
         );
       })
     )
-  ).reduce((result, chunk) => [...result, ...chunk], []);
+  ).flat();
   return [...fa12Exchangers, ...fa2Exchangers];
 };
 const quipuswapExchangersDataProvider = new SingleQueryDataProvider(
@@ -107,7 +115,7 @@ const quipuswapExchangersDataProvider = new SingleQueryDataProvider(
 
 const LIQUIDITY_INTERVAL = 120000;
 const getTokenExchangeRate = memoizee(
-  async({ contract: tokenAddress, decimals, token_id }) => {
+  async ({ contract: tokenAddress, decimals, token_id }) => {
     const {
       data: dexterDAppData,
       error: dexterDAppError,
@@ -126,12 +134,12 @@ const getTokenExchangeRate = memoizee(
     const tokenElementaryParts = new BigNumber(10).pow(decimals);
     const matchingQuipuswapExchangers = quipuswapExchangers.filter(
       ({ tokenAddress: swappableTokenAddress, tokenId: swappableTokenId }) =>
-      tokenAddress === swappableTokenAddress &&
-      (swappableTokenId === undefined || swappableTokenId === token_id)
+        tokenAddress === swappableTokenAddress &&
+        (swappableTokenId === undefined || swappableTokenId === token_id)
     );
     if (matchingQuipuswapExchangers.length > 0) {
       const exchangersCharacteristics = await Promise.all(
-        matchingQuipuswapExchangers.map(async({ exchangerAddress }) => {
+        matchingQuipuswapExchangers.map(async ({ exchangerAddress }) => {
           const {
             storage: { tez_pool, token_pool },
           } = await getStorage(exchangerAddress);
@@ -154,7 +162,7 @@ const getTokenExchangeRate = memoizee(
         quipuswapExchangeRate = exchangersCharacteristics
           .reduce(
             (sum, { weight, exchangeRate }) =>
-            sum.plus(weight.multipliedBy(exchangeRate)),
+              sum.plus(weight.multipliedBy(exchangeRate)),
             new BigNumber(0)
           )
           .div(quipuswapWeight);
@@ -191,10 +199,31 @@ const getTokenExchangeRate = memoizee(
       .multipliedBy(quipuswapWeight)
       .plus(dexterExchangeRate.multipliedBy(dexterWeight))
       .div(quipuswapWeight.plus(dexterWeight));
-  }, { promise: true, maxAge: LIQUIDITY_INTERVAL }
+  },
+  { promise: true, maxAge: LIQUIDITY_INTERVAL }
 );
+
+const getTotalSupplyPrice = async (token, exchangeableTokensWithPrices) => {
+  const exchangeableToken = exchangeableTokensWithPrices.find(
+    ({ contract, token_id }) =>
+      contract === token.contract && token_id === token.token_id
+  );
+  const tokenPrice = exchangeableToken
+    ? exchangeableToken.price
+    : new BigNumber(0);
+  let tokenSupply = token.supply;
+  if (tokenSupply === undefined) {
+    const storage = await getStorage(contracts[0].address);
+    totalSupply = storage.total_supply || storage.totalSupply || 0;
+  }
+  const tvl = new BigNumber(token.supply)
+    .div(new BigNumber(10).pow(token.decimals))
+    .multipliedBy(tokenPrice);
+  return tvl;
+};
 
 module.exports = {
   getTokenExchangeRate,
+  getTotalSupplyPrice,
   quipuswapExchangersDataProvider,
 };

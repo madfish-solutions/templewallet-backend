@@ -6,6 +6,10 @@ class MutexProtectedData {
     this.mutex = new PromisifiedSemaphore();
   }
 
+  exec(task) {
+    return this.mutex.exec(task);
+  }
+
   setData(newData) {
     return this.mutex.exec(() => {
       this.data = newData;

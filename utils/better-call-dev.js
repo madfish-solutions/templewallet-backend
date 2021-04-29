@@ -1,35 +1,9 @@
-const memoizee = require("memoizee");
-const qs = require("qs");
 const DataProvider = require("./DataProvider");
-const { fetch } = require("./fetch");
+const makeBuildQueryFn = require("./makeBuildQueryFn");
 
 const BCD_BASE_URL = "https://better-call.dev/v1";
 
-function pick(obj, keys) {
-  const newObj = {};
-  keys.forEach((key) => {
-    if (key in obj) {
-      newObj[key] = obj[key];
-    }
-  });
-  return newObj;
-}
-
-function buildQuery(path, toQueryParams) {
-  return (params) => {
-      const url = typeof path === "function" ? path(params) : path;
-      const queryParams =
-        typeof toQueryParams === "function" ?
-        toQueryParams(params) :
-        toQueryParams ?
-        pick(params, toQueryParams) :
-        {};
-      const queryStr = qs.stringify(queryParams);
-      return fetch(
-          `${BCD_BASE_URL}${url}${queryStr.length === 0 ? "" : `?${queryStr}`}`
-    );
-  };
-}
+const buildQuery = makeBuildQueryFn(BCD_BASE_URL);
 
 const getSeries = buildQuery(
   `/stats/mainnet/series`,
@@ -97,12 +71,21 @@ const getAccountTokenBalances = buildQuery(
   ["offset", "size", "contract"]
 );
 
-const getContractTokens = memoizee(
-  buildQuery(
-    (params) => `/contract/${params.network}/${params.address}/tokens`,
-    ["size", "offset", "token_id"]
-  ),
-  { maxAge: 24 * 3600 * 1000, promise: true }
+const getContractTokens = buildQuery(
+  (params) => `/contract/${params.network}/${params.address}/tokens`,
+  ["size", "offset", "token_id"]
+);
+
+const contractTokensProvider = new DataProvider(
+  24 * 3600 * 1000,
+  (network, address, token_id, size, offset) =>
+    getContractTokens({
+      network,
+      address,
+      size,
+      offset,
+      token_id,
+    })
 );
 
 const detailedDAppDataProvider = new DataProvider(14 * 60 * 1000, (slug) =>
@@ -114,5 +97,5 @@ module.exports = {
   getAccountTokenBalances,
   getDApps,
   getDAppDetails,
-  getContractTokens,
+  contractTokensProvider,
 };

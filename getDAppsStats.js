@@ -1,4 +1,5 @@
 const BigNumber = require("bignumber.js");
+const tzwrapEthTokensProvider = require("./tzwrapEthTokensProvider");
 const {
   getAccountTokenBalances,
   getDApps,
@@ -13,32 +14,9 @@ const {
 } = require("./utils/tezos");
 const {
   getTokenExchangeRate,
+  getTotalSupplyPrice,
   quipuswapExchangersDataProvider,
 } = require("./utils/tokens");
-
-const getTotalSupplyPrice = async (dAppData, exchangeableTokensWithPrices) => {
-  const tokens = dAppData.tokens || dAppData.contracts;
-  const token = tokens[0];
-  if (!token) {
-    return new BigNumber(0);
-  }
-  const exchangeableToken = exchangeableTokensWithPrices.find(
-    ({ contract, token_id }) =>
-      contract === token.contract && token_id === token.token_id
-  );
-  const tokenPrice = exchangeableToken
-    ? exchangeableToken.price
-    : new BigNumber(0);
-  let tokenSupply = token.supply;
-  if (tokenSupply === undefined) {
-    const storage = await getStorage(contracts[0].address);
-    totalSupply = storage.total_supply || storage.totalSupply || 0;
-  }
-  const tvl = new BigNumber(token.supply)
-    .div(new BigNumber(10).pow(token.decimals))
-    .multipliedBy(tokenPrice);
-  return tvl;
-};
 
 const noValueLockedProjects = ["trianon", "equisafe"];
 const getDAppStats = async (dAppData, exchangeableTokensWithPrices) => {
@@ -204,7 +182,10 @@ big_map_contents",
         new BigNumber(0)
       );
       const kolibriTvl = (
-        await getTotalSupplyPrice(dAppData, exchangeableTokensWithPrices)
+        await getTotalSupplyPrice(
+          dAppData.tokens[0],
+          exchangeableTokensWithPrices
+        )
       ).plus(ovenMutezLocked.div(1e6));
       return { allDAppsTvlSummand: kolibriTvl, tvl: kolibriTvl };
     case slug === "stakerdao":
@@ -218,9 +199,45 @@ big_map_contents",
       const totalSupply = storage[6];
       const stakerdaoTvl = totalSupply.times(exchangeableToken.price);
       return { allDAppsTvlSummand: new BigNumber(0), tvl: stakerdaoTvl };
+    case slug === "tzwrap":
+      const {
+        data: ethTokens,
+        error: ethTokensError,
+      } = await tzwrapEthTokensProvider.getState();
+      if (ethTokensError) {
+        throw ethTokensError;
+      }
+      const tzwrapEthTvl = ethTokens
+        .reduce(
+          (sum, { price, decimals, supply }) =>
+            sum.plus(
+              new BigNumber(supply)
+                .div(new BigNumber(10).pow(decimals))
+                .multipliedBy(price)
+            ),
+          new BigNumber(0)
+        )
+        .div(tzExchangeRate);
+      const governanceToken = dAppData.tokens.find(
+        ({ symbol }) => symbol.toLowerCase() === "wrap"
+      );
+      const governanceExchangeableToken = exchangeableTokensWithPrices.find(
+        ({ contract, token_id }) =>
+          contract === governanceToken.contract &&
+          token_id === governanceToken.token_id
+      );
+      const governanceTvl = governanceExchangeableToken
+        ? new BigNumber(governanceToken.supply)
+            .div(new BigNumber(10).pow(governanceToken.decimals))
+            .multipliedBy(governanceExchangeableToken.price)
+        : 0;
+      return {
+        allDAppsTvlSummand: new BigNumber(0),
+        tvl: tzwrapEthTvl.plus(governanceTvl),
+      };
     case categories.includes("Token"):
       const tvl = await getTotalSupplyPrice(
-        dAppData,
+        dAppData.tokens[0],
         exchangeableTokensWithPrices
       );
       return { allDAppsTvlSummand: tvl, tvl };
@@ -314,7 +331,7 @@ const getDAppsStats = async () => {
     dApps.map(async (dApp) => {
       const { slug } = dApp;
       if (!dAppsSubscriptionsReady) {
-        detailedDAppDataProvider.subscribe(slug);
+        await detailedDAppDataProvider.subscribe(slug);
       }
       const { data, error } = await detailedDAppDataProvider.get(slug);
       if (error) {
@@ -381,18 +398,29 @@ const getDAppsStats = async () => {
   logger.info("Getting TVL stats...");
   const dAppsStats = await Promise.all(
     dAppsWithDetails.map(async (dapp) => {
-      const stats = await getDAppStats(dapp, exchangeableTokensWithPrices);
+      let stats;
+      try {
+        stats = await getDAppStats(dapp, exchangeableTokensWithPrices);
+      } catch (e) {
+        logger.error(`${e.message}\n${e.stack}`);
+        stats = {
+          allDAppsTvlSummand: new BigNumber(0),
+          tvl: new BigNumber(0),
+          errorOccurred: true,
+        };
+      }
       logger.info(dapp.slug);
       return stats;
     })
   );
-  logger.info("Aggregating results...");
+  logger.info("All data was fetched");
 
   return {
     dApps: dApps
       .map((dApp, index) => ({
         ...dApp,
         tvl: dAppsStats[index].tvl.decimalPlaces(6).toFixed(),
+        errorOccurred: dAppsStats[index].errorOccurred,
       }))
       .sort(({ slug: aSlug }, { slug: bSlug }) => {
         const aEstimatedUsersPerMonth = dAppsWithDetails.find(

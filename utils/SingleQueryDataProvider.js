@@ -64,9 +64,6 @@ class SingleQueryDataProvider {
     if (this.refetchRetryTimeout !== undefined) {
       clearTimeout(this.refetchRetryTimeout);
     }
-    if (this.waitForReadyInterval !== undefined) {
-      clearInterval(this.waitForReadyInterval);
-    }
   }
 }
 

@@ -35,23 +35,22 @@ mainnetToolkit.setPackerProvider(michelEncoder);
 
 const getContract = memoizee(
   (address, shouldUseWallet) =>
-  shouldUseWallet ?
-  mainnetToolkit.wallet.at(address, tzip12) :
-  mainnetToolkit.contract.at(address), { promise: true }
+    shouldUseWallet
+      ? mainnetToolkit.wallet.at(address, tzip12)
+      : mainnetToolkit.contract.at(address),
+  { promise: true }
 );
 
 const getStorage = memoizee(
-  async(contractAddress) => {
-    if (!contractAddress) {
-      throw new Error("oy vey");
-    }
+  async (contractAddress) => {
     const contract = await getContract(contractAddress);
     return contract.storage();
-  }, { promise: true, maxAge: 30000 }
+  },
+  { promise: true, maxAge: 30000 }
 );
 
 const getTokenDescriptor = memoizee(
-  async(exchangeContractAddress, contractType) => {
+  async (exchangeContractAddress, contractType) => {
     const storage = await getStorage(exchangeContractAddress);
     if (contractType === "quipuswap") {
       const { token_address, token_id } = storage.storage;
@@ -64,10 +63,11 @@ const getTokenDescriptor = memoizee(
       address: storage.tokenAddress,
       tokenId: storage.tokenId && storage.tokenId.toNumber(),
     };
-  }, { promise: true }
+  },
+  { promise: true }
 );
 
-const getTezExchangeRate = async() => {
+const getTezExchangeRate = async () => {
   const marketTickers = await fetch("https://api.tzstats.com/markets/tickers");
   const usdTickers = marketTickers.filter((e) => e.quote === "USD");
   // price index: use all USD ticker last prices with equal weight
@@ -83,7 +83,7 @@ const tezExchangeRateProvider = new SingleQueryDataProvider(
 );
 
 const lambdaContractAddress = "KT1CPuTzwC7h7uLXd5WQmpMFso1HxrLBUtpE";
-const getBalance = async(pkh, tokenAddress, tokenId) => {
+const getBalance = async (pkh, tokenAddress, tokenId) => {
   if (!tokenAddress) {
     return mainnetToolkit.rpc.getBalance(pkh);
   }
@@ -114,7 +114,7 @@ const getBalance = async(pkh, tokenAddress, tokenId) => {
   throw new Error("Not Supported");
 };
 
-const getTotalSupply = async(tokenAddress, tokenId) => {
+const getTotalSupply = async (tokenAddress, tokenId) => {
   const lambdaViewContract = await getContract(tokenAddress);
   if (lambdaViewContract.views.getTotalSupply) {
     try {
