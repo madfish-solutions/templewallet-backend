@@ -45,7 +45,6 @@ class DataProvider {
     if (subscription) {
       return subscription.dataProvider.getState();
     }
-    console.log("oy vey", args, subscriptions);
     try {
       const data = await this.fetchFn(...args);
       return { data };
