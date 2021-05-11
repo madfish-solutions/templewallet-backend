@@ -1,0 +1,11 @@
+{
+	"apps": [
+		{
+			"name": "dapps",
+			"script": "./dapps-list-backend/dapps.js",
+			"env": {
+				"PORT": "3000"
+			}
+		}
+	]
+}
