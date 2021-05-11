@@ -1,7 +1,7 @@
 const DataProvider = require("./DataProvider");
 const makeBuildQueryFn = require("./makeBuildQueryFn");
 
-const BCD_BASE_URL = "https://better-call.dev/v1";
+const BCD_BASE_URL = "https://api.better-call.dev/v1";
 
 const buildQuery = makeBuildQueryFn(BCD_BASE_URL);
 
@@ -37,10 +37,8 @@ const getDAppDetails = async ({ slug }) => {
   if (lastSeries.length === 1) {
     estimatedUsersPerMonth = lastSeries[0][1];
   } else if (lastSeries.length > 1) {
-    const [
-      [, prevMonthUsers],
-      [currentMonthTimestamp, currentMonthUsers],
-    ] = lastSeries;
+    const [[, prevMonthUsers], [currentMonthTimestamp, currentMonthUsers]] =
+      lastSeries;
     const nowTimestamp = Date.now();
     const currentMonthPartMs = nowTimestamp - currentMonthTimestamp;
     const oneWeekMs = 7 * 24 * 3600 * 1000;
