@@ -3,7 +3,7 @@ const makeBuildQueryFn = require("./makeBuildQueryFn");
 
 const BCD_BASE_URL = "https://api.better-call.dev/v1";
 
-const buildQuery = makeBuildQueryFn(BCD_BASE_URL);
+const buildQuery = makeBuildQueryFn(BCD_BASE_URL, 5);
 
 const getSeries = buildQuery(
   `/stats/mainnet/series`,

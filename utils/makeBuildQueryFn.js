@@ -1,5 +1,6 @@
 const qs = require("qs");
 const { fetch } = require("./fetch");
+const PromisifiedSemaphore = require("./PromisifiedSemaphore");
 
 function pick(obj, keys) {
   const newObj = {};
@@ -11,9 +12,12 @@ function pick(obj, keys) {
   return newObj;
 }
 
-function makeBuildQueryFn(baseUrl) {
+function makeBuildQueryFn(baseUrl, maxConcurrentQueries) {
+  const semaphore = maxConcurrentQueries
+    ? new PromisifiedSemaphore(maxConcurrentQueries)
+    : undefined;
   return (path, toQueryParams) => {
-    return (params) => {
+    return async (params) => {
       const url = typeof path === "function" ? path(params) : path;
       const queryParams =
         typeof toQueryParams === "function"
@@ -22,9 +26,17 @@ function makeBuildQueryFn(baseUrl) {
           ? pick(params, toQueryParams)
           : {};
       const queryStr = qs.stringify(queryParams);
-      return fetch(
-        `${baseUrl}${url}${queryStr.length === 0 ? "" : `?${queryStr}`}`
-      );
+      const fullUrl = `${baseUrl}${url}${
+        queryStr.length === 0 ? "" : `?${queryStr}`
+      }`;
+      if (semaphore) {
+        let result;
+        await semaphore.exec(async () => {
+          result = await fetch(fullUrl);
+        });
+        return result;
+      }
+      return fetch(fullUrl);
     };
   };
 }

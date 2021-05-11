@@ -14,11 +14,16 @@ class PromisifiedSemaphore {
   }
 
   exec(task, n = 1) {
-    return new Promise((resolve) => {
-      this.semaphore.take(n, async() => {
-        await task();
-        this.semaphore.leave(n);
-        resolve();
+    return new Promise((resolve, reject) => {
+      this.semaphore.take(n, async () => {
+        try {
+          await task();
+          resolve();
+        } catch (e) {
+          reject(e);
+        } finally {
+          this.semaphore.leave(n);
+        }
       });
     });
   }

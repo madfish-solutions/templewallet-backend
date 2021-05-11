@@ -21,19 +21,15 @@ const {
 const noValueLockedProjects = ["trianon", "equisafe"];
 const getDAppStats = async (dAppData, exchangeableTokensWithPrices) => {
   const { slug, contracts, categories } = dAppData;
-  const {
-    data: tzExchangeRate,
-    error: tzExchangeRateError,
-  } = await tezExchangeRateProvider.getState();
+  const { data: tzExchangeRate, error: tzExchangeRateError } =
+    await tezExchangeRateProvider.getState();
   if (tzExchangeRateError) {
     throw tzExchangeRateError;
   }
   switch (true) {
     case slug === "quipuswap":
-      const {
-        data: quipuswapExchangers,
-        error: quipuswapExchangersError,
-      } = await quipuswapExchangersDataProvider.getState();
+      const { data: quipuswapExchangers, error: quipuswapExchangersError } =
+        await quipuswapExchangersDataProvider.getState();
       if (quipuswapExchangersError) {
         throw quipuswapExchangersError;
       }
@@ -50,6 +46,7 @@ const getDAppStats = async (dAppData, exchangeableTokensWithPrices) => {
         .div(1e6);
       return {
         allDAppsTvlSummand: totalTezLocked,
+        totalTezLocked,
         tvl: totalTezLocked.multipliedBy(2),
       };
     case slug === "dexter":
@@ -67,12 +64,14 @@ const getDAppStats = async (dAppData, exchangeableTokensWithPrices) => {
         .div(1e6);
       return {
         allDAppsTvlSummand: dexterTotalTezLocked,
+        totalTezLocked: dexterTotalTezLocked,
         tvl: dexterTotalTezLocked.multipliedBy(2),
       };
     case slug === "tzbutton":
       const tzButtonTvl = (await getBalance(contracts[0].address)).div(1e6);
       return {
         allDAppsTvlSummand: tzButtonTvl,
+        totalTezLocked: tzButtonTvl,
         tvl: tzButtonTvl,
       };
     case slug === "tzcolors":
@@ -94,7 +93,7 @@ big_map_contents",
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            apikey: "airgap00391",
+            apiKey: "airgap00391",
           },
           body: JSON.stringify({
             fields: [
@@ -147,10 +146,15 @@ big_map_contents",
         .div(1e6);
       return {
         allDAppsTvlSummand: tzcolorsTvl,
+        totalTezLocked: mutezBalance.div(1e6),
         tvl: tzcolorsTvl,
       };
     case noValueLockedProjects.includes(slug):
-      return { allDAppsTvlSummand: new BigNumber(0), tvl: new BigNumber(0) };
+      return {
+        allDAppsTvlSummand: new BigNumber(0),
+        totalTezLocked: new BigNumber(0),
+        tvl: new BigNumber(0),
+      };
     case slug === "aspencoin":
       const priceHistory = await fetch(
         "https://gateway-web-markets.tzero.com/mdt/public-pricehistory/ASPD?page=1"
@@ -167,7 +171,11 @@ big_map_contents",
       const aspenTvl = tokenPrice
         .multipliedBy(aspenTotalSupply)
         .div(tzExchangeRate);
-      return { allDAppsTvlSummand: aspenTvl, tvl: aspenTvl };
+      return {
+        allDAppsTvlSummand: aspenTvl,
+        totalTezLocked: new BigNumber(0),
+        tvl: aspenTvl,
+      };
     case slug === "kolibri":
       const { allOvenData } = await fetch(
         "https://kolibri-data.s3.amazonaws.com/mainnet/oven-data.json"
@@ -181,29 +189,40 @@ big_map_contents",
         },
         new BigNumber(0)
       );
+      const kolibriTotalTezLocked = ovenMutezLocked.div(1e6);
       const kolibriTvl = (
         await getTotalSupplyPrice(
           dAppData.tokens[0],
           exchangeableTokensWithPrices
         )
-      ).plus(ovenMutezLocked.div(1e6));
-      return { allDAppsTvlSummand: kolibriTvl, tvl: kolibriTvl };
+      ).plus(kolibriTotalTezLocked);
+      return {
+        allDAppsTvlSummand: kolibriTvl,
+        totalTezLocked: kolibriTotalTezLocked,
+        tvl: kolibriTvl,
+      };
     case slug === "stakerdao":
       const exchangeableToken = exchangeableTokensWithPrices.find(
         ({ contract }) => contract === contracts[0].address
       );
       if (!exchangeableToken) {
-        return { allDAppsTvlSummand: new BigNumber(0), tvl: new BigNumber(0) };
+        return {
+          allDAppsTvlSummand: new BigNumber(0),
+          totalTezLocked: new BigNumber(0),
+          tvl: new BigNumber(0),
+        };
       }
       const storage = await getStorage(contracts[0].address);
       const totalSupply = storage[6];
       const stakerdaoTvl = totalSupply.times(exchangeableToken.price);
-      return { allDAppsTvlSummand: new BigNumber(0), tvl: stakerdaoTvl };
+      return {
+        allDAppsTvlSummand: new BigNumber(0),
+        totalTezLocked: new BigNumber(0),
+        tvl: stakerdaoTvl,
+      };
     case slug === "tzwrap":
-      const {
-        data: ethTokens,
-        error: ethTokensError,
-      } = await tzwrapEthTokensProvider.getState();
+      const { data: ethTokens, error: ethTokensError } =
+        await tzwrapEthTokensProvider.getState();
       if (ethTokensError) {
         throw ethTokensError;
       }
@@ -233,6 +252,7 @@ big_map_contents",
         : 0;
       return {
         allDAppsTvlSummand: new BigNumber(0),
+        totalTezLocked: new BigNumber(0),
         tvl: tzwrapEthTvl.plus(governanceTvl),
       };
     case categories.includes("Token"):
@@ -240,10 +260,14 @@ big_map_contents",
         dAppData.tokens[0],
         exchangeableTokensWithPrices
       );
-      return { allDAppsTvlSummand: tvl, tvl };
+      return { allDAppsTvlSummand: tvl, totalTezLocked: new BigNumber(0), tvl };
     default:
       if (!contracts) {
-        return { allDAppsTvlSummand: new BigNumber(0), tvl: new BigNumber(0) };
+        return {
+          allDAppsTvlSummand: new BigNumber(0),
+          totalTezLocked: new BigNumber(0),
+          tvl: new BigNumber(0),
+        };
       }
       const contractsStats = await Promise.all(
         contracts.map(async ({ address, network }) => {
@@ -310,7 +334,7 @@ big_map_contents",
           };
         })
       );
-      const result = contractsStats.reduce(
+      const sum = contractsStats.reduce(
         (acc, stats) => ({
           allDAppsTvlSummand: acc.allDAppsTvlSummand.plus(
             stats.allDAppsTvlSummand
@@ -319,7 +343,10 @@ big_map_contents",
         }),
         { allDAppsTvlSummand: new BigNumber(0), tvl: new BigNumber(0) }
       );
-      return result;
+      return {
+        ...sum,
+        totalTezLocked: new BigNumber(sum.allDAppsTvlSummand),
+      };
   }
 };
 
@@ -343,20 +370,16 @@ const getDAppsStats = async () => {
   dAppsSubscriptionsReady = true;
 
   logger.info("Getting exchangeable tokens...");
-  const {
-    data: dexterDAppData,
-    error: dexterDAppError,
-  } = await detailedDAppDataProvider.get("dexter");
+  const { data: dexterDAppData, error: dexterDAppError } =
+    await detailedDAppDataProvider.get("dexter");
   if (dexterDAppError) {
     throw dexterDAppError;
   }
   const dexterExchangeableTokens = dexterDAppData.dex_tokens.filter(
     ({ network }) => network === "mainnet"
   );
-  const {
-    data: quipuswapExchangers,
-    error: quipuswapExchangersError,
-  } = await quipuswapExchangersDataProvider.getState();
+  const { data: quipuswapExchangers, error: quipuswapExchangersError } =
+    await quipuswapExchangersDataProvider.getState();
   if (quipuswapExchangersError) {
     throw quipuswapExchangersError;
   }
@@ -405,6 +428,7 @@ const getDAppsStats = async () => {
         logger.error(`${e.message}\n${e.stack}`);
         stats = {
           allDAppsTvlSummand: new BigNumber(0),
+          totalTezLocked: new BigNumber(0),
           tvl: new BigNumber(0),
           errorOccurred: true,
         };
@@ -434,6 +458,13 @@ const getDAppsStats = async () => {
     tvl: dAppsStats
       .reduce(
         (sum, { allDAppsTvlSummand }) => sum.plus(allDAppsTvlSummand),
+        new BigNumber(0)
+      )
+      .decimalPlaces(6)
+      .toFixed(),
+    totalTezLocked: dAppsStats
+      .reduce(
+        (sum, { totalTezLocked }) => sum.plus(totalTezLocked),
         new BigNumber(0)
       )
       .decimalPlaces(6)
