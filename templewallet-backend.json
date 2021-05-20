@@ -1,7 +1,7 @@
 {
   "apps": [
     {
-      "name": "dapps",
+      "name": "templewallet-backend",
       "script": "./dist/index.js",
       "env": {
         "PORT": "3000",
