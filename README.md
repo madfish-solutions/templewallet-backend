@@ -52,4 +52,4 @@ location /api/exchange-rates/ {
 }
 ```
 
-Replace 3000 with the respective port number if the backend is listening on a different one.
+Replace 3000 with the respective port number if the backend is listening on a different one. Restart nginx using `sudo systemctl restart nginx` after changes are saved.
