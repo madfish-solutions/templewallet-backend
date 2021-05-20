@@ -16,4 +16,4 @@ Use `yarn run build` for building.
 
 ## Running with pm2
 
-You can run the built backend using `pm2 restart dapps.json`.
+You can run the built backend using `pm2 restart templewallet-backend.json`.
