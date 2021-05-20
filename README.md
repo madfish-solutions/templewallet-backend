@@ -14,6 +14,10 @@ The Express backend which helps Temple Wallet to decrease amount of requests to 
 
 Use `yarn run build` for building.
 
+## Building and running using Docker
+
+Setup environment variables by creating `.env` file with variables like in `.env.example`. Then follow the instructions on [Building your image](https://nodejs.org/en/docs/guides/nodejs-docker-webapp/#building-your-image) and [Running the image](https://nodejs.org/en/docs/guides/nodejs-docker-webapp/#building-your-image). Change the port number in both `.env` and `Dockerfile` if the webapp should be run on another port than 3000.
+
 ## Running with pm2
 
 You can run the built backend using `pm2 restart dapps.json`.
