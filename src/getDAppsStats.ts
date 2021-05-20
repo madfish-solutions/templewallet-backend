@@ -396,7 +396,7 @@ const getDAppsStats = async () => {
     dApps: dApps
       .map((dApp, index) => ({
         ...dApp,
-        tvl: dAppsStats[index].tvl.decimalPlaces(6).toFixed(),
+        tvl: dAppsStats[index].tvl.decimalPlaces(2).toFixed(),
         errorOccurred: dAppsStats[index].errorOccurred,
       }))
       .sort(({ slug: aSlug }, { slug: bSlug }) => {
