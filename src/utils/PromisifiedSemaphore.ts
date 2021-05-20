@@ -1,6 +1,8 @@
-const semaphore = require("semaphore");
+import semaphore, { Semaphore } from "semaphore";
 
-class PromisifiedSemaphore {
+export default class PromisifiedSemaphore {
+  private semaphore: Semaphore;
+
   constructor(capacity = 1) {
     this.semaphore = semaphore(capacity);
   }
@@ -13,8 +15,8 @@ class PromisifiedSemaphore {
     return this.semaphore.available(n);
   }
 
-  exec(task, n = 1) {
-    return new Promise((resolve, reject) => {
+  exec(task: () => void | Promise<void>, n = 1) {
+    return new Promise<void>((resolve, reject) => {
       this.semaphore.take(n, async () => {
         try {
           await task();
@@ -28,5 +30,3 @@ class PromisifiedSemaphore {
     });
   }
 }
-
-module.exports = PromisifiedSemaphore;

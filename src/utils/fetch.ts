@@ -1,15 +1,17 @@
-const crossFetch = require("cross-fetch");
+import crossFetch from "cross-fetch";
 
-class InvalidStatusError extends Error {
-  constructor(message, status) {
+export class InvalidStatusError extends Error {
+  constructor(message: string, public status: number) {
     super(message);
-    this.status = status;
   }
 }
 
-class NotOkFetchError extends Error {}
+export class NotOkFetchError extends Error {}
 
-async function fetch(url, init) {
+export default async function fetch<T>(
+  url: string,
+  init?: RequestInit
+): Promise<T> {
   const res = await crossFetch(url, init);
 
   const body = await res.json();
@@ -21,9 +23,3 @@ async function fetch(url, init) {
   }
   return body;
 }
-
-module.exports = {
-  InvalidStatusError,
-  NotOkFetchError,
-  fetch,
-};

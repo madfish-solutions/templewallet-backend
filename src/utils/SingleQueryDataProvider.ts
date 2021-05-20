@@ -1,14 +1,30 @@
-const logger = require("./logger");
-const MutexProtectedData = require("./MutexProtectedData");
-const PromisifiedSemaphore = require("./PromisifiedSemaphore");
+import logger from "./logger";
+import MutexProtectedData from "./MutexProtectedData";
+import PromisifiedSemaphore from "./PromisifiedSemaphore";
 
-const defaultShouldGiveUp = (e, c) => c > 9;
+export type SingleQueryDataProviderState<T> = {
+  data?: T;
+  error?: Error;
+};
 
-class SingleQueryDataProvider {
-  constructor(refreshParams, fetchFn, shouldGiveUp = defaultShouldGiveUp) {
-    this.refreshParams = refreshParams;
-    this.fetchFn = fetchFn;
-    this.shouldGiveUp = shouldGiveUp;
+const defaultShouldGiveUp = (_e: Error, c: number) => c > 9;
+
+export default class SingleQueryDataProvider<T> {
+  private state: MutexProtectedData<SingleQueryDataProviderState<T>>;
+
+  private fetchMutex: PromisifiedSemaphore;
+
+  private readyMutex: PromisifiedSemaphore;
+
+  private refetchInterval: NodeJS.Timeout | undefined;
+
+  private refetchRetryTimeout: NodeJS.Timeout | undefined;
+
+  constructor(
+    private refreshParams: number,
+    private fetchFn: () => Promise<T>,
+    private shouldGiveUp = defaultShouldGiveUp
+  ) {
     this.fetchMutex = new PromisifiedSemaphore();
     this.readyMutex = new PromisifiedSemaphore();
     this.state = new MutexProtectedData({});
@@ -34,7 +50,7 @@ class SingleQueryDataProvider {
       if (this.shouldGiveUp(e, c)) {
         await this.state.setData({ error: e });
       } else {
-        await new Promise((resolve) => {
+        await new Promise<void>((resolve) => {
           this.refetchRetryTimeout = setTimeout(async () => {
             await this.makeFetchAttempt(c + 1);
             resolve();
@@ -66,5 +82,3 @@ class SingleQueryDataProvider {
     }
   }
 }
-
-module.exports = SingleQueryDataProvider;

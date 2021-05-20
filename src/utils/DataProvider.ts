@@ -1,21 +1,33 @@
-const MutexProtectedData = require("./MutexProtectedData");
-const SingleQueryDataProvider = require("./SingleQueryDataProvider");
+import MutexProtectedData from "./MutexProtectedData";
+import SingleQueryDataProvider, {
+  SingleQueryDataProviderState,
+} from "./SingleQueryDataProvider";
 
-function argsAreEqual(a, b) {
+type DataSubscriptionItem<T, A extends any[]> = {
+  dataProvider: SingleQueryDataProvider<T>;
+  args: A;
+};
+
+function argsAreEqual<A extends any[]>(a: A, b: A) {
   return (
     a.length === b.length && a.every((aValue, index) => b[index] === aValue)
   );
 }
 
-class DataProvider {
-  constructor(refreshParams, fetchFn, shouldGiveUp = undefined) {
-    this.subscriptions = new MutexProtectedData([]);
-    this.refreshParams = refreshParams;
-    this.fetchFn = fetchFn;
-    this.shouldGiveUp = shouldGiveUp;
+export default class DataProvider<T, A extends any[]> {
+  protected subscriptions: MutexProtectedData<DataSubscriptionItem<T, A>[]>;
+
+  constructor(
+    private refreshParams: number,
+    private fetchFn: (...args: A) => Promise<T>,
+    private shouldGiveUp: (e: Error) => boolean = () => false
+  ) {
+    this.subscriptions = new MutexProtectedData<DataSubscriptionItem<T, A>[]>(
+      []
+    );
   }
 
-  async subscribe(...args) {
+  async subscribe(...args: A) {
     await this.subscriptions.exec(async () => {
       const subscriptions = [...this.subscriptions.data];
       if (
@@ -37,7 +49,7 @@ class DataProvider {
     });
   }
 
-  async get(...args) {
+  async get(...args: A): Promise<SingleQueryDataProviderState<T>> {
     const subscriptions = await this.subscriptions.getData();
     const subscription = subscriptions.find(({ args: subscribedArgs }) =>
       argsAreEqual(args, subscribedArgs)
@@ -53,5 +65,3 @@ class DataProvider {
     }
   }
 }
-
-module.exports = DataProvider;
