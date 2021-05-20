@@ -17,3 +17,39 @@ Use `yarn run build` for building.
 ## Running with pm2
 
 You can run the built backend using `pm2 restart templewallet-backend.json`.
+
+## Upstreaming using nginx
+
+Append these lines into `server` block of `/etc/nginx/sites-available/default`:
+
+```
+location /api/dapps {
+  proxy_http_version 1.1;
+  proxy_cache_bypass $http_upgrade;
+
+  proxy_set_header Upgrade $http_upgrade;
+  proxy_set_header Connection 'upgrade';
+  proxy_set_header Host $host;
+  proxy_set_header X-Real-IP $remote_addr;
+  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  proxy_set_header X-Forwarded-Proto $scheme;
+
+  proxy_pass http://localhost:3000;
+}
+
+location /api/exchange-rates/ {
+  proxy_http_version 1.1;
+  proxy_cache_bypass $http_upgrade;
+  
+  proxy_set_header Upgrade $http_upgrade;
+  proxy_set_header Connection 'upgrade';
+  proxy_set_header Host $host;
+  proxy_set_header X-Real-IP $remote_addr;
+  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  proxy_set_header X-Forwarded-Proto $scheme;
+
+  proxy_pass http://localhost:3000;
+}
+```
+
+Replace 3000 with the respective port number if the backend is listening on a different one.
