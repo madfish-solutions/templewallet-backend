@@ -9,6 +9,7 @@ import {
 import fetch from "./fetch";
 import {
   getTokenDescriptor,
+  getTokenMetadata,
   getStorage,
   tezExchangeRateProvider,
 } from "./tezos";
@@ -125,7 +126,15 @@ export const quipuswapExchangersDataProvider = new SingleQueryDataProvider(
 
 const LIQUIDITY_INTERVAL = 120000;
 const getPoolTokenExchangeRate = memoizee(
-  async ({ contract: tokenAddress, decimals, token_id }) => {
+  async ({
+    contract: tokenAddress,
+    decimals,
+    token_id,
+  }: {
+    decimals?: number;
+    token_id?: number;
+    contract: string;
+  }) => {
     if (decimals === undefined) {
       try {
         await tokensMetadataProvider.subscribe(
@@ -138,7 +147,11 @@ const getPoolTokenExchangeRate = memoizee(
           tokenAddress,
           token_id
         );
-        decimals = metadata?.[0].decimals ?? 0;
+        if (!metadata || metadata.length === 0) {
+          decimals = (await getTokenMetadata(tokenAddress, token_id)).decimals;
+        } else {
+          decimals = metadata[0].decimals;
+        }
       } catch (e) {
         decimals = 0;
       }
@@ -249,7 +262,7 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
   if (quipuswapError || dexterDAppError || ethTokensError) {
     throw quipuswapError || dexterDAppError || ethTokensError;
   }
-  logger.info("Quipuswap");
+  logger.info("Getting tokens exchange rates from Quipuswap pools");
   let exchangeRates = await Promise.all(
     quipuswapExchangers!
       .reduce((onePerTokenExchangers, exchanger) => {
@@ -275,7 +288,7 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
         metadata: tokenMetadata!,
       }))
   );
-  logger.info("Dexter");
+  logger.info("Getting tokens exchange rates from Dexter pools");
   for (const contractData of dexterDAppData!.contracts!) {
     const { network, address: exchangerAddress } = contractData;
     if (network !== "mainnet") {
@@ -326,7 +339,7 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
       metadata: tokenMetadata!,
     });
   }
-  logger.info("Tzwrap");
+  logger.info("Getting exchange rates for remaining Tzwrap tokens");
   const tzwrapExchangeRates = ethTokens!
     .filter(
       ({ contract: ethTokenContract, token_id: ethTokenId }) =>
@@ -352,7 +365,7 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
       ({ tokenAddress }) => tokenAddress === ASPENCOIN_ADDRESS
     )
   ) {
-    logger.info("Aspencoin");
+    logger.info("Getting exchange rate for Aspencoin");
     try {
       const { data: aspencoinMetadata, error: aspencoinMetadataError } =
         await tokensMetadataProvider.get("mainnet", ASPENCOIN_ADDRESS);
@@ -378,7 +391,9 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
     } catch (e) {}
   }
 
-  return [...exchangeRates, ...tzwrapExchangeRates];
+  return [...exchangeRates, ...tzwrapExchangeRates].filter(
+    ({ exchangeRate }) => !exchangeRate.eq(0)
+  );
 };
 
 export const tokensExchangeRatesProvider = new SingleQueryDataProvider(

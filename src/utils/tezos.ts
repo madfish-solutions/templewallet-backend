@@ -1,6 +1,14 @@
-import { MichelCodecPacker, Signer, TezosToolkit } from "@taquito/taquito";
+import {
+  compose,
+  MichelCodecPacker,
+  Signer,
+  TezosToolkit,
+} from "@taquito/taquito";
+import { tzip12 } from "@taquito/tzip12";
+import { tzip16 } from "@taquito/tzip16";
 import BigNumber from "bignumber.js";
 import memoizee from "memoizee";
+import { BcdTokenData } from "./better-call-dev";
 import fetch from "./fetch";
 //  const ReadOnlySigner = require("./ReadOnlySigner");
 import SingleQueryDataProvider from "./SingleQueryDataProvider";
@@ -88,6 +96,61 @@ const getTezExchangeRate = async () => {
 export const tezExchangeRateProvider = new SingleQueryDataProvider(
   30000,
   getTezExchangeRate
+);
+
+export class MetadataParseError extends Error {}
+
+export const getTokenMetadata = memoizee(
+  async (tokenAddress: string, tokenId?: number): Promise<BcdTokenData> => {
+    const contract = await mainnetToolkit.wallet.at(
+      tokenAddress,
+      // @ts-ignore
+      compose(tzip12, tzip16)
+    );
+
+    let tokenData: any;
+    let latestErrMessage;
+
+    /**
+     * Try fetch token data with TZIP12
+     */
+    try {
+      // @ts-ignore
+      tokenData = await contract.tzip12().getTokenMetadata(tokenId ?? 0);
+    } catch (err) {
+      latestErrMessage = err.message;
+    }
+
+    /**
+     * Try fetch token data with TZIP16
+     * Get them from plain tzip16 structure/scheme
+     */
+    if (!tokenData || Object.keys(tokenData).length === 0) {
+      try {
+        // @ts-ignore
+        const { metadata } = await contract.tzip16().getMetadata();
+        tokenData = metadata;
+      } catch (err) {
+        latestErrMessage = err.message;
+      }
+    }
+
+    if (!tokenData) {
+      throw new MetadataParseError(latestErrMessage ?? "Unknown error");
+    }
+
+    return {
+      decimals: tokenData.decimals ? +tokenData.decimals : 0,
+      symbol:
+        tokenData.symbol ||
+        (tokenData.name ? tokenData.name.substr(0, 8) : "???"),
+      name: tokenData.name || tokenData.symbol || "Unknown Token",
+      contract: tokenAddress,
+      token_id: tokenId ?? 0,
+      network: "mainnet",
+    };
+  },
+  { promise: true }
 );
 
 const lambdaContractAddress = "KT1CPuTzwC7h7uLXd5WQmpMFso1HxrLBUtpE";

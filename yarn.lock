@@ -46,12 +46,12 @@
   dependencies:
     xhr2-cookies "^1.1.0"
 
-"@taquito/michel-codec@^9.0.0":
+"@taquito/michel-codec@^9.0.0", "@taquito/michel-codec@^9.0.1":
   version "9.0.1"
   resolved "https://registry.yarnpkg.com/@taquito/michel-codec/-/michel-codec-9.0.1.tgz#bd066b6218dcc155ffc641877806465cf2f77a14"
   integrity sha512-zUdE6P76p89dUZLjUz3aBaKy7qgGJv8Vkt7QaIcP0FmO78RIV796gaXVXfm9UByXeHnUG1ca3JYX2SKD/iYWpA==
 
-"@taquito/michelson-encoder@^9.0.0":
+"@taquito/michelson-encoder@^9.0.0", "@taquito/michelson-encoder@^9.0.1":
   version "9.0.1"
   resolved "https://registry.yarnpkg.com/@taquito/michelson-encoder/-/michelson-encoder-9.0.1.tgz#39fd2d52fa98b0421259af9bb90dc9ea2641786b"
   integrity sha512-AoSEcKHpyKsIOcqubCxsA7gWf3+UO1wR67HMBZ9cQdNQKaRtdOm508dvL0DgWPQaNf6x1cw1s1eQn+p+N6nInQ==
@@ -92,6 +92,56 @@
     bignumber.js "^9.0.1"
     rx-sandbox "^1.0.3"
     rxjs "^6.6.3"
+
+"@taquito/taquito@^9.0.0", "@taquito/taquito@^9.0.1":
+  version "9.0.1"
+  resolved "https://registry.yarnpkg.com/@taquito/taquito/-/taquito-9.0.1.tgz#1195411e9cc8c88f7c9c59ec633ba2f1aab93919"
+  integrity sha512-+7UkZndDKVoPla+0WFPTxK5EfTjwbWyzthinzOA3OrfPLJIeYUMd5LJcR02r9lL4YXqLwIBgrrPoSu/CqiUxPQ==
+  dependencies:
+    "@taquito/http-utils" "^9.0.1"
+    "@taquito/michel-codec" "^9.0.1"
+    "@taquito/michelson-encoder" "^9.0.1"
+    "@taquito/rpc" "^9.0.1"
+    "@taquito/utils" "^9.0.1"
+    bignumber.js "^9.0.1"
+    rx-sandbox "^1.0.3"
+    rxjs "^6.6.3"
+
+"@taquito/tzip12@9.0.0":
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/@taquito/tzip12/-/tzip12-9.0.0.tgz#0e9371e88469710af565eab2576b53cd02ba8b48"
+  integrity sha512-V7IwyNJ/o8KhRBeuxVV7JK3BSVLsWp56x2hKsAM/7FDlLUoYDxGPwLKo5iWlNK8mgLV22KJwwTWY+CK+6mdnCg==
+  dependencies:
+    "@taquito/michelson-encoder" "^9.0.0"
+    "@taquito/taquito" "^9.0.0"
+    "@taquito/tzip16" "^9.0.0"
+    bignumber.js "^9.0.1"
+
+"@taquito/tzip16@9.0.0":
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/@taquito/tzip16/-/tzip16-9.0.0.tgz#234579eda561bbc157d56c805120e8fbf4f473a8"
+  integrity sha512-1OfzAJnMEbhe0CYcq9hsXVbUDsmexqyUdJ/RG10GoBNRfuQePZVAXf3Q/Nc30jpVcN/PisTxShGx+xl2RdnJTw==
+  dependencies:
+    "@taquito/http-utils" "^9.0.0"
+    "@taquito/michelson-encoder" "^9.0.0"
+    "@taquito/rpc" "^9.0.0"
+    "@taquito/taquito" "^9.0.0"
+    "@taquito/utils" "^9.0.0"
+    bignumber.js "^9.0.1"
+    crypto-js "^4.0.0"
+
+"@taquito/tzip16@^9.0.0":
+  version "9.0.1"
+  resolved "https://registry.yarnpkg.com/@taquito/tzip16/-/tzip16-9.0.1.tgz#0d63fc8acab318146083fe4e9a563a94016846a7"
+  integrity sha512-aon2ttwi/tt7Gnd7kpWVV77keoDWWThC+5Src1PPiOfWFRxZ5X8SfwHB2MY8Ox01NTSwhQYBT1Eh6VI6Hrwang==
+  dependencies:
+    "@taquito/http-utils" "^9.0.1"
+    "@taquito/michelson-encoder" "^9.0.1"
+    "@taquito/rpc" "^9.0.1"
+    "@taquito/taquito" "^9.0.1"
+    "@taquito/utils" "^9.0.1"
+    bignumber.js "^9.0.1"
+    crypto-js "^4.0.0"
 
 "@taquito/utils@9.0.0":
   version "9.0.0"
@@ -608,6 +658,11 @@ cross-spawn@^7.0.1:
     path-key "^3.1.0"
     shebang-command "^2.0.0"
     which "^2.0.1"
+
+crypto-js@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/crypto-js/-/crypto-js-4.0.0.tgz#2904ab2677a9d042856a2ea2ef80de92e4a36dcc"
+  integrity sha512-bzHZN8Pn+gS7DQA6n+iUmBfl0hO5DJq++QP3U6uTucDtk/0iGpXd/Gg7CGR0p8tJhofJyaKoWBuJI4eAO00BBg==
 
 currently-unhandled@^0.4.1:
   version "0.4.1"
