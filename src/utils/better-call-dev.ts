@@ -38,7 +38,7 @@ type BcdDAppScreenshot = {
   link: string;
 };
 
-type DAppsListItem = {
+export type DAppsListItem = {
   name: string;
   short_description: string;
   full_description: string;
@@ -98,6 +98,54 @@ const buildQuery = makeBuildQueryFn<
   | BcdTokenData[]
 >(BCD_BASE_URL, 5);
 
+const customDApps: DAppsListItem[] = [
+  {
+    slug: "kalamint",
+    name: "Kalamint",
+    short_description: "NFT marketplace",
+    full_description: "Create, sell and collect NFTs on Tezos with Kalamint",
+    website: "https://kalamint.io",
+    authors: [],
+    social_links: [
+      "https://twitter.com/kalamint_io",
+      "https://discord.gg/yphDGgYzrA",
+      "https://t.me/kalamint",
+    ],
+    interfaces: [],
+    categories: ["NFT", "Token", "Marketplace"],
+    soon: false,
+    logo: "https://kalamint.io/favicon.png",
+    cover: "https://kalamint.io/favicon.png",
+  },
+];
+
+const customDAppsWithDetails: DAppDetails[] = [
+  {
+    slug: "kalamint",
+    name: "Kalamint",
+    short_description: "NFT marketplace",
+    full_description: "Create, sell and collect NFTs on Tezos with Kalamint",
+    website: "https://kalamint.io",
+    authors: [],
+    social_links: [
+      "https://twitter.com/kalamint_io",
+      "https://discord.gg/yphDGgYzrA",
+      "https://t.me/kalamint",
+    ],
+    interfaces: [],
+    categories: ["NFT", "Token", "Marketplace"],
+    soon: false,
+    logo: "https://kalamint.io/favicon.png",
+    cover: "https://kalamint.io/favicon.png",
+    contracts: [
+      {
+        address: "KT1EpGgjQs73QfFJs9z7m1Mxm5MTnpC2tqse",
+        network: "mainnet",
+      },
+    ],
+  },
+];
+
 const getSeries = buildQuery<SeriesParams, [number, number][]>(
   `/stats/mainnet/series`,
   ({ addresses, period, name }) => ({
@@ -107,13 +155,26 @@ const getSeries = buildQuery<SeriesParams, [number, number][]>(
   })
 );
 
-export const getDApps = buildQuery<{}, DAppsListItem[]>("/dapps");
+const getBcdDApps = buildQuery<{}, DAppsListItem[]>("/dapps");
+
+export const getDApps = async (_params: {}) => {
+  const bcdDApps = await getBcdDApps({});
+  return [...bcdDApps, ...customDApps];
+};
 
 const getDAppsDetailsWithoutSeries = buildQuery<{ slug: string }, DAppDetails>(
   ({ slug }) => `/dapps/${slug}`
 );
-export const getDAppDetails = async ({ slug }: { slug: string }) => {
-  const detailsWithoutSeries = await getDAppsDetailsWithoutSeries({ slug });
+const getDAppDetails = async ({
+  slug,
+}: {
+  slug: string;
+}): Promise<DAppDetails & { estimatedUsersPerMonth: number }> => {
+  const customDAppDetails = customDAppsWithDetails.find(
+    ({ slug: candidateSlug }) => candidateSlug === slug
+  );
+  const detailsWithoutSeries =
+    customDAppDetails ?? (await getDAppsDetailsWithoutSeries({ slug }));
   if (!detailsWithoutSeries.contracts) {
     return {
       ...detailsWithoutSeries,
@@ -209,5 +270,5 @@ export const contractTokensProvider = new DataProvider(
 
 export const detailedDAppDataProvider = new DataProvider(
   14 * 60 * 1000,
-  (slug: string) => getDAppDetails({ slug })
+  async (slug: string) => getDAppDetails({ slug })
 );

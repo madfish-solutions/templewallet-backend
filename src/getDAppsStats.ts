@@ -2,6 +2,7 @@ import BigNumber from "bignumber.js";
 import tzwrapEthTokensProvider from "./utils/tzwrapEthTokensProvider";
 import {
   DAppDetails,
+  DAppsListItem,
   getAccountTokenBalances,
   getDApps,
   detailedDAppDataProvider,
@@ -41,7 +42,9 @@ type KolibriOvensData = {
   allOvenData: KolibriOvenData[];
 };
 
-const noValueLockedProjects = ["trianon", "equisafe"];
+const blacklistedProjects = ["trianon"];
+
+const noValueLockedProjects = ["trianon", "equisafe", "kalamint"];
 const getDAppStats = async (dAppData: DAppDetails) => {
   const { slug, contracts, categories, soon: comingSoon } = dAppData;
   const { data: tzExchangeRate, error: tzExchangeRateError } =
@@ -355,7 +358,9 @@ big_map_contents",
 let dAppsSubscriptionsReady = false;
 const getDAppsStats = async () => {
   logger.info("Getting dApps list...");
-  const dApps = await getDApps({});
+  const dApps = (await getDApps({})).filter(
+    ({ slug }) => !blacklistedProjects.includes(slug)
+  );
   const dAppsWithDetails = await Promise.all(
     dApps.map(async (dApp) => {
       const { slug } = dApp;
