@@ -155,15 +155,23 @@ const getSeries = buildQuery<SeriesParams, [number, number][]>(
   })
 );
 
-const getBcdDApps = buildQuery<{}, DAppsListItem[]>("/dapps");
+const getBcdDApps = buildQuery<{}, DAppsListItem[]>(
+  "https://better-call.dev/v1/dapps"
+);
 
 export const getDApps = async (_params: {}) => {
   const bcdDApps = await getBcdDApps({});
-  return [...bcdDApps, ...customDApps];
+  return [
+    ...bcdDApps,
+    ...customDApps.filter(
+      ({ slug: customDAppSlug }) =>
+        !bcdDApps.some(({ slug }) => slug === customDAppSlug)
+    ),
+  ];
 };
 
 const getDAppsDetailsWithoutSeries = buildQuery<{ slug: string }, DAppDetails>(
-  ({ slug }) => `/dapps/${slug}`
+  ({ slug }) => `https://better-call.dev/v1/dapps/${slug}`
 );
 const getDAppDetails = async ({
   slug,

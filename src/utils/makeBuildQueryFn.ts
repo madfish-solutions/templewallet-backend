@@ -12,6 +12,13 @@ function pick<T, U extends keyof T>(obj: T, keys: U[]) {
   return newObj as Pick<T, U>;
 }
 
+function isAbsoluteURL(url) {
+  // A URL is considered absolute if it begins with "<scheme>://" or "//" (protocol-relative URL).
+  // RFC 3986 defines scheme name as a sequence of characters beginning with a letter and followed
+  // by any combination of letters, digits, plus, period, or hyphen.
+  return /^([a-z][a-z\d\+\-\.]*:)?\/\//i.test(url);
+}
+
 export default function makeBuildQueryFn<P, R>(
   baseUrl: string,
   maxConcurrentQueries?: number
@@ -32,7 +39,10 @@ export default function makeBuildQueryFn<P, R>(
           ? pick(params, toQueryParams)
           : {};
       const queryStr = qs.stringify(queryParams);
-      const fullUrl = `${baseUrl}${url}${
+      const noQueryParamsUrl = isAbsoluteURL(url)
+        ? `${url}/`
+        : `${baseUrl}${url}`;
+      const fullUrl = `${noQueryParamsUrl}${
         queryStr.length === 0 ? "" : `?${queryStr}`
       }`;
       if (semaphore) {
