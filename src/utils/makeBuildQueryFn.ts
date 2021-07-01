@@ -1,5 +1,5 @@
+import axios, { AxiosRequestConfig } from "axios";
 import qs from "qs";
-import fetch from "./fetch";
 import PromisifiedSemaphore from "./PromisifiedSemaphore";
 
 function pick<T, U extends keyof T>(obj: T, keys: U[]) {
@@ -28,7 +28,8 @@ export default function makeBuildQueryFn<P, R>(
     : undefined;
   return function f1<P1 extends P, R1 extends R>(
     path: string | ((params: P1) => string),
-    toQueryParams?: (keyof P1)[] | ((params: P1) => Record<string, any>)
+    toQueryParams?: (keyof P1)[] | ((params: P1) => Record<string, any>),
+    config?: Omit<AxiosRequestConfig, "url">
   ) {
     return async (params: P1) => {
       const url = typeof path === "function" ? path(params) : path;
@@ -49,15 +50,19 @@ export default function makeBuildQueryFn<P, R>(
         return new Promise<R1>((resolve, reject) => {
           semaphore.exec(async () => {
             try {
-              const result = await fetch<R1>(fullUrl);
-              resolve(result);
+              const { data } = await axios.request<R1>({
+                url: fullUrl,
+                ...config,
+              });
+              resolve(data);
             } catch (e) {
               reject(e);
             }
           });
         });
       }
-      return fetch<R1>(fullUrl);
+      const { data } = await axios.request<R1>({ url: fullUrl, ...config });
+      return data;
     };
   };
 }

@@ -11,6 +11,7 @@
     "@taquito/tzip12": "9.0.0",
     "@taquito/tzip16": "9.0.0",
     "@taquito/utils": "9.0.0",
+    "axios": "^0.21.1",
     "bignumber.js": "^9.0.1",
     "cors": "^2.8.5",
     "cross-fetch": "^3.1.4",

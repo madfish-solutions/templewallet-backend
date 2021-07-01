@@ -2,7 +2,6 @@ import BigNumber from "bignumber.js";
 import tzwrapEthTokensProvider from "./utils/tzwrapEthTokensProvider";
 import {
   DAppDetails,
-  DAppsListItem,
   getAccountTokenBalances,
   getDApps,
   detailedDAppDataProvider,
@@ -292,12 +291,7 @@ big_map_contents",
             if (total > tokensExchangeRates!.length) {
               await Promise.all(
                 tokensExchangeRates!.map(
-                  async ({
-                    tokenAddress,
-                    tokenId,
-                    exchangeRate,
-                    metadata: { decimals },
-                  }) => {
+                  async ({ tokenAddress, tokenId, exchangeRate, metadata }) => {
                     const rawBalance = await getBalance(
                       address,
                       tokenAddress,
@@ -305,7 +299,7 @@ big_map_contents",
                     );
                     dAppTvlSummand = dAppTvlSummand.plus(
                       new BigNumber(rawBalance)
-                        .div(new BigNumber(10).pow(decimals))
+                        .div(new BigNumber(10).pow(metadata?.decimals ?? 0))
                         .multipliedBy(exchangeRate)
                     );
                   }

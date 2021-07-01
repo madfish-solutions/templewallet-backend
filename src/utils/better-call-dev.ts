@@ -98,53 +98,9 @@ const buildQuery = makeBuildQueryFn<
   | BcdTokenData[]
 >(BCD_BASE_URL, 5);
 
-const customDApps: DAppsListItem[] = [
-  {
-    slug: "kalamint",
-    name: "Kalamint",
-    short_description: "NFT marketplace",
-    full_description: "Create, sell and collect NFTs on Tezos with Kalamint",
-    website: "https://kalamint.io",
-    authors: [],
-    social_links: [
-      "https://twitter.com/kalamint_io",
-      "https://discord.gg/yphDGgYzrA",
-      "https://t.me/kalamint",
-    ],
-    interfaces: [],
-    categories: ["NFT", "Token", "Marketplace"],
-    soon: false,
-    logo: "https://kalamint.io/favicon.png",
-    cover: "https://kalamint.io/favicon.png",
-  },
-];
+const customDApps: DAppsListItem[] = [];
 
-const customDAppsWithDetails: DAppDetails[] = [
-  {
-    slug: "kalamint",
-    name: "Kalamint",
-    short_description: "NFT marketplace",
-    full_description: "Create, sell and collect NFTs on Tezos with Kalamint",
-    website: "https://kalamint.io",
-    authors: [],
-    social_links: [
-      "https://twitter.com/kalamint_io",
-      "https://discord.gg/yphDGgYzrA",
-      "https://t.me/kalamint",
-    ],
-    interfaces: [],
-    categories: ["NFT", "Token", "Marketplace"],
-    soon: false,
-    logo: "https://kalamint.io/favicon.png",
-    cover: "https://kalamint.io/favicon.png",
-    contracts: [
-      {
-        address: "KT1EpGgjQs73QfFJs9z7m1Mxm5MTnpC2tqse",
-        network: "mainnet",
-      },
-    ],
-  },
-];
+const customDAppsWithDetails: DAppDetails[] = [];
 
 const getSeries = buildQuery<SeriesParams, [number, number][]>(
   `/stats/mainnet/series`,
@@ -156,7 +112,15 @@ const getSeries = buildQuery<SeriesParams, [number, number][]>(
 );
 
 const getBcdDApps = buildQuery<{}, DAppsListItem[]>(
-  "https://better-call.dev/v1/dapps"
+  "https://better-call.dev/v1/dapps",
+  undefined,
+  {
+    headers: {
+      "User-Agent":
+        "Mozilla/5.0 (X11; Linux x86_64; rv:89.0) Gecko/20100101 Firefox/89.0",
+      Referer: "https://better-call.dev/dapps/list",
+    },
+  }
 );
 
 export const getDApps = async (_params: {}) => {
@@ -171,7 +135,15 @@ export const getDApps = async (_params: {}) => {
 };
 
 const getDAppsDetailsWithoutSeries = buildQuery<{ slug: string }, DAppDetails>(
-  ({ slug }) => `https://better-call.dev/v1/dapps/${slug}`
+  ({ slug }) => `https://better-call.dev/v1/dapps/${slug}`,
+  undefined,
+  {
+    headers: {
+      "User-Agent":
+        "Mozilla/5.0 (X11; Linux x86_64; rv:89.0) Gecko/20100101 Firefox/89.0",
+      Referer: "https://better-call.dev/dapps/list",
+    },
+  }
 );
 const getDAppDetails = async ({
   slug,
