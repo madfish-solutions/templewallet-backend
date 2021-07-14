@@ -40,20 +40,23 @@ const dAppsProvider = new SingleQueryDataProvider(
   getDAppsStats
 );
 
+const getProviderStateWithTimeout = <T>(provider: SingleQueryDataProvider<T>) =>
+  Promise.race([
+    provider.getState(),
+    new Promise<{ data?: undefined; error: Error }>((resolve) =>
+      setTimeout(
+        () => resolve({ error: new Error("Response timed out") }),
+        10000
+      )
+    ),
+  ]);
+
 const makeProviderDataRequestHandler = <T, U>(
   provider: SingleQueryDataProvider<T>,
   transformFn?: (data: T) => U
 ) => {
   return async (_req: Request, res: Response) => {
-    const { data, error } = await Promise.race([
-      provider.getState(),
-      new Promise<{ data?: undefined; error: Error }>((resolve) =>
-        setTimeout(
-          () => resolve({ error: new Error("Response timed out") }),
-          10000
-        )
-      ),
-    ]);
+    const { data, error } = await getProviderStateWithTimeout(provider);
     if (error) {
       res.status(500).send({ error: error.message });
     } else {
@@ -69,12 +72,24 @@ app.get(
   makeProviderDataRequestHandler(tezExchangeRateProvider)
 );
 
-app.get(
-  "/api/exchange-rates",
-  makeProviderDataRequestHandler(tokensExchangeRatesProvider, (entries) =>
-    entries.map(({ metadata, ...restProps }) => restProps)
-  )
-);
+app.get("/api/exchange-rates", async (_req, res) => {
+  const { data: tokensExchangeRates, error: tokensExchangeRatesError } =
+    await getProviderStateWithTimeout(tokensExchangeRatesProvider);
+  const { data: tezExchangeRate, error: tezExchangeRateError } =
+    await getProviderStateWithTimeout(tezExchangeRateProvider);
+  if (tokensExchangeRatesError || tezExchangeRateError) {
+    res
+      .status(500)
+      .send({
+        error: (tokensExchangeRatesError || tezExchangeRateError)!.message,
+      });
+  } else {
+    res.json([
+      ...tokensExchangeRates!.map(({ metadata, ...restProps }) => restProps),
+      { exchangeRate: tezExchangeRate!.toString() },
+    ]);
+  }
+});
 
 // start the server listening for requests
 app.listen(process.env.PORT || 3000, () => console.log("Server is running..."));

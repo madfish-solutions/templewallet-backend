@@ -247,6 +247,13 @@ big_map_contents",
         totalTezLocked: new BigNumber(0),
         tvl: tzwrapEthTvl.plus(governanceTvl),
       };
+    case slug === "werenode":
+      // Total supply isn't provided by contract :(
+      return {
+        allDAppsTvlSummand: new BigNumber(0),
+        totalTezLocked: new BigNumber(0),
+        tvl: new BigNumber(0),
+      };
     case categories.includes("Token"):
       let token = dAppData.tokens?.[0];
       if (!token) {
@@ -258,8 +265,16 @@ big_map_contents",
         }
         token = tokensMetadata![0];
       }
-      const tvl = await getTotalSupplyPrice(token!);
-      return { allDAppsTvlSummand: tvl, totalTezLocked: new BigNumber(0), tvl };
+      try {
+        const tvl = await getTotalSupplyPrice(token!);
+        return {
+          allDAppsTvlSummand: tvl,
+          totalTezLocked: new BigNumber(0),
+          tvl,
+        };
+      } catch (e) {
+        console.error("oy vey", token, slug);
+      }
     default:
       if (!contracts) {
         return {
