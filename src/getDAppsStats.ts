@@ -14,6 +14,7 @@ import {
   tokensExchangeRatesProvider,
   getTotalSupplyPrice,
   quipuswapExchangersDataProvider,
+  TokenExchangeRateEntry,
 } from "./utils/tokens";
 
 type TzbuttonBigMapContents = {
@@ -39,6 +40,63 @@ type KolibriOvenData = {
 
 type KolibriOvensData = {
   allOvenData: KolibriOvenData[];
+};
+
+const getTotalTokensPrice = async (
+  contractAddress: string,
+  tokensExchangeRates: TokenExchangeRateEntry[],
+  showDeltas?: boolean
+) => {
+  let result = new BigNumber(0);
+  let outOfTokens = false;
+  let offset = 0;
+  while (!outOfTokens) {
+    const { balances, total } = await getAccountTokenBalances({
+      address: contractAddress,
+      network: "mainnet",
+      offset,
+    });
+    offset += balances.length;
+    if (total > tokensExchangeRates.length) {
+      await Promise.all(
+        tokensExchangeRates.map(
+          async ({ tokenAddress, tokenId, exchangeRate, metadata }) => {
+            const rawBalance = await getBalance(
+              contractAddress,
+              tokenAddress,
+              tokenId
+            );
+            const delta = new BigNumber(rawBalance)
+              .div(new BigNumber(10).pow(metadata?.decimals ?? 0))
+              .multipliedBy(exchangeRate);
+            if (delta.gt(0) && showDeltas) {
+              console.log(tokenAddress, tokenId, delta.toString());
+            }
+            result = result.plus(delta);
+          }
+        )
+      );
+      outOfTokens = true;
+    } else {
+      balances.forEach(({ contract, token_id, balance, decimals }) => {
+        const exchangeableToken = tokensExchangeRates.find(
+          ({ tokenAddress: candidateContract, tokenId: candidateTokenId }) =>
+            candidateContract === contract && candidateTokenId === token_id
+        );
+        if (exchangeableToken) {
+          const delta = new BigNumber(balance)
+            .div(new BigNumber(10).pow(decimals))
+            .multipliedBy(exchangeableToken.exchangeRate);
+          if (delta.gt(0) && showDeltas) {
+            console.log(contract, token_id, delta.toString());
+          }
+          result = result.plus(delta);
+        }
+      });
+      outOfTokens = balances.length === 0;
+    }
+  }
+  return result;
 };
 
 const blacklistedProjects = ["trianon"];
@@ -254,6 +312,30 @@ big_map_contents",
         totalTezLocked: new BigNumber(0),
         tvl: new BigNumber(0),
       };
+    case slug === "bazaar":
+      let bDAOToken = dAppData.tokens?.[0];
+      if (!bDAOToken) {
+        const contract = dAppData.contracts![0];
+        const { data: tokensMetadata, error } =
+          await tokensMetadataProvider.get("mainnet", contract.address);
+        if (error) {
+          throw error;
+        }
+        bDAOToken = tokensMetadata![0];
+      }
+      const bDAOTvl = await getTotalSupplyPrice(bDAOToken!);
+      const lockedTokensPrice = await getTotalTokensPrice(
+        "KT1E8Qzgx3C5AAE4iGuXvqSQjdd21LK2aXAk",
+        tokensExchangeRates!,
+        true
+      );
+      console.log(lockedTokensPrice.toString());
+
+      return {
+        allDAppsTvlSummand: bDAOTvl.plus(lockedTokensPrice),
+        totalTezLocked: new BigNumber(0),
+        tvl: bDAOTvl,
+      };
     case categories.includes("Token"):
       let token = dAppData.tokens?.[0];
       if (!token) {
@@ -265,16 +347,12 @@ big_map_contents",
         }
         token = tokensMetadata![0];
       }
-      try {
-        const tvl = await getTotalSupplyPrice(token!);
-        return {
-          allDAppsTvlSummand: tvl,
-          totalTezLocked: new BigNumber(0),
-          tvl,
-        };
-      } catch (e) {
-        console.error("oy vey", token, slug);
-      }
+      const tvl = await getTotalSupplyPrice(token!);
+      return {
+        allDAppsTvlSummand: tvl,
+        totalTezLocked: new BigNumber(0),
+        tvl,
+      };
     default:
       if (!contracts) {
         return {
@@ -293,55 +371,9 @@ big_map_contents",
           }
           const mutezBalance = await getBalance(address);
           const allDAppsTvlSummand = mutezBalance.div(1e6);
-          let dAppTvlSummand = allDAppsTvlSummand;
-          let outOfTokens = false;
-          let offset = 0;
-          while (!outOfTokens) {
-            const { balances, total } = await getAccountTokenBalances({
-              address,
-              network,
-              offset,
-            });
-            offset += balances.length;
-            if (total > tokensExchangeRates!.length) {
-              await Promise.all(
-                tokensExchangeRates!.map(
-                  async ({ tokenAddress, tokenId, exchangeRate, metadata }) => {
-                    const rawBalance = await getBalance(
-                      address,
-                      tokenAddress,
-                      tokenId
-                    );
-                    dAppTvlSummand = dAppTvlSummand.plus(
-                      new BigNumber(rawBalance)
-                        .div(new BigNumber(10).pow(metadata?.decimals ?? 0))
-                        .multipliedBy(exchangeRate)
-                    );
-                  }
-                )
-              );
-              outOfTokens = true;
-            } else {
-              balances.forEach(({ contract, token_id, balance, decimals }) => {
-                const exchangeableToken = tokensExchangeRates!.find(
-                  ({
-                    tokenAddress: candidateContract,
-                    tokenId: candidateTokenId,
-                  }) =>
-                    candidateContract === contract &&
-                    candidateTokenId === token_id
-                );
-                if (exchangeableToken) {
-                  dAppTvlSummand = dAppTvlSummand.plus(
-                    new BigNumber(balance)
-                      .div(new BigNumber(10).pow(decimals))
-                      .multipliedBy(exchangeableToken.exchangeRate)
-                  );
-                }
-              });
-              outOfTokens = balances.length === 0;
-            }
-          }
+          let dAppTvlSummand = allDAppsTvlSummand.plus(
+            await getTotalTokensPrice(address, tokensExchangeRates!)
+          );
           return {
             allDAppsTvlSummand,
             dAppTvlSummand,

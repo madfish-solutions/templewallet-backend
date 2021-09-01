@@ -30,6 +30,7 @@ type QuipuswapExchanger = {
 };
 
 const getQuipuswapExchangers = async (): Promise<QuipuswapExchanger[]> => {
+  console.log("x0");
   const fa12FactoryStorages = await Promise.all(
     fa12Factories.map((factoryAddress) => getStorage(factoryAddress))
   );
@@ -51,6 +52,7 @@ const getQuipuswapExchangers = async (): Promise<QuipuswapExchanger[]> => {
       ])
     )
   );
+  console.log("x1");
   const fa12Exchangers = (
     await Promise.all(
       rawFa12Exchangers.map((rawFa12ExchangersChunk) => {
@@ -95,6 +97,7 @@ const getQuipuswapExchangers = async (): Promise<QuipuswapExchanger[]> => {
       );
     })
   );
+  console.log("x2");
   const fa2Exchangers = (
     await Promise.all(
       rawFa2Exchangers
@@ -117,6 +120,7 @@ const getQuipuswapExchangers = async (): Promise<QuipuswapExchanger[]> => {
         })
     )
   ).flat();
+  console.log("x3");
   return [...fa12Exchangers, ...fa2Exchangers];
 };
 export const quipuswapExchangersDataProvider = new SingleQueryDataProvider(
@@ -207,7 +211,7 @@ const getPoolTokenExchangeRate = memoizee(
           .div(quipuswapWeight);
       }
     }
-    for (const contractData of dexterDAppData!.contracts!) {
+    for (const contractData of dexterDAppData?.contracts ?? []) {
       const { network, address: exchangerAddress } = contractData;
       if (network !== "mainnet") {
         continue;
@@ -241,7 +245,7 @@ const getPoolTokenExchangeRate = memoizee(
   { promise: true, maxAge: LIQUIDITY_INTERVAL }
 );
 
-type TokenExchangeRateEntry = {
+export type TokenExchangeRateEntry = {
   tokenAddress: string;
   tokenId?: number;
   exchangeRate: BigNumber;
@@ -277,19 +281,22 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
         }
         return onePerTokenExchangers;
       }, [] as QuipuswapExchanger[])
-      .map(async ({ tokenAddress, tokenId, tokenMetadata }) => ({
-        tokenAddress,
-        tokenId,
-        exchangeRate: await getPoolTokenExchangeRate({
-          contract: tokenAddress,
-          decimals: tokenMetadata && tokenMetadata.decimals,
-          token_id: tokenId,
-        }),
-        metadata: tokenMetadata!,
-      }))
+      .map(async ({ tokenAddress, tokenId, tokenMetadata }) => {
+        logger.info(tokenMetadata?.name ?? tokenAddress);
+        return {
+          tokenAddress,
+          tokenId,
+          exchangeRate: await getPoolTokenExchangeRate({
+            contract: tokenAddress,
+            decimals: tokenMetadata && tokenMetadata.decimals,
+            token_id: tokenId,
+          }),
+          metadata: tokenMetadata!,
+        };
+      })
   );
   logger.info("Getting tokens exchange rates from Dexter pools");
-  for (const contractData of dexterDAppData!.contracts!) {
+  for (const contractData of dexterDAppData?.contracts ?? []) {
     const { network, address: exchangerAddress } = contractData;
     if (network !== "mainnet") {
       continue;
