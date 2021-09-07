@@ -30,13 +30,13 @@ type QuipuswapExchanger = {
 };
 
 const getQuipuswapExchangers = async (): Promise<QuipuswapExchanger[]> => {
-  console.log("x0");
   const fa12FactoryStorages = await Promise.all(
     fa12Factories.map((factoryAddress) => getStorage(factoryAddress))
   );
   const fa2FactoryStorages = await Promise.all(
     fa2Factories.map((factoryAddress) => getStorage(factoryAddress))
   );
+  logger.info("Getting FA1.2 Quipuswap exchangers...");
   const rawFa12FactoryTokens: MichelsonMap<string, string>[] =
     await Promise.all(
       fa12FactoryStorages.map((storage) => {
@@ -52,7 +52,6 @@ const getQuipuswapExchangers = async (): Promise<QuipuswapExchanger[]> => {
       ])
     )
   );
-  console.log("x1");
   const fa12Exchangers = (
     await Promise.all(
       rawFa12Exchangers.map((rawFa12ExchangersChunk) => {
@@ -77,6 +76,7 @@ const getQuipuswapExchangers = async (): Promise<QuipuswapExchanger[]> => {
     )
   ).flat();
 
+  logger.info("Getting FA2 Quipuswap exchangers...");
   const rawFa2FactoryTokens: MichelsonMap<number, [string, BigNumber]>[] =
     await Promise.all(
       fa2FactoryStorages.map((storage) =>
@@ -97,7 +97,6 @@ const getQuipuswapExchangers = async (): Promise<QuipuswapExchanger[]> => {
       );
     })
   );
-  console.log("x2");
   const fa2Exchangers = (
     await Promise.all(
       rawFa2Exchangers
@@ -120,7 +119,7 @@ const getQuipuswapExchangers = async (): Promise<QuipuswapExchanger[]> => {
         })
     )
   ).flat();
-  console.log("x3");
+  logger.info("Successfully got Quipuswap exchangers");
   return [...fa12Exchangers, ...fa2Exchangers];
 };
 export const quipuswapExchangersDataProvider = new SingleQueryDataProvider(
@@ -398,6 +397,7 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
     } catch (e) {}
   }
 
+  logger.info("Successfully got tokens exchange rates");
   return [...exchangeRates, ...tzwrapExchangeRates].filter(
     ({ exchangeRate }) => !exchangeRate.eq(0)
   );

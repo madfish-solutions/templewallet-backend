@@ -126,7 +126,12 @@ const getBcdDApps = buildQuery<{}, DAppsListItem[]>(
 export const getDApps = async (_params: {}) => {
   const bcdDApps = await getBcdDApps({});
   return [
-    ...bcdDApps,
+    ...bcdDApps.reduce<DAppsListItem[]>((uniqueDApps, dApp) => {
+      if (!uniqueDApps.some(({ slug }) => slug === dApp.slug)) {
+        uniqueDApps.push(dApp);
+      }
+      return uniqueDApps;
+    }, []),
     ...customDApps.filter(
       ({ slug: customDAppSlug }) =>
         !bcdDApps.some(({ slug }) => slug === customDAppSlug)

@@ -244,6 +244,20 @@ big_map_contents",
         totalTezLocked: mutezBalance.div(1e6),
         tvl: tzcolorsTvl,
       };
+    case slug === "plenty":
+      const { success, body: amount } = await fetch<{
+        success: boolean;
+        body?: number;
+      }>("https://w0sujgfj39.execute-api.us-east-2.amazonaws.com/v1/tvl");
+      if (!success) {
+        throw new Error("Request to entrypoint for TVL failed");
+      }
+      const plentyTvl = new BigNumber(amount!);
+      return {
+        allDAppsTvlSummand: plentyTvl,
+        totalTezLocked: plentyTvl.div(2),
+        tvl: plentyTvl,
+      };
     case noValueLockedProjects.includes(slug) || comingSoon:
       return {
         allDAppsTvlSummand: new BigNumber(0),
