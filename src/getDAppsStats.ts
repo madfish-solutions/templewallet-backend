@@ -28,14 +28,12 @@ type TzbuttonBigMapContents = {
 type KolibriOvenData = {
   ovenAddress: string;
   ovenOwner: string;
-  ovenData: {
-    baker: string | null;
-    balance: string;
-    borrowedTokens: string;
-    stabilityFee: string;
-    isLiquidated: boolean;
-    outstandingTokens: string;
-  };
+  baker: string | null;
+  balance: string;
+  borrowedTokens: string;
+  stabilityFee: string;
+  isLiquidated: boolean;
+  outstandingTokens: string;
 };
 
 type KolibriOvensData = {
@@ -269,7 +267,7 @@ big_map_contents",
         "https://kolibri-data.s3.amazonaws.com/mainnet/oven-data.json"
       );
       const ovenMutezLocked = allOvenData.reduce(
-        (sumPart, { ovenData: { balance: balanceStr, isLiquidated } }) => {
+        (sumPart, { balance: balanceStr, isLiquidated }) => {
           if (balanceStr === "0" || isLiquidated) {
             return sumPart;
           }

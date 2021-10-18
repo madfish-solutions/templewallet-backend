@@ -85,6 +85,7 @@ const getQuipuswapExchangers = async (): Promise<QuipuswapExchanger[]> => {
         )
       )
     );
+
   const rawFa2Exchangers = await Promise.all(
     rawFa2FactoryTokens.map((rawTokens, index) => {
       return Promise.all(
@@ -97,6 +98,7 @@ const getQuipuswapExchangers = async (): Promise<QuipuswapExchanger[]> => {
       );
     })
   );
+
   const fa2Exchangers = (
     await Promise.all(
       rawFa2Exchangers

@@ -46,7 +46,7 @@ const getProviderStateWithTimeout = <T>(provider: SingleQueryDataProvider<T>) =>
     new Promise<{ data?: undefined; error: Error }>((resolve) =>
       setTimeout(
         () => resolve({ error: new Error("Response timed out") }),
-        10000
+        30000
       )
     ),
   ]);
@@ -78,11 +78,9 @@ app.get("/api/exchange-rates", async (_req, res) => {
   const { data: tezExchangeRate, error: tezExchangeRateError } =
     await getProviderStateWithTimeout(tezExchangeRateProvider);
   if (tokensExchangeRatesError || tezExchangeRateError) {
-    res
-      .status(500)
-      .send({
-        error: (tokensExchangeRatesError || tezExchangeRateError)!.message,
-      });
+    res.status(500).send({
+      error: (tokensExchangeRatesError || tezExchangeRateError)!.message,
+    });
   } else {
     res.json([
       ...tokensExchangeRates!.map(({ metadata, ...restProps }) => restProps),
