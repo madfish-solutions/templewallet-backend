@@ -10,10 +10,17 @@ import BigNumber from "bignumber.js";
 import memoizee from "memoizee";
 import { BcdTokenData } from "./better-call-dev";
 import fetch from "./fetch";
-//  const ReadOnlySigner = require("./ReadOnlySigner");
 import SingleQueryDataProvider from "./SingleQueryDataProvider";
 
-const MAINNET_RPC_URL = "https://mainnet-node.madfish.solutions";
+export type Network = "mainnet" | "granadanet";
+export const KNOWN_NETWORKS: Network[] = ["mainnet", "granadanet"];
+export const isKnownNetwork = (network: string): network is Network => KNOWN_NETWORKS
+  .includes(network as Network);
+
+const rpcUrls: Record<Network, string> = {
+  mainnet: "https://mainnet-node.madfish.solutions",
+  granadanet: "https://granadanet.smartpy.io"
+};
 const TEMPLE_WALLET_LV_ACCOUNT_PKH = "tz1fVQangAfb9J1hRRMP2bSB6LvASD6KpY8A";
 const TEMPLE_WALLET_LV_ACCOUNT_PUBLIC_KEY =
   "edpkvWbk81uh1DEvdWKR4g1bjyTGhdu1mDvznPUFE2zDwNsLXrEb9K";
@@ -42,18 +49,23 @@ class LambdaViewSigner implements Signer {
 
 const lambdaSigner = new LambdaViewSigner();
 const michelEncoder = new MichelCodecPacker();
-const mainnetToolkit = new TezosToolkit(MAINNET_RPC_URL);
-mainnetToolkit.setSignerProvider(lambdaSigner);
-mainnetToolkit.setPackerProvider(michelEncoder);
+const toolkits: Record<Network, TezosToolkit> = {
+  mainnet: new TezosToolkit(rpcUrls.mainnet),
+  granadanet: new TezosToolkit(rpcUrls.granadanet)
+};
+Object.values(toolkits).forEach(toolkit => {
+  toolkit.setSignerProvider(lambdaSigner);
+  toolkit.setPackerProvider(michelEncoder);
+});
 
 const getContract = memoizee(
-  (address: string) => mainnetToolkit.contract.at(address),
+  (address: string, network: Network) => toolkits[network].contract.at(address),
   { promise: true }
 );
 
 export const getStorage = memoizee(
-  async (contractAddress: string) => {
-    const contract = await getContract(contractAddress);
+  async (contractAddress: string, network: Network = "mainnet") => {
+    const contract = await getContract(contractAddress, network);
     return contract.storage<any>();
   },
   { promise: true, maxAge: 30000 }
@@ -62,9 +74,10 @@ export const getStorage = memoizee(
 export const getTokenDescriptor = memoizee(
   async (
     exchangeContractAddress: string,
-    contractType: "quipuswap" | "dexter"
+    contractType: "quipuswap" | "dexter",
+    network: Network = "mainnet"
   ): Promise<{ address: string; tokenId?: number }> => {
-    const storage = await getStorage(exchangeContractAddress);
+    const storage = await getStorage(exchangeContractAddress, network);
     if (contractType === "quipuswap") {
       const { token_address, token_id } = storage.storage;
       return {
@@ -101,8 +114,8 @@ export const tezExchangeRateProvider = new SingleQueryDataProvider(
 export class MetadataParseError extends Error {}
 
 export const getTokenMetadata = memoizee(
-  async (tokenAddress: string, tokenId?: number): Promise<BcdTokenData> => {
-    const contract = await mainnetToolkit.wallet.at(
+  async (tokenAddress: string, tokenId?: number, network: Network = "mainnet"): Promise<BcdTokenData> => {
+    const contract = await toolkits[network].wallet.at(
       tokenAddress,
       // @ts-ignore
       compose(tzip12, tzip16)
@@ -157,12 +170,13 @@ const lambdaContractAddress = "KT1CPuTzwC7h7uLXd5WQmpMFso1HxrLBUtpE";
 export const getBalance = async (
   pkh: string,
   tokenAddress?: string,
-  tokenId?: number
+  tokenId?: number,
+  network: Network = "mainnet"
 ) => {
   if (!tokenAddress) {
-    return mainnetToolkit.rpc.getBalance(pkh);
+    return toolkits[network].rpc.getBalance(pkh);
   }
-  const contract = await getContract(tokenAddress);
+  const contract = await getContract(tokenAddress, network);
   if (contract.views.getBalance) {
     let nat: BigNumber | undefined;
     try {
