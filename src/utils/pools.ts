@@ -26,7 +26,7 @@ export const networksQuipuswapFactories: Record<
 
 type Token = {
   address: string;
-  type: "fa1.2" | "fa2";
+  type: TokenType;
   id?: number;
 };
 
