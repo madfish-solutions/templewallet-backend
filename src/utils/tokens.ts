@@ -14,113 +14,105 @@ import {
   tezExchangeRateProvider,
 } from "./tezos";
 import SingleQueryDataProvider from "./SingleQueryDataProvider";
-import { range } from "./helpers";
 import tzwrapEthTokensProvider from "./tzwrapEthTokensProvider";
-import { MichelsonMap } from "@taquito/michelson-encoder";
 import logger from "./logger";
-
-const fa12Factories = process.env.QUIPUSWAP_FA12_FACTORIES!.split(",");
-const fa2Factories = process.env.QUIPUSWAP_FA2_FACTORIES!.split(",");
+import {
+  networksQuipuswapFactories,
+  poolsDataProvider,
+  TokenXtzPoolData,
+} from "./pools";
 
 type QuipuswapExchanger = {
   exchangerAddress: string;
   tokenAddress: string;
   tokenId?: number;
   tokenMetadata: BcdTokenData | undefined;
+  factoryAddress: string;
+  tokenPool: BigNumber;
+  tezPool: BigNumber;
 };
 
 const getQuipuswapExchangers = async (): Promise<QuipuswapExchanger[]> => {
-  const fa12FactoryStorages = await Promise.all(
-    fa12Factories.map((factoryAddress) => getStorage(factoryAddress))
+  logger.info("Getting exchangers...");
+  const { data: pools, error: poolsError } = await poolsDataProvider.get(
+    "mainnet"
   );
-  const fa2FactoryStorages = await Promise.all(
-    fa2Factories.map((factoryAddress) => getStorage(factoryAddress))
-  );
-  logger.info("Getting FA1.2 Quipuswap exchangers...");
-  const rawFa12FactoryTokens: MichelsonMap<string, string>[] =
-    await Promise.all(
-      fa12FactoryStorages.map((storage) => {
-        return storage.token_list.getMultipleValues(
-          range(0, storage.counter.toNumber())
-        );
-      })
-    );
-  const rawFa12Exchangers: MichelsonMap<string, string>[] = await Promise.all(
-    fa12FactoryStorages.map((storage, index) =>
-      storage.token_to_exchange.getMultipleValues([
-        ...rawFa12FactoryTokens[index].values(),
-      ])
-    )
-  );
-  const fa12Exchangers = (
-    await Promise.all(
-      rawFa12Exchangers.map((rawFa12ExchangersChunk) => {
-        return Promise.all(
-          [...rawFa12ExchangersChunk.entries()].map(
-            async ([tokenAddress, exchangerAddress]) => {
-              await contractTokensProvider.subscribe("mainnet", tokenAddress);
-              const { data: tokensMetadata, error } =
-                await contractTokensProvider.get("mainnet", tokenAddress);
-              if (error) {
-                throw error;
-              }
-              return {
-                tokenAddress,
-                exchangerAddress,
-                tokenMetadata: tokensMetadata ? tokensMetadata[0] : undefined,
-              };
-            }
-          )
-        );
-      })
-    )
-  ).flat();
+  if (poolsError) {
+    throw poolsError;
+  }
 
-  logger.info("Getting FA2 Quipuswap exchangers...");
-  const rawFa2FactoryTokens: MichelsonMap<number, [string, BigNumber]>[] =
-    await Promise.all(
-      fa2FactoryStorages.map((storage) =>
-        storage.token_list.getMultipleValues(
-          range(0, storage.counter.toNumber())
-        )
-      )
-    );
-
-  const rawFa2Exchangers = await Promise.all(
-    rawFa2FactoryTokens.map((rawTokens, index) => {
-      return Promise.all(
-        [...rawTokens.values()].map(
-          async (token): Promise<[[string, BigNumber], string]> => [
-            token,
-            await fa2FactoryStorages[index].token_to_exchange.get(token),
-          ]
-        )
-      );
-    })
+  // TODO: add token to token exchangers
+  const tokenToXtzPools = pools!.filter(
+    (pool): pool is TokenXtzPoolData => pool.type === "tokenxtz"
   );
 
-  const fa2Exchangers = (
-    await Promise.all(
-      rawFa2Exchangers
-        .flat()
-        .map(async ([tokenDescriptor, exchangerAddress]) => {
-          const address = tokenDescriptor[0];
-          const token_id = tokenDescriptor[1].toNumber();
-          await contractTokensProvider.subscribe("mainnet", address, token_id);
+  logger.info("Getting tokens metadata for FA1.2 Quipuswap exchangers...");
+  const fa12Exchangers = await Promise.all(
+    tokenToXtzPools
+      .filter(({ tokenA: { type: tokenType } }) => tokenType === "fa1.2")
+      .map(
+        async ({
+          tokenA: { address: tokenAddress },
+          address: exchangerAddress,
+          factoryAddress,
+          tokenAPool: tokenPool,
+          tokenBPool: tezPool,
+        }) => {
+          await contractTokensProvider.subscribe("mainnet", tokenAddress);
           const { data: tokensMetadata, error } =
-            await contractTokensProvider.get("mainnet", address, token_id);
+            await contractTokensProvider.get("mainnet", tokenAddress);
           if (error) {
             throw error;
           }
+
+          return {
+            tokenAddress,
+            exchangerAddress,
+            tokenMetadata: tokensMetadata ? tokensMetadata[0] : undefined,
+            factoryAddress,
+            tokenPool: new BigNumber(tokenPool),
+            tezPool: new BigNumber(tezPool),
+          };
+        }
+      )
+  );
+
+  logger.info("Getting tokens metadata for FA2 Quipuswap exchangers...");
+  const fa2Exchangers = await Promise.all(
+    tokenToXtzPools
+      .filter(({ tokenA: { type: tokenType } }) => tokenType === "fa2")
+      .map(
+        async ({
+          tokenA: { address: tokenAddress, id: tokenId },
+          address: exchangerAddress,
+          factoryAddress,
+          tokenAPool: tokenPool,
+          tokenBPool: tezPool,
+        }) => {
+          await contractTokensProvider.subscribe(
+            "mainnet",
+            tokenAddress,
+            tokenId
+          );
+          const { data: tokensMetadata, error } =
+            await contractTokensProvider.get("mainnet", tokenAddress, tokenId);
+          if (error) {
+            throw error;
+          }
+
           return {
             exchangerAddress,
-            tokenAddress: address,
-            tokenId: token_id,
+            tokenAddress,
+            tokenId: tokenId!,
             tokenMetadata: tokensMetadata ? tokensMetadata[0] : undefined,
+            factoryAddress,
+            tokenPool: new BigNumber(tokenPool),
+            tezPool: new BigNumber(tezPool),
           };
-        })
-    )
-  ).flat();
+        }
+      )
+  );
+
   logger.info("Successfully got Quipuswap exchangers");
   return [...fa12Exchangers, ...fa2Exchangers];
 };
@@ -183,16 +175,13 @@ const getPoolTokenExchangeRate = memoizee(
     );
     if (matchingQuipuswapExchangers.length > 0) {
       const exchangersCharacteristics = await Promise.all(
-        matchingQuipuswapExchangers.map(async ({ exchangerAddress }) => {
-          const {
-            storage: { tez_pool, token_pool },
-          } = await getStorage(exchangerAddress);
-          if (!tez_pool.eq(0) && !token_pool.eq(0)) {
+        matchingQuipuswapExchangers.map(async ({ tezPool, tokenPool }) => {
+          if (!tezPool.eq(0) && !tokenPool.eq(0)) {
             return {
-              weight: tez_pool,
-              exchangeRate: tez_pool
+              weight: tezPool,
+              exchangeRate: tokenPool
                 .div(1e6)
-                .div(token_pool.div(tokenElementaryParts)),
+                .div(tokenPool.div(tokenElementaryParts)),
             };
           }
           return { weight: new BigNumber(0), exchangeRate: new BigNumber(0) };
@@ -271,15 +260,31 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
   let exchangeRates = await Promise.all(
     quipuswapExchangers!
       .reduce((onePerTokenExchangers, exchanger) => {
-        if (
-          !onePerTokenExchangers.some(
-            ({ tokenAddress, tokenId }) =>
-              exchanger.tokenAddress === tokenAddress &&
-              exchanger.tokenId === tokenId
-          )
-        ) {
+        const relevantFactories =
+          networksQuipuswapFactories.mainnet[
+            exchanger.tokenId === undefined ? "fa1.2" : "fa2"
+          ];
+        const exchangerFactoryIndex = relevantFactories.indexOf(
+          exchanger.factoryAddress
+        );
+        const alreadyPushedExchangerIndex = onePerTokenExchangers.findIndex(
+          ({ tokenAddress, tokenId }) =>
+            exchanger.tokenAddress === tokenAddress &&
+            exchanger.tokenId === tokenId
+        );
+        if (alreadyPushedExchangerIndex === -1) {
           onePerTokenExchangers.push(exchanger);
+        } else {
+          const alreadyPushedExchangerFactory =
+            onePerTokenExchangers[alreadyPushedExchangerIndex];
+          const alreadyPushedExchangerFactoryIndex = relevantFactories.indexOf(
+            alreadyPushedExchangerFactory.factoryAddress
+          );
+          if (alreadyPushedExchangerFactoryIndex < exchangerFactoryIndex) {
+            onePerTokenExchangers[alreadyPushedExchangerIndex] = exchanger;
+          }
         }
+
         return onePerTokenExchangers;
       }, [] as QuipuswapExchanger[])
       .map(async ({ tokenAddress, tokenId, tokenMetadata }) => {

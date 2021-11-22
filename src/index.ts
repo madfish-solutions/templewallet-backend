@@ -5,11 +5,15 @@ import express, { Request, Response } from "express";
 import pino from "pino";
 import pinoHttp from "pino-http";
 import getDAppsStats from "./getDAppsStats";
-import { isKnownNetwork, KNOWN_NETWORKS, tezExchangeRateProvider } from "./utils/tezos";
+import {
+  isKnownNetwork,
+  KNOWN_NETWORKS,
+  tezExchangeRateProvider,
+} from "./utils/tezos";
 import { tokensExchangeRatesProvider } from "./utils/tokens";
 import logger from "./utils/logger";
 import SingleQueryDataProvider from "./utils/SingleQueryDataProvider";
-import { ttDexDataProvider } from "./utils/ttdex";
+import { poolsDataProvider } from "./utils/pools";
 import DataProvider from "./utils/DataProvider";
 
 const PINO_LOGGER = {
@@ -42,7 +46,9 @@ const dAppsProvider = new SingleQueryDataProvider(
   getDAppsStats
 );
 
-const getSingleQueryProviderStateWithTimeout = <T>(provider: SingleQueryDataProvider<T>) =>
+const getSingleQueryProviderStateWithTimeout = <T>(
+  provider: SingleQueryDataProvider<T>
+) =>
   Promise.race([
     provider.getState(),
     new Promise<{ data?: undefined; error: Error }>((resolve) =>
@@ -56,22 +62,25 @@ const getSingleQueryProviderStateWithTimeout = <T>(provider: SingleQueryDataProv
 const getDataProviderStateWithTimeout = <T, A extends any[]>(
   provider: DataProvider<T, A>,
   ...args: A
-) => Promise.race([
-  provider.get(...args),
-  new Promise<{ data?: undefined, error: Error }>(
-    (resolve) => setTimeout(
-      () => resolve({ error: new Error("Response timed out") }),
-      30000
-    )
-  ),
-]);
+) =>
+  Promise.race([
+    provider.get(...args),
+    new Promise<{ data?: undefined; error: Error }>((resolve) =>
+      setTimeout(
+        () => resolve({ error: new Error("Response timed out") }),
+        30000
+      )
+    ),
+  ]);
 
 const makeProviderDataRequestHandler = <T, U>(
   provider: SingleQueryDataProvider<T>,
   transformFn?: (data: T) => U
 ) => {
   return async (_req: Request, res: Response) => {
-    const { data, error } = await getSingleQueryProviderStateWithTimeout(provider);
+    const { data, error } = await getSingleQueryProviderStateWithTimeout(
+      provider
+    );
     if (error) {
       res.status(500).send({ error: error.message });
     } else {
@@ -104,22 +113,22 @@ app.get("/api/exchange-rates", async (_req, res) => {
   }
 });
 
-app.get("/api/:network/ttdex", async (req, res) => {
+app.get("/api/:network/pools", async (req, res) => {
   const { network } = req.params;
   if (!isKnownNetwork(network)) {
     res.status(401).send({
-      error: `Only these networks are supported: ${KNOWN_NETWORKS.join(', ')}`
+      error: `Only these networks are supported: ${KNOWN_NETWORKS.join(", ")}`,
     });
     return;
   }
-  const { data: ttDexData, error: ttDexError } =
-    await getDataProviderStateWithTimeout(ttDexDataProvider, network);
-  if (ttDexError) {
+  const { data: poolsData, error: poolsError } =
+    await getDataProviderStateWithTimeout(poolsDataProvider, network);
+  if (poolsError) {
     res.status(500).send({
-      error: ttDexError.message
+      error: poolsError.message,
     });
   } else {
-    res.json(ttDexData);
+    res.json(poolsData);
   }
 });
 

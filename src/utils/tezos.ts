@@ -1,3 +1,4 @@
+import { Schema } from "@taquito/michelson-encoder";
 import {
   compose,
   MichelCodecPacker,
@@ -14,12 +15,12 @@ import SingleQueryDataProvider from "./SingleQueryDataProvider";
 
 export type Network = "mainnet" | "granadanet";
 export const KNOWN_NETWORKS: Network[] = ["mainnet", "granadanet"];
-export const isKnownNetwork = (network: string): network is Network => KNOWN_NETWORKS
-  .includes(network as Network);
+export const isKnownNetwork = (network: string): network is Network =>
+  KNOWN_NETWORKS.includes(network as Network);
 
 const rpcUrls: Record<Network, string> = {
   mainnet: "https://mainnet-node.madfish.solutions",
-  granadanet: "https://granadanet.smartpy.io"
+  granadanet: "https://granadanet.smartpy.io",
 };
 const TEMPLE_WALLET_LV_ACCOUNT_PKH = "tz1fVQangAfb9J1hRRMP2bSB6LvASD6KpY8A";
 const TEMPLE_WALLET_LV_ACCOUNT_PUBLIC_KEY =
@@ -51,9 +52,9 @@ const lambdaSigner = new LambdaViewSigner();
 const michelEncoder = new MichelCodecPacker();
 const toolkits: Record<Network, TezosToolkit> = {
   mainnet: new TezosToolkit(rpcUrls.mainnet),
-  granadanet: new TezosToolkit(rpcUrls.granadanet)
+  granadanet: new TezosToolkit(rpcUrls.granadanet),
 };
-Object.values(toolkits).forEach(toolkit => {
+Object.values(toolkits).forEach((toolkit) => {
   toolkit.setSignerProvider(lambdaSigner);
   toolkit.setPackerProvider(michelEncoder);
 });
@@ -70,6 +71,15 @@ export const getStorage = memoizee(
   },
   { promise: true, maxAge: 30000 }
 );
+
+export const getBigMapValues = async (
+  bigMapId: string | number,
+  network: Network = "mainnet",
+  schema?: Schema
+) =>
+  fetch<any[]>(
+    `${rpcUrls[network]}/chains/main/blocks/head/context/big_maps/${bigMapId}`
+  ).then((values) => values.map((value) => schema?.Execute(value) ?? value));
 
 export const getTokenDescriptor = memoizee(
   async (
@@ -114,7 +124,11 @@ export const tezExchangeRateProvider = new SingleQueryDataProvider(
 export class MetadataParseError extends Error {}
 
 export const getTokenMetadata = memoizee(
-  async (tokenAddress: string, tokenId?: number, network: Network = "mainnet"): Promise<BcdTokenData> => {
+  async (
+    tokenAddress: string,
+    tokenId?: number,
+    network: Network = "mainnet"
+  ): Promise<BcdTokenData> => {
     const contract = await toolkits[network].wallet.at(
       tokenAddress,
       // @ts-ignore
