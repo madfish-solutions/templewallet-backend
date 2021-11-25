@@ -79,7 +79,8 @@ const getTotalTokensPrice = async (
       balances.forEach(({ contract, token_id, balance, decimals }) => {
         const exchangeableToken = tokensExchangeRates.find(
           ({ tokenAddress: candidateContract, tokenId: candidateTokenId }) =>
-            candidateContract === contract && candidateTokenId === token_id
+            candidateContract === contract &&
+            new BigNumber(candidateTokenId ?? 0).eq(token_id)
         );
         if (exchangeableToken) {
           const delta = new BigNumber(balance)
@@ -97,6 +98,12 @@ const getTotalTokensPrice = async (
   return result;
 };
 
+const bcdToLlamaSlugs = {
+  youves: "youves",
+  crunchy: "crunchy-network",
+  aliensfarm: "aliensfarm",
+};
+
 const blacklistedProjects = ["trianon"];
 
 const noValueLockedProjects = ["trianon", "equisafe", "kalamint"];
@@ -110,6 +117,15 @@ const getDAppStats = async (dAppData: DAppDetails) => {
     throw tzExchangeRateError;
   }
   switch (true) {
+    case bcdToLlamaSlugs[slug]:
+      const llamaTvl = await fetch<number>(
+        `https://api.llama.fi/tvl/${bcdToLlamaSlugs[slug]}`
+      );
+      return {
+        allDAppsTvlSummand: new BigNumber(llamaTvl),
+        totalTezLocked: new BigNumber(0),
+        tvl: new BigNumber(llamaTvl),
+      };
     case slug === "quipuswap":
       const { data: quipuswapExchangers, error: quipuswapExchangersError } =
         await quipuswapExchangersDataProvider.getState();
@@ -305,7 +321,7 @@ big_map_contents",
       const governanceExchangeableToken = tokensExchangeRates!.find(
         ({ tokenAddress, tokenId }) =>
           tokenAddress === governanceToken!.contract &&
-          tokenId === governanceToken!.token_id
+          new BigNumber(tokenId ?? 0).eq(governanceToken!.token_id)
       );
       const governanceTvl = governanceExchangeableToken
         ? new BigNumber(governanceToken!.supply!)
