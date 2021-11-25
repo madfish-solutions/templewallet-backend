@@ -53,6 +53,8 @@ const getTotalTokensPrice = async (
       address: contractAddress,
       network: "mainnet",
       offset,
+      size: 49,
+      hide_empty: true,
     });
     offset += balances.length;
     if (total > tokensExchangeRates.length) {

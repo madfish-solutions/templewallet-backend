@@ -15,6 +15,7 @@ type AccountTokenBalancesParams = {
   offset?: number;
   size?: number;
   contract?: string;
+  hide_empty?: boolean;
 };
 
 type ContractTokensParams = {
@@ -212,7 +213,7 @@ export const getAccountTokenBalances = buildQuery<
   AccountTokenBalancesResponse
 >(
   (params) => `/account/${params.network}/${params.address}/token_balances`,
-  ["offset", "size", "contract"]
+  ["offset", "size", "contract", "hide_empty"]
 );
 
 const getContractTokens = buildQuery<ContractTokensParams, BcdTokenData[]>(
