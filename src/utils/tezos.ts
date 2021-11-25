@@ -25,6 +25,11 @@ const rpcUrls: Record<Network, string> = {
 const TEMPLE_WALLET_LV_ACCOUNT_PKH = "tz1fVQangAfb9J1hRRMP2bSB6LvASD6KpY8A";
 const TEMPLE_WALLET_LV_ACCOUNT_PUBLIC_KEY =
   "edpkvWbk81uh1DEvdWKR4g1bjyTGhdu1mDvznPUFE2zDwNsLXrEb9K";
+const lambdaContracts: Record<Network, string> = {
+  mainnet: "KT1CPuTzwC7h7uLXd5WQmpMFso1HxrLBUtpE",
+  granadanet: "KT1VhtTGAyh7AVVwyH2ExNhaXvQq2rAJ6DNs",
+};
+
 class LambdaViewSigner implements Signer {
   async publicKeyHash() {
     return TEMPLE_WALLET_LV_ACCOUNT_PKH;
@@ -86,18 +91,18 @@ export const getTokenDescriptor = memoizee(
     exchangeContractAddress: string,
     contractType: "quipuswap" | "dexter",
     network: Network = "mainnet"
-  ): Promise<{ address: string; tokenId?: number }> => {
+  ): Promise<{ address: string; tokenId?: string }> => {
     const storage = await getStorage(exchangeContractAddress, network);
     if (contractType === "quipuswap") {
       const { token_address, token_id } = storage.storage;
       return {
         address: token_address,
-        tokenId: token_id && token_id.toNumber(),
+        tokenId: token_id && token_id.toFixed(),
       };
     }
     return {
       address: storage.tokenAddress,
-      tokenId: storage.tokenId && storage.tokenId.toNumber(),
+      tokenId: storage.tokenId && storage.tokenId.toFixed(),
     };
   },
   { promise: true }
@@ -126,7 +131,7 @@ export class MetadataParseError extends Error {}
 export const getTokenMetadata = memoizee(
   async (
     tokenAddress: string,
-    tokenId?: number,
+    tokenId?: string,
     network: Network = "mainnet"
   ): Promise<BcdTokenData> => {
     const contract = await toolkits[network].wallet.at(
@@ -173,18 +178,17 @@ export const getTokenMetadata = memoizee(
         (tokenData.name ? tokenData.name.substr(0, 8) : "???"),
       name: tokenData.name || tokenData.symbol || "Unknown Token",
       contract: tokenAddress,
-      token_id: tokenId ?? 0,
+      token_id: +(tokenId ?? "0"),
       network: "mainnet",
     };
   },
   { promise: true }
 );
 
-const lambdaContractAddress = "KT1CPuTzwC7h7uLXd5WQmpMFso1HxrLBUtpE";
 export const getBalance = async (
   pkh: string,
   tokenAddress?: string,
-  tokenId?: number,
+  tokenId?: string,
   network: Network = "mainnet"
 ) => {
   if (!tokenAddress) {
@@ -194,7 +198,7 @@ export const getBalance = async (
   if (contract.views.getBalance) {
     let nat: BigNumber | undefined;
     try {
-      nat = await contract.views.getBalance(pkh).read(lambdaContractAddress);
+      nat = await contract.views.getBalance(pkh).read(lambdaContracts[network]);
     } catch {}
     if (!nat || nat.isNaN()) {
       return new BigNumber(0);
@@ -206,7 +210,7 @@ export const getBalance = async (
     try {
       const response = await contract.views
         .balance_of([{ owner: pkh, token_id: tokenId }])
-        .read(lambdaContractAddress);
+        .read(lambdaContracts[network]);
       nat = response[0].balance;
     } catch {}
     if (!nat || nat.isNaN()) {

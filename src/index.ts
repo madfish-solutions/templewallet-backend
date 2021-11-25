@@ -107,7 +107,10 @@ app.get("/api/exchange-rates", async (_req, res) => {
     });
   } else {
     res.json([
-      ...tokensExchangeRates!.map(({ metadata, ...restProps }) => restProps),
+      ...tokensExchangeRates!.map(({ metadata, tokenId, ...restProps }) => ({
+        ...restProps,
+        tokenId: tokenId === undefined ? undefined : +tokenId,
+      })),
       { exchangeRate: tezExchangeRate!.toString() },
     ]);
   }

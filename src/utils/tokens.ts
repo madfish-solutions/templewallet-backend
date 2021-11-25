@@ -25,7 +25,7 @@ import {
 type QuipuswapExchanger = {
   exchangerAddress: string;
   tokenAddress: string;
-  tokenId?: number;
+  tokenId?: string;
   tokenMetadata: BcdTokenData | undefined;
   factoryAddress: string;
   tokenPool: BigNumber;
@@ -129,7 +129,7 @@ const getPoolTokenExchangeRate = memoizee(
     token_id,
   }: {
     decimals?: number;
-    token_id?: number;
+    token_id?: string;
     contract: string;
   }) => {
     if (decimals === undefined) {
@@ -174,18 +174,18 @@ const getPoolTokenExchangeRate = memoizee(
         (swappableTokenId === undefined || swappableTokenId === token_id)
     );
     if (matchingQuipuswapExchangers.length > 0) {
-      const exchangersCharacteristics = await Promise.all(
-        matchingQuipuswapExchangers.map(async ({ tezPool, tokenPool }) => {
+      const exchangersCharacteristics = matchingQuipuswapExchangers.map(
+        ({ tezPool, tokenPool }) => {
           if (!tezPool.eq(0) && !tokenPool.eq(0)) {
             return {
               weight: tezPool,
-              exchangeRate: tokenPool
+              exchangeRate: tezPool
                 .div(1e6)
                 .div(tokenPool.div(tokenElementaryParts)),
             };
           }
           return { weight: new BigNumber(0), exchangeRate: new BigNumber(0) };
-        })
+        }
       );
       quipuswapWeight = exchangersCharacteristics.reduce(
         (sum, { weight }) => sum.plus(weight),
@@ -237,7 +237,7 @@ const getPoolTokenExchangeRate = memoizee(
 
 export type TokenExchangeRateEntry = {
   tokenAddress: string;
-  tokenId?: number;
+  tokenId?: string;
   exchangeRate: BigNumber;
   metadata: BcdTokenData;
 };
@@ -322,7 +322,7 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
     let tokenMetadata = dexterDAppData?.dex_tokens?.find(
       ({ contract: candidateAddress, token_id: candidateTokenId }) =>
         candidateAddress === contractTokenAddress &&
-        (tokenId === undefined || candidateTokenId === tokenId)
+        (tokenId === undefined || candidateTokenId.toString() === tokenId)
     );
     if (!tokenMetadata) {
       const { data: newTokenMetadata, error: newTokenMetadataError } =
@@ -335,7 +335,7 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
         tokenMetadata = {
           network: "mainnet",
           contract: contractTokenAddress,
-          token_id: tokenId ?? 0,
+          token_id: +(tokenId ?? "0"),
           decimals: 0,
         };
       } else {
@@ -359,13 +359,13 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
         !exchangeRates.some(
           ({ tokenAddress, tokenId }) =>
             tokenAddress === ethTokenContract &&
-            (tokenId === undefined || ethTokenId === tokenId)
+            (tokenId === undefined || new BigNumber(ethTokenId).eq(tokenId))
         )
     )
     .map(({ price, contract, token_id, ...restProps }) => ({
       tokenAddress: contract,
       exchangeRate: new BigNumber(price),
-      tokenId: token_id,
+      tokenId: token_id.toString(),
       metadata: {
         ...restProps,
         token_id,
@@ -405,6 +405,7 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
   }
 
   logger.info("Successfully got tokens exchange rates");
+
   return [...exchangeRates, ...tzwrapExchangeRates].filter(
     ({ exchangeRate }) => !exchangeRate.eq(0)
   );
@@ -426,7 +427,7 @@ export const getTotalSupplyPrice = async (
   const exchangeableToken = exchangeableTokensWithPrices!.find(
     ({ tokenAddress, tokenId }) =>
       tokenAddress === token.contract &&
-      (tokenId === undefined || tokenId === token.token_id)
+      (tokenId === undefined || tokenId === token.token_id.toString())
   );
   const tokenPrice = exchangeableToken
     ? exchangeableToken.exchangeRate

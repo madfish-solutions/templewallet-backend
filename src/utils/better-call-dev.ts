@@ -22,7 +22,7 @@ type ContractTokensParams = {
   network: string;
   size?: number;
   offset?: number;
-  token_id?: number;
+  token_id?: string;
 };
 
 type TokensMetadataParams = {
@@ -30,7 +30,7 @@ type TokensMetadataParams = {
   offset?: number;
   network: string;
   contract?: string;
-  token_id?: number;
+  token_id?: string;
 };
 
 type BcdDAppScreenshot = {
@@ -227,7 +227,7 @@ const getTokensMetadata = buildQuery<TokensMetadataParams, BcdTokenData[]>(
 
 export const tokensMetadataProvider = new DataProvider(
   24 * 3600 * 1000,
-  (network: string, address?: string, token_id?: number) =>
+  (network: string, address?: string, token_id?: string) =>
     getTokensMetadata({
       network,
       contract: address,
@@ -240,7 +240,7 @@ export const contractTokensProvider = new DataProvider(
   (
     network: string,
     address: string,
-    token_id?: number,
+    token_id?: string,
     size?: number,
     offset?: number
   ) =>
