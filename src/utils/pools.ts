@@ -26,8 +26,8 @@ export const networksQuipuswapFactories: Record<
 
 type Token = {
   address: string;
-  type: "fa1.2" | "fa2";
   id?: string;
+  type: TokenType;
 };
 
 type CommonPoolData = {
