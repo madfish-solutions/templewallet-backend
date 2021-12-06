@@ -6,6 +6,7 @@ import { getBigMapValues, getStorage, KNOWN_NETWORKS, Network } from "./tezos";
 export const networksTTDex: Partial<Record<Network, string>> = {
   mainnet: process.env.MAINNET_TTDEX_ADDRESS,
   granadanet: process.env.GRANADANET_TTDEX_ADDRESS,
+  hangzhounet: process.env.HANGZHOUNET_TTDEX_ADDRESS,
 };
 
 export type TokenType = "fa1.2" | "fa2";
@@ -19,8 +20,12 @@ export const networksQuipuswapFactories: Record<
     fa2: process.env.MAINNET_QUIPUSWAP_FA2_FACTORIES?.split(",") ?? [],
   },
   granadanet: {
-    "fa1.2": process.env.GRANDANET_QUIPUSWAP_FA12_FACTORIES?.split(",") ?? [],
-    fa2: process.env.GRANDANET_QUIPUSWAP_FA2_FACTORIES?.split(",") ?? [],
+    "fa1.2": process.env.GRANADANET_QUIPUSWAP_FA12_FACTORIES?.split(",") ?? [],
+    fa2: process.env.GRANADANET_QUIPUSWAP_FA2_FACTORIES?.split(",") ?? [],
+  },
+  hangzhounet: {
+    "fa1.2": process.env.HANGZHOUNET_QUIPUSWAP_FA12_FACTORIES?.split(",") ?? [],
+    fa2: process.env.HANGZHOUNET_QUIPUSWAP_FA2_FACTORIES?.split(",") ?? [],
   },
 };
 
@@ -105,42 +110,47 @@ const getTokenXtzPoolsData = async (network: Network) => {
 
       return Promise.all(
         exchangersAddresses.map(async (address) => {
-          const {
-            storage: {
-              tez_pool,
-              token_pool,
-              token_id,
-              token_address,
-              total_supply,
-            },
-          } = await getStorage(address, network);
+          try {
+            const {
+              storage: {
+                tez_pool,
+                token_pool,
+                token_id,
+                token_address,
+                total_supply,
+              },
+            } = await getStorage(address, network);
 
-          const tokenA: Token = token_id
-            ? {
-                address: token_address,
-                type: "fa2",
-                id: token_id.toFixed(),
-              }
-            : {
-                address: token_address,
-                type: "fa1.2",
-              };
+            const tokenA: Token = token_id
+              ? {
+                  address: token_address,
+                  type: "fa2",
+                  id: token_id.toFixed(),
+                }
+              : {
+                  address: token_address,
+                  type: "fa1.2",
+                };
 
-          return {
-            type: "tokenxtz" as const,
-            address,
-            tokenAPool: token_pool.toFixed(),
-            tokenBPool: tez_pool.toFixed(),
-            tokenA,
-            totalSupply: total_supply.toFixed(),
-            factoryAddress,
-          };
+            return {
+              type: "tokenxtz" as const,
+              address,
+              tokenAPool: token_pool.toFixed(),
+              tokenBPool: tez_pool.toFixed(),
+              tokenA,
+              totalSupply: total_supply.toFixed(),
+              factoryAddress,
+            };
+          } catch (e) {
+            console.error(e);
+            return undefined;
+          }
         })
       );
     })
   );
 
-  return chunks.flat();
+  return chunks.flat().filter((x): x is TokenXtzPoolData => !!x);
 };
 
 const getPoolsData = async (network: Network) =>

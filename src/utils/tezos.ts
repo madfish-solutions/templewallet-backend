@@ -13,14 +13,19 @@ import { BcdTokenData } from "./better-call-dev";
 import fetch from "./fetch";
 import SingleQueryDataProvider from "./SingleQueryDataProvider";
 
-export type Network = "mainnet" | "granadanet";
-export const KNOWN_NETWORKS: Network[] = ["mainnet", "granadanet"];
+export type Network = "mainnet" | "granadanet" | "hangzhounet";
+export const KNOWN_NETWORKS: Network[] = [
+  "mainnet",
+  "granadanet",
+  "hangzhounet",
+];
 export const isKnownNetwork = (network: string): network is Network =>
   KNOWN_NETWORKS.includes(network as Network);
 
 const rpcUrls: Record<Network, string> = {
-  mainnet: "https://mainnet-node.madfish.solutions",
-  granadanet: "https://granadanet.smartpy.io",
+  mainnet: "https://mainnet.api.tez.ie",
+  granadanet: "https://granadanet.api.tez.ie",
+  hangzhounet: "https://hangzhounet.api.tez.ie",
 };
 const TEMPLE_WALLET_LV_ACCOUNT_PKH = "tz1fVQangAfb9J1hRRMP2bSB6LvASD6KpY8A";
 const TEMPLE_WALLET_LV_ACCOUNT_PUBLIC_KEY =
@@ -28,6 +33,7 @@ const TEMPLE_WALLET_LV_ACCOUNT_PUBLIC_KEY =
 const lambdaContracts: Record<Network, string> = {
   mainnet: "KT1CPuTzwC7h7uLXd5WQmpMFso1HxrLBUtpE",
   granadanet: "KT1VhtTGAyh7AVVwyH2ExNhaXvQq2rAJ6DNs",
+  hangzhounet: "KT19ewhnhaCcCuoF1Ly2pxXAFRiF3UtgaY9U",
 };
 
 class LambdaViewSigner implements Signer {
@@ -58,6 +64,7 @@ const michelEncoder = new MichelCodecPacker();
 const toolkits: Record<Network, TezosToolkit> = {
   mainnet: new TezosToolkit(rpcUrls.mainnet),
   granadanet: new TezosToolkit(rpcUrls.granadanet),
+  hangzhounet: new TezosToolkit(rpcUrls.hangzhounet),
 };
 Object.values(toolkits).forEach((toolkit) => {
   toolkit.setSignerProvider(lambdaSigner);
