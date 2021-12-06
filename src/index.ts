@@ -16,29 +16,7 @@ import SingleQueryDataProvider from "./utils/SingleQueryDataProvider";
 import { poolsDataProvider } from "./utils/pools";
 import DataProvider from "./utils/DataProvider";
 
-const PINO_LOGGER = {
-  logger: logger.child({ name: "web" }),
-  serializers: {
-    req: (req) => ({
-      method: req.method,
-      url: req.url,
-      body: req.body,
-      remoteAddress: req.remoteAddress,
-      remotePort: req.remotePort,
-      id: req.id,
-    }),
-    err: (err) => {
-      const { type, message } = pino.stdSerializers.err(err);
-      return { type, message };
-    },
-    res: (res) => ({
-      statusCode: res.statusCode,
-    }),
-  },
-};
-
 const app = express();
-app.use(pinoHttp(PINO_LOGGER));
 app.use(cors());
 
 const dAppsProvider = new SingleQueryDataProvider(

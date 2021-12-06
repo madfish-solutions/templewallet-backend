@@ -44,9 +44,7 @@ export default class SingleQueryDataProvider<T> {
       await this.state.setData({ data: result });
     } catch (e) {
       const timeSlot = 1000;
-      logger.error(
-        `Error in SingleQueryDataProvider: ${e.message}\n${e.stack}`
-      );
+      logger.error(`Error in SingleQueryDataProvider: ${e}`);
       if (this.shouldGiveUp(e, c)) {
         await this.state.setData({ error: e });
       } else {
