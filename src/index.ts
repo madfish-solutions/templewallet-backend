@@ -2,8 +2,6 @@ require("./configure");
 
 import cors from "cors";
 import express, { Request, Response } from "express";
-import pino from "pino";
-import pinoHttp from "pino-http";
 import getDAppsStats from "./getDAppsStats";
 import {
   isKnownNetwork,
@@ -11,7 +9,6 @@ import {
   tezExchangeRateProvider,
 } from "./utils/tezos";
 import { tokensExchangeRatesProvider } from "./utils/tokens";
-import logger from "./utils/logger";
 import SingleQueryDataProvider from "./utils/SingleQueryDataProvider";
 import { poolsDataProvider } from "./utils/pools";
 import DataProvider from "./utils/DataProvider";
