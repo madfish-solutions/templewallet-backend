@@ -5,7 +5,6 @@ import { getBigMapValues, getStorage, KNOWN_NETWORKS, Network } from "./tezos";
 
 export const networksTTDex: Partial<Record<Network, string>> = {
   mainnet: process.env.MAINNET_TTDEX_ADDRESS,
-  granadanet: process.env.GRANADANET_TTDEX_ADDRESS,
   hangzhounet: process.env.HANGZHOUNET_TTDEX_ADDRESS,
 };
 
@@ -18,10 +17,6 @@ export const networksQuipuswapFactories: Record<
   mainnet: {
     "fa1.2": process.env.MAINNET_QUIPUSWAP_FA12_FACTORIES?.split(",") ?? [],
     fa2: process.env.MAINNET_QUIPUSWAP_FA2_FACTORIES?.split(",") ?? [],
-  },
-  granadanet: {
-    "fa1.2": process.env.GRANADANET_QUIPUSWAP_FA12_FACTORIES?.split(",") ?? [],
-    fa2: process.env.GRANADANET_QUIPUSWAP_FA2_FACTORIES?.split(",") ?? [],
   },
   hangzhounet: {
     "fa1.2": process.env.HANGZHOUNET_QUIPUSWAP_FA12_FACTORIES?.split(",") ?? [],
