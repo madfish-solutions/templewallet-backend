@@ -19,8 +19,8 @@ export const isKnownNetwork = (network: string): network is Network =>
   KNOWN_NETWORKS.includes(network as Network);
 
 const rpcUrls: Record<Network, string> = {
-  mainnet: "https://mainnet.api.tez.ie",
-  hangzhounet: "https://hangzhounet.api.tez.ie",
+  mainnet: process.env.MAINNET_RPC_URL!,
+  hangzhounet: process.env.HANGZHOUNET_RPC_URL!,
 };
 const TEMPLE_WALLET_LV_ACCOUNT_PKH = "tz1fVQangAfb9J1hRRMP2bSB6LvASD6KpY8A";
 const TEMPLE_WALLET_LV_ACCOUNT_PUBLIC_KEY =
