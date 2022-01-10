@@ -49,7 +49,7 @@ const getQuipuswapExchangers = async (): Promise<QuipuswapExchanger[]> => {
   logger.info("Getting tokens metadata for FA1.2 Quipuswap exchangers...");
   const fa12Exchangers = await Promise.all(
     tokenToXtzPools
-      .filter(({ tokenA: { type: tokenType } }) => tokenType === "fa1.2")
+      .filter(({ tokenA: { type: tokenType } }) => tokenType === "FA12")
       .map(
         async ({
           tokenA: { address: tokenAddress },
@@ -80,7 +80,7 @@ const getQuipuswapExchangers = async (): Promise<QuipuswapExchanger[]> => {
   logger.info("Getting tokens metadata for FA2 Quipuswap exchangers...");
   const fa2Exchangers = await Promise.all(
     tokenToXtzPools
-      .filter(({ tokenA: { type: tokenType } }) => tokenType === "fa2")
+      .filter(({ tokenA: { type: tokenType } }) => tokenType === "FA2")
       .map(
         async ({
           tokenA: { address: tokenAddress, id: tokenId },
@@ -262,7 +262,7 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
       .reduce((onePerTokenExchangers, exchanger) => {
         const relevantFactories =
           networksQuipuswapFactories.mainnet[
-            exchanger.tokenId === undefined ? "fa1.2" : "fa2"
+            exchanger.tokenId === undefined ? "FA12" : "FA2"
           ];
         const exchangerFactoryIndex = relevantFactories.indexOf(
           exchanger.factoryAddress

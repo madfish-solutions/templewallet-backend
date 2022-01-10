@@ -8,19 +8,19 @@ export const networksTTDex: Partial<Record<Network, string>> = {
   hangzhounet: process.env.HANGZHOUNET_TTDEX_ADDRESS,
 };
 
-export type TokenType = "fa1.2" | "fa2";
+export type TokenType = "FA12" | "FA2";
 
 export const networksQuipuswapFactories: Record<
   Network,
   Record<TokenType, string[]>
 > = {
   mainnet: {
-    "fa1.2": process.env.MAINNET_QUIPUSWAP_FA12_FACTORIES?.split(",") ?? [],
-    fa2: process.env.MAINNET_QUIPUSWAP_FA2_FACTORIES?.split(",") ?? [],
+    FA12: process.env.MAINNET_QUIPUSWAP_FA12_FACTORIES?.split(",") ?? [],
+    FA2: process.env.MAINNET_QUIPUSWAP_FA2_FACTORIES?.split(",") ?? [],
   },
   hangzhounet: {
-    "fa1.2": process.env.HANGZHOUNET_QUIPUSWAP_FA12_FACTORIES?.split(",") ?? [],
-    fa2: process.env.HANGZHOUNET_QUIPUSWAP_FA2_FACTORIES?.split(",") ?? [],
+    FA12: process.env.HANGZHOUNET_QUIPUSWAP_FA12_FACTORIES?.split(",") ?? [],
+    FA2: process.env.HANGZHOUNET_QUIPUSWAP_FA2_FACTORIES?.split(",") ?? [],
   },
 };
 
@@ -74,12 +74,12 @@ const getTTDexData = async (network: Network) => {
         tokenBPool: token_b_pool.toFixed(),
         totalSupply: total_supply.toFixed(),
         tokenA: {
-          type: token_a_type.fa12 ? ("fa1.2" as const) : ("fa2" as const),
+          type: token_a_type.fa12 ? ("FA12" as const) : ("FA2" as const),
           address: token_a_type.fa12 ?? token_a_type.token_address,
           id: token_a_type.token_id?.toFixed(),
         },
         tokenB: {
-          type: token_b_type.fa12 ? ("fa1.2" as const) : ("fa2" as const),
+          type: token_b_type.fa12 ? ("FA12" as const) : ("FA2" as const),
           address: token_b_type.fa12 ?? token_b_type.token_address,
           id: token_b_type.token_id?.toFixed(),
         },
@@ -89,7 +89,7 @@ const getTTDexData = async (network: Network) => {
 };
 
 const getTokenXtzPoolsData = async (network: Network) => {
-  const { ["fa1.2"]: fa12Factories, ["fa2"]: fa2Factories } =
+  const { FA12: fa12Factories, FA2: fa2Factories } =
     networksQuipuswapFactories[network];
   const chunks = await Promise.all(
     [...fa12Factories, ...fa2Factories].map(async (factoryAddress) => {
@@ -118,12 +118,12 @@ const getTokenXtzPoolsData = async (network: Network) => {
           const tokenA: Token = token_id
             ? {
                 address: token_address,
-                type: "fa2",
+                type: "FA2",
                 id: token_id.toFixed(),
               }
             : {
                 address: token_address,
-                type: "fa1.2",
+                type: "FA12",
               };
 
           return {
