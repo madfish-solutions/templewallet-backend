@@ -180,8 +180,10 @@ const getDAppDetails = async ({
   if (lastSeries.length === 1) {
     estimatedUsersPerMonth = lastSeries[0][1];
   } else if (lastSeries.length > 1) {
-    const [[, prevMonthUsers], [currentMonthTimestamp, currentMonthUsers]] =
-      lastSeries;
+    const [
+      [, prevMonthUsers = 0],
+      [currentMonthTimestamp, currentMonthUsers = 0],
+    ] = lastSeries;
     const nowTimestamp = Date.now();
     const currentMonthPartMs = nowTimestamp - currentMonthTimestamp;
     const oneWeekMs = 7 * 24 * 3600 * 1000;
