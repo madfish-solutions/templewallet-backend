@@ -1,5 +1,5 @@
 import BigNumber from "bignumber.js";
-import tzwrapEthTokensProvider from "./utils/tzwrapEthTokensProvider";
+// import tzwrapEthTokensProvider from "./utils/tzwrapEthTokensProvider";
 import {
   DAppDetails,
   getAccountTokenBalances,
@@ -303,11 +303,12 @@ big_map_contents",
         tvl: kolibriTvl,
       };
     case slug === "tzwrap":
-      const { data: ethTokens, error: ethTokensError } =
+      /* const { data: ethTokens, error: ethTokensError } =
         await tzwrapEthTokensProvider.getState();
       if (ethTokensError) {
         throw ethTokensError;
-      }
+      } */
+      const ethTokens = [];
       const tzwrapEthTvl = ethTokens!.reduce(
         (sum, { price, decimals, supply }) =>
           sum.plus(

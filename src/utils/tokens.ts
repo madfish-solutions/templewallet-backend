@@ -14,7 +14,7 @@ import {
   tezExchangeRateProvider,
 } from "./tezos";
 import SingleQueryDataProvider from "./SingleQueryDataProvider";
-import tzwrapEthTokensProvider from "./tzwrapEthTokensProvider";
+// import tzwrapEthTokensProvider from "./tzwrapEthTokensProvider";
 import logger from "./logger";
 import {
   networksQuipuswapFactories,
@@ -251,10 +251,10 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
     await quipuswapExchangersDataProvider.getState();
   const { data: dexterDAppData, error: dexterDAppError } =
     await detailedDAppDataProvider.get("dexter");
-  const { data: ethTokens, error: ethTokensError } =
-    await tzwrapEthTokensProvider.getState();
-  if (quipuswapError || dexterDAppError || ethTokensError) {
-    throw quipuswapError || dexterDAppError || ethTokensError;
+  /* const { data: ethTokens, error: ethTokensError } =
+    await tzwrapEthTokensProvider.getState(); */
+  if (quipuswapError || dexterDAppError /* || ethTokensError */) {
+    throw quipuswapError || dexterDAppError /* || ethTokensError */;
   }
   logger.info("Getting tokens exchange rates from Quipuswap pools");
   let exchangeRates = await Promise.all(
@@ -353,7 +353,7 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
     });
   }
   logger.info("Getting exchange rates for remaining Tzwrap tokens");
-  const tzwrapExchangeRates = ethTokens!
+  /* const tzwrapExchangeRates = ethTokens!
     .filter(
       ({ contract: ethTokenContract, token_id: ethTokenId }) =>
         !exchangeRates.some(
@@ -371,7 +371,7 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
         token_id,
         contract,
       },
-    }));
+    })); */
 
   if (
     !exchangeRates.some(
@@ -406,7 +406,7 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
 
   logger.info("Successfully got tokens exchange rates");
 
-  return [...exchangeRates, ...tzwrapExchangeRates].filter(
+  return [...exchangeRates /*, ...tzwrapExchangeRates */].filter(
     ({ exchangeRate }) => !exchangeRate.eq(0)
   );
 };
