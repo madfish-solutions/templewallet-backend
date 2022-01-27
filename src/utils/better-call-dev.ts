@@ -202,10 +202,6 @@ const getDAppDetails = async ({
         Math.round((prevMonthUsers + currentMonthUsersEstimation) / 2),
         currentMonthUsers
       );
-      if (slug === "tzwrap") {
-        console.log(lastSeries);
-      }
-      console.log();
     }
   }
   return {
