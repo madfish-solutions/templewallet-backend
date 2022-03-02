@@ -101,7 +101,7 @@ app.get(
         res.status(200).send({ signedUrl });
       }
 
-      res.status(500).send({ error: 'Bad url' });
+      res.status(500).send({ error: 'Requested URL is not valid' });
     } catch (error) {
       res.status(500).send({ error });
     }
