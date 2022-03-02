@@ -1,6 +1,7 @@
 require("./configure");
 
 import cors from "cors";
+import bodyParser from "body-parser";
 import express, { Request, Response } from "express";
 import pino from "pino";
 import pinoHttp from "pino-http";
@@ -9,6 +10,7 @@ import { tezExchangeRateProvider } from "./utils/tezos";
 import { tokensExchangeRatesProvider } from "./utils/tokens";
 import logger from "./utils/logger";
 import SingleQueryDataProvider from "./utils/SingleQueryDataProvider";
+import {getSignedMoonPayUrl} from "./utils/get-signed-moonpay-url";
 
 const PINO_LOGGER = {
   logger: logger.child({ name: "web" }),
@@ -34,6 +36,8 @@ const PINO_LOGGER = {
 const app = express();
 app.use(pinoHttp(PINO_LOGGER));
 app.use(cors());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
 const dAppsProvider = new SingleQueryDataProvider(
   15 * 60 * 1000,
@@ -88,6 +92,23 @@ app.get("/api/exchange-rates", async (_req, res) => {
     ]);
   }
 });
+
+app.get(
+  "/api/moonpay-sign",
+  async (_req, res) => {
+    try {
+      const url = _req.query.url;
+
+      if (typeof(url) === 'string') {
+        const signedUrl = getSignedMoonPayUrl(url);
+        res.status(200).send({ signedUrl });
+      }
+
+      res.status(500).send({ error: 'Bad url' });
+    } catch (error) {
+      res.status(500).send({ error });
+    }
+  });
 
 // start the server listening for requests
 app.listen(process.env.PORT || 3000, () => console.log("Server is running..."));
