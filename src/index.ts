@@ -1,7 +1,6 @@
 require("./configure");
 
 import cors from "cors";
-import bodyParser from "body-parser";
 import express, { Request, Response } from "express";
 import pino from "pino";
 import pinoHttp from "pino-http";
@@ -36,8 +35,6 @@ const PINO_LOGGER = {
 const app = express();
 app.use(pinoHttp(PINO_LOGGER));
 app.use(cors());
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
 
 const dAppsProvider = new SingleQueryDataProvider(
   15 * 60 * 1000,
