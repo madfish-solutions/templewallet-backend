@@ -2,25 +2,54 @@ import BigNumber from "bignumber.js";
 import memoizee from "memoizee";
 import {
   BcdTokenData,
-  detailedDAppDataProvider,
   contractTokensProvider,
   tokensMetadataProvider,
 } from "./better-call-dev";
 import fetch from "./fetch";
-import {
-  getTokenDescriptor,
-  getTokenMetadata,
-  getStorage,
-  tezExchangeRateProvider,
-} from "./tezos";
+import { getTokenMetadata, getStorage, tezExchangeRateProvider } from "./tezos";
 import SingleQueryDataProvider from "./SingleQueryDataProvider";
-import { range } from "./helpers";
 // import tzwrapEthTokensProvider from "./tzwrapEthTokensProvider";
-import { MichelsonMap } from "@taquito/michelson-encoder";
 import logger from "./logger";
+import WebSocket from "ws";
 
-const fa12Factories = process.env.QUIPUSWAP_FA12_FACTORIES!.split(",");
-const fa2Factories = process.env.QUIPUSWAP_FA2_FACTORIES!.split(",");
+const poolsUrl = process.env.POOLS_URL!;
+
+import { BlockResponse, BlockFullHeader } from "@taquito/rpc";
+import MutexProtectedData from "./MutexProtectedData";
+
+interface BlockInterface
+  extends Pick<BlockResponse, "protocol" | "chain_id" | "hash"> {
+  header: Pick<BlockFullHeader, "level" | "timestamp">;
+}
+
+export enum RawDexType {
+  QuipuSwap = "QuipuSwap",
+  QuipuSwapTokenToTokenDex = "QuipuSwapTokenToTokenDex",
+  Plenty = "Plenty",
+  LiquidityBaking = "LiquidityBaking",
+}
+
+export enum RawDexTokenStandard {
+  FA1_2 = "FA1_2",
+  FA2 = "FA2",
+}
+
+export interface RawDexPool {
+  dexType: RawDexType;
+  dexAddress: string;
+  dexId?: string;
+  aTokenSlug: string;
+  bTokenSlug: string;
+  aTokenStandard?: RawDexTokenStandard;
+  aTokenPool: string;
+  bTokenPool: string;
+  bTokenStandard?: RawDexTokenStandard;
+}
+
+export interface RawDexPoolsResponse {
+  block: BlockInterface;
+  routePairs: RawDexPool[];
+}
 
 type QuipuswapExchanger = {
   exchangerAddress: string;
@@ -29,103 +58,90 @@ type QuipuswapExchanger = {
   tokenMetadata: BcdTokenData | undefined;
 };
 
-const getQuipuswapExchangers = async (): Promise<QuipuswapExchanger[]> => {
-  const fa12FactoryStorages = await Promise.all(
-    fa12Factories.map((factoryAddress) => getStorage(factoryAddress))
-  );
-  const fa2FactoryStorages = await Promise.all(
-    fa2Factories.map((factoryAddress) => getStorage(factoryAddress))
-  );
-  logger.info("Getting FA1.2 Quipuswap exchangers...");
-  const rawFa12FactoryTokens: MichelsonMap<string, string>[] =
-    await Promise.all(
-      fa12FactoryStorages.map((storage) => {
-        return storage.token_list.getMultipleValues(
-          range(0, storage.counter.toNumber())
-        );
-      })
-    );
-  const rawFa12Exchangers: MichelsonMap<string, string>[] = await Promise.all(
-    fa12FactoryStorages.map((storage, index) =>
-      storage.token_to_exchange.getMultipleValues([
-        ...rawFa12FactoryTokens[index].values(),
-      ])
-    )
-  );
-  const fa12Exchangers = (
-    await Promise.all(
-      rawFa12Exchangers.map((rawFa12ExchangersChunk) => {
-        return Promise.all(
-          [...rawFa12ExchangersChunk.entries()].map(
-            async ([tokenAddress, exchangerAddress]) => {
-              await contractTokensProvider.subscribe("mainnet", tokenAddress);
-              const { data: tokensMetadata, error } =
-                await contractTokensProvider.get("mainnet", tokenAddress);
-              if (error) {
-                throw error;
-              }
-              return {
-                tokenAddress,
-                exchangerAddress,
-                tokenMetadata: tokensMetadata ? tokensMetadata[0] : undefined,
-              };
-            }
-          )
-        );
-      })
-    )
-  ).flat();
+let poolsWs: WebSocket | undefined;
+const relevantRawPoolsStorage = new MutexProtectedData<
+  RawDexPool[] | undefined
+>(undefined);
 
-  logger.info("Getting FA2 Quipuswap exchangers...");
-  const rawFa2FactoryTokens: MichelsonMap<number, [string, BigNumber]>[] =
-    await Promise.all(
-      fa2FactoryStorages.map((storage) =>
-        storage.token_list.getMultipleValues(
-          range(0, storage.counter.toNumber())
-        )
-      )
-    );
+const getRelevantRawPools = async () => {
+  let rawPools = await relevantRawPoolsStorage.getData();
+  if (!rawPools) {
+    logger.warn("Waiting for pools data to arrive...");
+    await new Promise<void>((res) => {
+      const interval = setInterval(async () => {
+        rawPools = await relevantRawPoolsStorage.getData();
+        if (rawPools) {
+          clearInterval(interval);
+          res();
+        }
+      }, 1000);
+    });
+    logger.info("Received pools data");
+  }
 
-  const rawFa2Exchangers = await Promise.all(
-    rawFa2FactoryTokens.map((rawTokens, index) => {
-      return Promise.all(
-        [...rawTokens.values()].map(
-          async (token): Promise<[[string, BigNumber], string]> => [
-            token,
-            await fa2FactoryStorages[index].token_to_exchange.get(token),
-          ]
-        )
+  return rawPools!;
+};
+
+const initializePoolWs = () => {
+  poolsWs = new WebSocket(poolsUrl);
+
+  poolsWs.onerror = (e: WebSocket.ErrorEvent) => {
+    logger.error(e.message);
+    initializePoolWs();
+  };
+
+  poolsWs.onclose = () => {
+    logger.error(`Web socket ${poolsUrl} was closed`);
+    initializePoolWs();
+  };
+
+  poolsWs.onopen = () => {
+    logger.info(`Web socket ${poolsUrl} was opened`);
+  };
+
+  poolsWs.onmessage = (event: WebSocket.MessageEvent) => {
+    const data: RawDexPoolsResponse = JSON.parse(event.data.toString());
+
+    relevantRawPoolsStorage.setData(
+      data.routePairs.filter(({ dexType }) => dexType === RawDexType.QuipuSwap)
+    );
+  };
+};
+
+initializePoolWs();
+
+const getQuipuswapExchangers = async () => {
+  const rawPools = await getRelevantRawPools();
+
+  return Promise.all(
+    rawPools!.map(async ({ bTokenSlug, dexAddress, bTokenStandard }) => {
+      const [tokenAddress, rawTokenId] = bTokenSlug.split("_");
+      const tokenId =
+        rawTokenId && bTokenStandard === RawDexTokenStandard.FA2
+          ? +rawTokenId
+          : undefined;
+      await contractTokensProvider.subscribe("mainnet", tokenAddress, tokenId);
+      const { data: tokensMetadata, error } = await contractTokensProvider.get(
+        "mainnet",
+        tokenAddress,
+        tokenId
       );
+      if (error) {
+        logger.error(error);
+      }
+
+      return {
+        exchangerAddress: dexAddress,
+        tokenAddress,
+        tokenId,
+        tokenMetadata: tokensMetadata?.[0],
+      };
     })
   );
-
-  const fa2Exchangers = (
-    await Promise.all(
-      rawFa2Exchangers
-        .flat()
-        .map(async ([tokenDescriptor, exchangerAddress]) => {
-          const address = tokenDescriptor[0];
-          const token_id = tokenDescriptor[1].toNumber();
-          await contractTokensProvider.subscribe("mainnet", address, token_id);
-          const { data: tokensMetadata, error } =
-            await contractTokensProvider.get("mainnet", address, token_id);
-          if (error) {
-            throw error;
-          }
-          return {
-            exchangerAddress,
-            tokenAddress: address,
-            tokenId: token_id,
-            tokenMetadata: tokensMetadata ? tokensMetadata[0] : undefined,
-          };
-        })
-    )
-  ).flat();
-  logger.info("Successfully got Quipuswap exchangers");
-  return [...fa12Exchangers, ...fa2Exchangers];
 };
+
 export const quipuswapExchangersDataProvider = new SingleQueryDataProvider(
-  14 * 60 * 1000,
+  30 * 1000,
   getQuipuswapExchangers
 );
 
@@ -171,30 +187,32 @@ const getPoolTokenExchangeRate = memoizee(
     }
     let quipuswapExchangeRate = new BigNumber(0);
     let quipuswapWeight = new BigNumber(0);
-    let dexterExchangeRate = new BigNumber(0);
-    let dexterWeight = new BigNumber(0);
     const tokenElementaryParts = new BigNumber(10).pow(decimals);
     const matchingQuipuswapExchangers = quipuswapExchangers!.filter(
       ({ tokenAddress: swappableTokenAddress, tokenId: swappableTokenId }) =>
         tokenAddress === swappableTokenAddress &&
         (swappableTokenId === undefined || swappableTokenId === token_id)
     );
+    const relevantRawPools = await getRelevantRawPools();
     if (matchingQuipuswapExchangers.length > 0) {
-      const exchangersCharacteristics = await Promise.all(
-        matchingQuipuswapExchangers.map(async ({ exchangerAddress }) => {
-          const {
-            storage: { tez_pool, token_pool },
-          } = await getStorage(exchangerAddress);
-          if (!tez_pool.eq(0) && !token_pool.eq(0)) {
+      const exchangersCharacteristics = matchingQuipuswapExchangers.map(
+        ({ exchangerAddress }) => {
+          const { aTokenPool, bTokenPool } = relevantRawPools.find(
+            ({ dexAddress: candidateExchangerAddress }) =>
+              candidateExchangerAddress === exchangerAddress
+          )!;
+          const tezPool = new BigNumber(aTokenPool);
+          const tokenPool = new BigNumber(bTokenPool);
+          if (!tezPool.eq(0) && !tokenPool.eq(0)) {
             return {
-              weight: tez_pool,
-              exchangeRate: tez_pool
+              weight: tezPool,
+              exchangeRate: tezPool
                 .div(1e6)
-                .div(token_pool.div(tokenElementaryParts)),
+                .div(tokenPool.div(tokenElementaryParts)),
             };
           }
           return { weight: new BigNumber(0), exchangeRate: new BigNumber(0) };
-        })
+        }
       );
       quipuswapWeight = exchangersCharacteristics.reduce(
         (sum, { weight }) => sum.plus(weight),
@@ -210,14 +228,8 @@ const getPoolTokenExchangeRate = memoizee(
           .div(quipuswapWeight);
       }
     }
-    if (quipuswapExchangeRate.eq(0) && dexterExchangeRate.eq(0)) {
-      return new BigNumber(0);
-    }
-    return quipuswapExchangeRate
-      .times(quipuswapWeight)
-      .plus(dexterExchangeRate.times(dexterWeight))
-      .div(quipuswapWeight.plus(dexterWeight))
-      .times(tezExchangeRate!);
+
+    return quipuswapExchangeRate.times(tezExchangeRate!);
   },
   { promise: true, maxAge: LIQUIDITY_INTERVAL }
 );
