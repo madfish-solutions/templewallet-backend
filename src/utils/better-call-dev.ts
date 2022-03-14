@@ -124,7 +124,7 @@ const getBcdDApps = buildQuery<{}, DAppsListItem[]>(
 );
 
 export const getDApps = async (_params: {}) => {
-  const bcdDApps = await getBcdDApps({});
+  const bcdDApps = await getBcdDApps({}).catch(():DAppsListItem[] => []);
   return [
     ...bcdDApps.reduce<DAppsListItem[]>((uniqueDApps, dApp) => {
       if (!uniqueDApps.some(({ slug }) => slug === dApp.slug)) {
