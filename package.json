@@ -11,6 +11,7 @@
     "@taquito/tzip12": "9.0.0",
     "@taquito/tzip16": "9.0.0",
     "@taquito/utils": "9.0.0",
+    "@types/ws": "^8.5.3",
     "axios": "^0.21.1",
     "bignumber.js": "^9.0.1",
     "cors": "^2.8.5",
@@ -22,7 +23,8 @@
     "pino-http": "^5.5.0",
     "pino-pretty": "^4.7.1",
     "qs": "^6.10.1",
-    "semaphore": "^1.1.0"
+    "semaphore": "^1.1.0",
+    "ws": "^8.5.0"
   },
   "scripts": {
     "start": "cross-env NODE_ENV=development ts-node-dev --files --quiet src/index.ts",
