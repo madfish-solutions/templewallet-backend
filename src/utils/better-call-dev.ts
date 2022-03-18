@@ -33,25 +33,12 @@ type TokensMetadataParams = {
   token_id?: number;
 };
 
-type BcdDAppScreenshot = {
-  type: string;
-  link: string;
-};
-
 export type DAppsListItem = {
+  id: number;
   name: string;
-  short_description: string;
-  full_description: string;
-  website: string;
-  slug: string;
-  authors: string[];
-  social_links: string[] | null;
-  interfaces: string[] | null;
-  categories: string[];
-  soon: boolean;
+  dappUrl: string;
+  type: string;
   logo: string;
-  cover: string;
-  screenshots?: BcdDAppScreenshot[];
 };
 
 export type DAppDetails = DAppsListItem & {
@@ -98,117 +85,6 @@ const buildQuery = makeBuildQueryFn<
   | BcdTokenData[]
 >(BCD_BASE_URL, 5);
 
-const customDApps: DAppsListItem[] = [];
-
-const customDAppsWithDetails: DAppDetails[] = [];
-
-const getSeries = buildQuery<SeriesParams, [number, number][]>(
-  `/stats/mainnet/series`,
-  ({ addresses, period, name }) => ({
-    address: addresses.join(","),
-    period,
-    name,
-  })
-);
-
-const getBcdDApps = buildQuery<{}, DAppsListItem[]>(
-  "https://better-call.dev/v1/dapps",
-  undefined,
-  {
-    headers: {
-      "User-Agent":
-        "Mozilla/5.0 (X11; Linux x86_64; rv:89.0) Gecko/20100101 Firefox/89.0",
-      Referer: "https://better-call.dev/dapps/list",
-    },
-  }
-);
-
-export const getDApps = async (_params: {}) => {
-  const bcdDApps = await getBcdDApps({}).catch(():DAppsListItem[] => []);
-  return [
-    ...bcdDApps.reduce<DAppsListItem[]>((uniqueDApps, dApp) => {
-      if (!uniqueDApps.some(({ slug }) => slug === dApp.slug)) {
-        uniqueDApps.push(dApp);
-      }
-      return uniqueDApps;
-    }, []),
-    ...customDApps.filter(
-      ({ slug: customDAppSlug }) =>
-        !bcdDApps.some(({ slug }) => slug === customDAppSlug)
-    ),
-  ];
-};
-
-const getDAppsDetailsWithoutSeries = buildQuery<{ slug: string }, DAppDetails>(
-  ({ slug }) => `https://better-call.dev/v1/dapps/${slug}`,
-  undefined,
-  {
-    headers: {
-      "User-Agent":
-        "Mozilla/5.0 (X11; Linux x86_64; rv:89.0) Gecko/20100101 Firefox/89.0",
-      Referer: "https://better-call.dev/dapps/list",
-    },
-  }
-);
-const getDAppDetails = async ({
-  slug,
-}: {
-  slug: string;
-}): Promise<DAppDetails & { estimatedUsersPerMonth: number }> => {
-  const customDAppDetails = customDAppsWithDetails.find(
-    ({ slug: candidateSlug }) => candidateSlug === slug
-  );
-  const detailsWithoutSeries =
-    customDAppDetails ?? (await getDAppsDetailsWithoutSeries({ slug }));
-  if (!detailsWithoutSeries.contracts) {
-    return {
-      ...detailsWithoutSeries,
-      estimatedUsersPerMonth: 0,
-    };
-  }
-  const series = detailsWithoutSeries.contracts
-    ? await getSeries({
-        addresses: detailsWithoutSeries.contracts
-          .filter(({ network }) => network === "mainnet")
-          .map(({ address }) => address),
-        period: "month",
-        name: "users",
-      })
-    : [];
-  const lastSeries = series.slice(-2);
-  let estimatedUsersPerMonth = 0;
-  if (lastSeries.length === 1) {
-    estimatedUsersPerMonth = lastSeries[0][1];
-  } else if (lastSeries.length > 1) {
-    const [
-      [, prevMonthUsers = 0],
-      [currentMonthTimestamp, currentMonthUsers = 0],
-    ] = lastSeries;
-    const nowTimestamp = Date.now();
-    const currentMonthPartMs = nowTimestamp - currentMonthTimestamp;
-    const oneWeekMs = 7 * 24 * 3600 * 1000;
-    if (currentMonthPartMs < oneWeekMs) {
-      estimatedUsersPerMonth = prevMonthUsers;
-    } else {
-      const nextMonthDate = new Date(currentMonthTimestamp);
-      nextMonthDate.setMonth(nextMonthDate.getMonth() + 1);
-      const currentMonthUsersEstimation = Math.round(
-        ((nextMonthDate.getTime() - currentMonthTimestamp) /
-          currentMonthPartMs) *
-          currentMonthUsers
-      );
-      estimatedUsersPerMonth = Math.max(
-        Math.round((prevMonthUsers + currentMonthUsersEstimation) / 2),
-        currentMonthUsers
-      );
-    }
-  }
-  return {
-    ...detailsWithoutSeries,
-    estimatedUsersPerMonth,
-  };
-};
-
 export const getAccountTokenBalances = buildQuery<
   AccountTokenBalancesParams,
   AccountTokenBalancesResponse
@@ -253,9 +129,4 @@ export const contractTokensProvider = new DataProvider(
       offset,
       token_id,
     })
-);
-
-export const detailedDAppDataProvider = new DataProvider(
-  14 * 60 * 1000,
-  async (slug: string) => getDAppDetails({ slug })
 );
