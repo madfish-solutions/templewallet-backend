@@ -1,5 +1,4 @@
 interface DappList {
-  id: number;
   name: string;
   dappUrl: string;
   type: string;
@@ -19,7 +18,6 @@ enum DappType {
 
 export const dappList: DappList[] = [
     {
-        id: 1,
         name: "QuipuSwap",
         dappUrl: 'https://quipuswap.com',
         type: DappType.Exchanges,
@@ -28,7 +26,6 @@ export const dappList: DappList[] = [
         categories: [DappType.Exchanges]
     },
     {
-        id: 2,
         name: "Objkt.com",
         dappUrl: 'objkt.com',
         type: DappType.Marketplaces,
@@ -37,7 +34,6 @@ export const dappList: DappList[] = [
         categories: [DappType.Marketplaces]
     },
     {
-        id: 3,
         name: "Hic et Nunc",
         dappUrl: 'https://www.hicetnunc.xyz',
         type: DappType.Marketplaces,
@@ -46,7 +42,6 @@ export const dappList: DappList[] = [
         categories: [DappType.Marketplaces]
     },
     {
-        id: 4,
         name: "PixelPotus",
         dappUrl: 'https://www.pixelpotus.com',
         type: DappType.Collectibles,
@@ -55,7 +50,6 @@ export const dappList: DappList[] = [
         categories: [DappType.Collectibles]
     },
     {
-        id: 5,
         name: "DOGAMÍ",
         dappUrl: 'https://dogami.com',
         type: DappType.Games,
@@ -64,7 +58,6 @@ export const dappList: DappList[] = [
         categories: [DappType.Games]
     },
     {
-        id: 6,
         name: "Tezotopia",
         dappUrl: 'https://tezotop.io',
         type: DappType.Games,
@@ -73,7 +66,6 @@ export const dappList: DappList[] = [
         categories: [DappType.Games]
     },
     {
-        id: 7,
         name: "Tezos Domains",
         dappUrl: 'https://tezos.domains',
         type: DappType.DeFi,
@@ -82,7 +74,6 @@ export const dappList: DappList[] = [
         categories: [DappType.DeFi]
     },
     {
-        id: 8,
         name: "Plenty",
         dappUrl: 'https://www.plentydefi.com ',
         type: DappType.DeFi,
@@ -91,7 +82,6 @@ export const dappList: DappList[] = [
         categories: [DappType.DeFi]
     },
     {
-        id: 9,
         name: "Kalamint",
         dappUrl: 'https://kalamint.io',
         type: DappType.Marketplaces,
@@ -100,7 +90,6 @@ export const dappList: DappList[] = [
         categories: [DappType.Marketplaces]
     },
     {
-        id: 10,
         name: "Smartlink",
         dappUrl: 'https://www.smartlink.so',
         type: DappType.DeFi,
@@ -109,7 +98,6 @@ export const dappList: DappList[] = [
         categories: [DappType.DeFi]
     },
     {
-        id: 11,
         name: "Youves",
         dappUrl: 'https://app.youves.com',
         type: DappType.DeFi,
@@ -118,7 +106,6 @@ export const dappList: DappList[] = [
         categories: [DappType.DeFi]
     },
     {
-        id: 12,
         name: "Crunchy",
         dappUrl: 'https://app.crunchy.network',
         type: DappType.DeFi,
@@ -127,7 +114,6 @@ export const dappList: DappList[] = [
         categories: [DappType.DeFi]
     },
     {
-        id: 13,
         name: "Alien'sFarm",
         dappUrl: 'https://aliens.farm',
         type: DappType.DeFi,
@@ -136,7 +122,6 @@ export const dappList: DappList[] = [
         categories: [DappType.DeFi]
     },
     {
-        id: 14,
         name: "FlameDeFi",
         dappUrl: 'https://flamedefi.io',
         type: DappType.DeFi,
@@ -145,7 +130,6 @@ export const dappList: DappList[] = [
         categories: [DappType.DeFi]
     },
     {
-        id: 15,
         name: "Kolibri",
         dappUrl: 'https://kolibri.finance',
         type: DappType.DeFi,

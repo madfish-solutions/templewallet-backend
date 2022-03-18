@@ -34,11 +34,12 @@ type TokensMetadataParams = {
 };
 
 export type DAppsListItem = {
-  id: number;
   name: string;
   dappUrl: string;
   type: string;
   logo: string;
+  slug: string;
+  categories: string[];
 };
 
 export type DAppDetails = DAppsListItem & {
