@@ -2,20 +2,17 @@ import BigNumber from "bignumber.js";
 import memoizee from "memoizee";
 import {
   BcdTokenData,
-  detailedDAppDataProvider,
   contractTokensProvider,
   tokensMetadataProvider,
 } from "./better-call-dev";
 import fetch from "./fetch";
 import {
-  getTokenDescriptor,
   getTokenMetadata,
   getStorage,
   tezExchangeRateProvider,
 } from "./tezos";
 import SingleQueryDataProvider from "./SingleQueryDataProvider";
 import { range } from "./helpers";
-// import tzwrapEthTokensProvider from "./tzwrapEthTokensProvider";
 import { MichelsonMap } from "@taquito/michelson-encoder";
 import logger from "./logger";
 
