@@ -9,7 +9,7 @@ import { tezExchangeRateProvider } from "./utils/tezos";
 import { tokensExchangeRatesProvider } from "./utils/tokens";
 import logger from "./utils/logger";
 import SingleQueryDataProvider from "./utils/SingleQueryDataProvider";
-//import {getSignedMoonPayUrl} from "./utils/get-signed-moonpay-url";
+import {getSignedMoonPayUrl} from "./utils/get-signed-moonpay-url";
 
 const PINO_LOGGER = {
   logger: logger.child({ name: "web" }),
@@ -94,12 +94,12 @@ app.get(
   "/api/moonpay-sign",
   async (_req, res) => {
     try {
-      // const url = _req.query.url;
-      //
-      // if (typeof(url) === 'string') {
-      //   const signedUrl = getSignedMoonPayUrl(url);
-      //   res.status(200).send({ signedUrl });
-      // }
+      const url = _req.query.url;
+
+      if (typeof(url) === 'string') {
+        const signedUrl = getSignedMoonPayUrl(url);
+        res.status(200).send({ signedUrl });
+      }
 
       res.status(500).send({ error: 'Requested URL is not valid' });
     } catch (error) {
