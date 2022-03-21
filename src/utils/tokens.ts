@@ -2,20 +2,17 @@ import BigNumber from "bignumber.js";
 import memoizee from "memoizee";
 import {
   BcdTokenData,
-  detailedDAppDataProvider,
   contractTokensProvider,
   tokensMetadataProvider,
 } from "./better-call-dev";
 import fetch from "./fetch";
 import {
-  getTokenDescriptor,
   getTokenMetadata,
   getStorage,
   tezExchangeRateProvider,
 } from "./tezos";
 import SingleQueryDataProvider from "./SingleQueryDataProvider";
 import { range } from "./helpers";
-// import tzwrapEthTokensProvider from "./tzwrapEthTokensProvider";
 import { MichelsonMap } from "@taquito/michelson-encoder";
 import logger from "./logger";
 
@@ -164,12 +161,10 @@ const getPoolTokenExchangeRate = memoizee(
 
     const { data: tezExchangeRate, error: tezExchangeRateError } =
       await tezExchangeRateProvider.getState();
-    const { data: dexterDAppData, error: dexterDAppError } =
-      await detailedDAppDataProvider.get("dexter");
     const { data: quipuswapExchangers, error: quipuswapExchangersError } =
       await quipuswapExchangersDataProvider.getState();
-    if (dexterDAppError || quipuswapExchangersError || tezExchangeRateError) {
-      throw dexterDAppError || quipuswapExchangersError || tezExchangeRateError;
+    if (quipuswapExchangersError || tezExchangeRateError) {
+      throw quipuswapExchangersError || tezExchangeRateError;
     }
     let quipuswapExchangeRate = new BigNumber(0);
     let quipuswapWeight = new BigNumber(0);
@@ -212,28 +207,6 @@ const getPoolTokenExchangeRate = memoizee(
           .div(quipuswapWeight);
       }
     }
-    for (const contractData of dexterDAppData?.contracts ?? []) {
-      const { network, address: exchangerAddress } = contractData;
-      if (network !== "mainnet") {
-        continue;
-      }
-      const { address: contractTokenAddress, tokenId } =
-        await getTokenDescriptor(exchangerAddress, "dexter");
-      if (
-        contractTokenAddress !== tokenAddress ||
-        (tokenId !== undefined && tokenId !== token_id)
-      ) {
-        continue;
-      }
-      const { xtzPool, tokenPool } = await getStorage(exchangerAddress);
-      if (!xtzPool.eq(0) && !tokenPool.eq(0)) {
-        dexterWeight = xtzPool;
-        dexterExchangeRate = xtzPool
-          .div(1e6)
-          .div(tokenPool.div(tokenElementaryParts));
-      }
-      break;
-    }
     if (quipuswapExchangeRate.eq(0) && dexterExchangeRate.eq(0)) {
       return new BigNumber(0);
     }
@@ -260,12 +233,8 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
   logger.info("Getting tokens exchange rates...");
   const { data: quipuswapExchangers, error: quipuswapError } =
     await quipuswapExchangersDataProvider.getState();
-  const { data: dexterDAppData, error: dexterDAppError } =
-    await detailedDAppDataProvider.get("dexter");
-  /* const { data: ethTokens, error: ethTokensError } =
-    await tzwrapEthTokensProvider.getState(); */
-  if (quipuswapError || dexterDAppError /* || ethTokensError */) {
-    throw quipuswapError || dexterDAppError /* || ethTokensError */;
+  if (quipuswapError) {
+    throw quipuswapError;
   }
   logger.info("Getting tokens exchange rates from Quipuswap pools");
   let exchangeRates = await Promise.all(
@@ -296,77 +265,6 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
         };
       })
   );
-  logger.info("Getting tokens exchange rates from Dexter pools");
-  for (const contractData of dexterDAppData?.contracts ?? []) {
-    const { network, address: exchangerAddress } = contractData;
-    if (network !== "mainnet") {
-      continue;
-    }
-    const { address: contractTokenAddress, tokenId } = await getTokenDescriptor(
-      exchangerAddress,
-      "dexter"
-    );
-    if (
-      exchangeRates.some(
-        ({ tokenAddress, tokenId: candidateTokenId }) =>
-          contractTokenAddress === tokenAddress && candidateTokenId === tokenId
-      )
-    ) {
-      continue;
-    }
-    let tokenMetadata = dexterDAppData?.dex_tokens?.find(
-      ({ contract: candidateAddress, token_id: candidateTokenId }) =>
-        candidateAddress === contractTokenAddress &&
-        (tokenId === undefined || candidateTokenId === tokenId)
-    );
-    if (!tokenMetadata) {
-      const { data: newTokenMetadata, error: newTokenMetadataError } =
-        await tokensMetadataProvider.get(
-          "mainnet",
-          contractTokenAddress,
-          tokenId
-        );
-      if (newTokenMetadataError) {
-        tokenMetadata = {
-          network: "mainnet",
-          contract: contractTokenAddress,
-          token_id: tokenId ?? 0,
-          decimals: 0,
-        };
-      } else {
-        tokenMetadata = newTokenMetadata![0];
-      }
-    }
-    exchangeRates.push({
-      tokenAddress: contractTokenAddress,
-      tokenId,
-      exchangeRate: await getPoolTokenExchangeRate({
-        contract: contractTokenAddress,
-        token_id: tokenId,
-      }),
-      metadata: tokenMetadata!,
-    });
-  }
-  logger.info("Getting exchange rates for remaining Tzwrap tokens");
-  /* const tzwrapExchangeRates = ethTokens!
-    .filter(
-      ({ contract: ethTokenContract, token_id: ethTokenId }) =>
-        !exchangeRates.some(
-          ({ tokenAddress, tokenId }) =>
-            tokenAddress === ethTokenContract &&
-            (tokenId === undefined || ethTokenId === tokenId)
-        )
-    )
-    .map(({ price, contract, token_id, ...restProps }) => ({
-      tokenAddress: contract,
-      exchangeRate: new BigNumber(price),
-      tokenId: token_id,
-      metadata: {
-        ...restProps,
-        token_id,
-        contract,
-      },
-    })); */
 
   if (
     !exchangeRates.some(
