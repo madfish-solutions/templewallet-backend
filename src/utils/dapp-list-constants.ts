@@ -1,33 +1,33 @@
 interface DappList {
-  name: string;
-  dappUrl: string;
-  type: string;
-  logo: string;
-  slug: string;
-  categories: string[];
-}
-
-enum DappType {
-  Exchanges = "Exchanges",
-  Marketplaces = "Marketplaces",
-  Games = "Games",
-  DeFi = "DeFi",
-  Collectibles = "Collectibles",
-  Other = "Other"
-}
-
-export const dappList: DappList[] = [
+    name: string;
+    dappUrl: string;
+    type: DappType;
+    logo: string;
+    slug: string;
+    categories: DappType[];
+  }
+  
+  enum DappType {
+    Exchanges = "Exchanges",
+    Marketplaces = "Marketplaces",
+    Games = "Games",
+    DeFi = "DeFi",
+    Collectibles = "Collectibles",
+    Other = "Other"
+  }
+  
+  export const dappList: DappList[] = [
     {
         name: "QuipuSwap",
         dappUrl: 'https://quipuswap.com',
         type: DappType.Exchanges,
         logo: "https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/quipuswap/quipuswap_logo.jpg",
         slug: "quipuswap",
-        categories: [DappType.Exchanges]
+        categories: [DappType.Exchanges, DappType.DeFi]
     },
     {
         name: "Objkt.com",
-        dappUrl: 'objkt.com',
+        dappUrl: 'https://objkt.com',
         type: DappType.Marketplaces,
         logo: 'https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/objkt/objkt_logo.png',
         slug: 'objkt.com',
@@ -47,7 +47,7 @@ export const dappList: DappList[] = [
         type: DappType.Collectibles,
         logo: 'https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/pixelpotus/pixelpotus_logo.png',
         slug: 'pixelpotus',
-        categories: [DappType.Collectibles]
+        categories: [DappType.Collectibles, DappType.Games]
     },
     {
         name: "DOGAMÍ",
@@ -55,7 +55,7 @@ export const dappList: DappList[] = [
         type: DappType.Games,
         logo: 'https://dashboard-assets.dappradar.com/document/13974/dogam-dapp-games-tezos-logo-166x166_b7394b584e1bfd58e7d5ef8a654fae0c.png',
         slug: 'dogami',
-        categories: [DappType.Games]
+        categories: [DappType.Games, DappType.Collectibles]
     },
     {
         name: "Tezotopia",
@@ -63,7 +63,7 @@ export const dappList: DappList[] = [
         type: DappType.Games,
         logo: 'https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/tezotopia/tezotopia_logo.png',
         slug: 'tezotopia',
-        categories: [DappType.Games]
+        categories: [DappType.Games, DappType.Collectibles]
     },
     {
         name: "Tezos Domains",
@@ -71,7 +71,7 @@ export const dappList: DappList[] = [
         type: DappType.DeFi,
         logo: 'https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/tezosdomains/tezosdomains_logo.png',
         slug: 'tezosdomains',
-        categories: [DappType.DeFi]
+        categories: [DappType.Other]
     },
     {
         name: "Plenty",
@@ -79,7 +79,7 @@ export const dappList: DappList[] = [
         type: DappType.DeFi,
         logo: 'https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/plenty/plenty_logo.png',
         slug: 'plenty',
-        categories: [DappType.DeFi]
+        categories: [DappType.DeFi, DappType.Exchanges]
     },
     {
         name: "Kalamint",
@@ -95,7 +95,7 @@ export const dappList: DappList[] = [
         type: DappType.DeFi,
         logo: 'https://dashboard-assets.dappradar.com/document/7516/smartlink-dapp-marketplaces-tezos-logo-166x166_68ee1ea922aabc1934817dcdb49b07db.png',
         slug: 'smartlink',
-        categories: [DappType.DeFi]
+        categories: [DappType.DeFi, DappType.Exchanges]
     },
     {
         name: "Youves",
@@ -103,7 +103,7 @@ export const dappList: DappList[] = [
         type: DappType.DeFi,
         logo: 'https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/youves/youves_logo.png',
         slug: 'youves',
-        categories: [DappType.DeFi]
+        categories: [DappType.DeFi, DappType.Exchanges]
     },
     {
         name: "Crunchy",
@@ -119,7 +119,7 @@ export const dappList: DappList[] = [
         type: DappType.DeFi,
         logo: 'https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/aliensfarm/aliensfarm_logo.png',
         slug: 'aliensfarm',
-        categories: [DappType.DeFi]
+        categories: [DappType.DeFi, DappType.Exchanges]
     },
     {
         name: "FlameDeFi",
@@ -127,7 +127,7 @@ export const dappList: DappList[] = [
         type: DappType.DeFi,
         logo: 'https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/flame/flame_logo.jpg',
         slug: 'flamedefi',
-        categories: [DappType.DeFi]
+        categories: [DappType.DeFi, DappType.Exchanges]
     },
     {
         name: "Kolibri",
@@ -135,6 +135,6 @@ export const dappList: DappList[] = [
         type: DappType.DeFi,
         logo: 'https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/kolibri/kolibri_logo.png',
         slug: 'kolibri',
-        categories: [DappType.DeFi]
+        categories: [DappType.DeFi, DappType.Other]
     }
-]
+  ]
