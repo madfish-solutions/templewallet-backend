@@ -138,3 +138,4 @@ interface DappList {
           categories: [DappType.DeFi, DappType.Other]
       }
   ]
+  
