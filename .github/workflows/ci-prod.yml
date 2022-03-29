@@ -66,4 +66,3 @@ jobs:
           git commit -m "change tag to $IMAGE_TAG in /${HELM_PROJECT_PATH}/${HELM_VALUES_FILE}" || echo "No changes, nothing to commit!"
           git push --set-upstream origin ${HELM_BRANCH}
 
-
