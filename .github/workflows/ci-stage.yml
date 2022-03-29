@@ -1,0 +1,69 @@
+on:
+  push:
+    branches: [ stage ]
+
+
+name: Build docker
+
+env:
+  AWS_REGION: eu-central-1
+  ECR_REPOSITORY: templewallet-backend
+  HELM_REPO: github.com/madfish-solutions/tezos-helm.git
+  HELM_BRANCH: main
+  HELM_PROJECT_PATH: charts/templewallet-backend
+  HELM_VALUES_FILE_MAINNET: values-mainnet-stage.yaml
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@13d241b293754004c80624b5567555c4a39ffbe3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@aaf69d68aa3fb14c1d5a6be9ac61fe15b48453a2
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          # Build a docker container and
+          # push it to ECR so that it can
+          # be deployed to ECS.
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+      - name: Update tag in helm repo
+        id: update-tag
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          # Update tag in helm repo
+          git config --global user.email "github-service@madfish.solutions" && git config --global user.name "mad-service-account" && git config --global init.defaultBranch main
+          rm -rf build && mkdir build && git remote rm origin && git rm -rf . && cd build/
+          git init && git remote add origin https://${{ secrets.CIJOBTOKENWRITE }}@${HELM_REPO} && git pull origin ${HELM_BRANCH} && git checkout ${HELM_BRANCH} && git status && pwd && ls -la
+          cd ${HELM_PROJECT_PATH} && sed -i "s/tag:.*/tag:\ $IMAGE_TAG/" ${HELM_VALUES_FILE_MAINNET} && git add ${HELM_VALUES_FILE_MAINNET} && cat ${HELM_VALUES_FILE_MAINNET}
+          git commit -m "change tag to $IMAGE_TAG in /${HELM_PROJECT_PATH}/${HELM_VALUES_FILE}" || echo "No changes, nothing to commit!"
+          git push --set-upstream origin ${HELM_BRANCH}
+
+
