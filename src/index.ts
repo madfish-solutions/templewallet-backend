@@ -41,6 +41,12 @@ const dAppsProvider = new SingleQueryDataProvider(
   getDAppsStats
 );
 
+const firebaseAdmin = require('firebase-admin');
+const firebaseApp = firebaseAdmin.initializeApp({
+  projectId: 'templewallet',
+  appId: '1:14863818751:android:6e6bb01b103964a69f51ca'
+});
+
 const getProviderStateWithTimeout = <T>(provider: SingleQueryDataProvider<T>) =>
   Promise.race([
     provider.getState(),
@@ -65,6 +71,25 @@ const makeProviderDataRequestHandler = <T, U>(
     }
   };
 };
+
+app.get('/api/app-check', async (_req, res) => {
+  const appCheckToken = _req.query.appCheckToken;
+  console.log(appCheckToken);
+
+  if (!appCheckToken) {
+    console.log(1);
+    res.status(200).send({ isAppCheckSucceeded: false });
+  }
+
+  try {
+    console.log(2);
+    await firebaseApp.appCheck().verifyToken(appCheckToken);
+    res.status(200).send({ isAppCheckSucceeded: true })
+  } catch (err) {
+    console.log(err);
+    res.status(200).send({ isAppCheckSucceeded: false });
+  }
+});
 
 app.get("/api/dapps", makeProviderDataRequestHandler(dAppsProvider));
 
