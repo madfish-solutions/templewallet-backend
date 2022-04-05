@@ -1,18 +1,19 @@
-require("./configure");
-
+import {MIN_ANDROID_APP_VERSION, MIN_IOS_APP_VERSION} from "../config";
 import cors from "cors";
-import express, { Request, Response } from "express";
+import express, {Request, Response} from "express";
 import pino from "pino";
 import pinoHttp from "pino-http";
 import getDAppsStats from "./getDAppsStats";
-import { tezExchangeRateProvider } from "./utils/tezos";
-import { tokensExchangeRatesProvider } from "./utils/tokens";
+import {tezExchangeRateProvider} from "./utils/tezos";
+import {tokensExchangeRatesProvider} from "./utils/tokens";
 import logger from "./utils/logger";
 import SingleQueryDataProvider from "./utils/SingleQueryDataProvider";
 import {getSignedMoonPayUrl} from "./utils/get-signed-moonpay-url";
 
+require("./configure");
+
 const PINO_LOGGER = {
-  logger: logger.child({ name: "web" }),
+  logger: logger.child({name: "web"}),
   serializers: {
     req: (req) => ({
       method: req.method,
@@ -96,16 +97,24 @@ app.get(
     try {
       const url = _req.query.url;
 
-      if (typeof(url) === 'string') {
+      if (typeof (url) === 'string') {
         const signedUrl = getSignedMoonPayUrl(url);
-        res.status(200).send({ signedUrl });
+        res.status(200).send({signedUrl});
       }
 
-      res.status(500).send({ error: 'Requested URL is not valid' });
+      res.status(500).send({error: 'Requested URL is not valid'});
     } catch (error) {
-      res.status(500).send({ error });
+      res.status(500).send({error});
     }
   });
+
+app.get('/api/mobile-check', async (_req, res) => {
+  try {
+    res.status(200).send({minIosVersion: MIN_IOS_APP_VERSION, minAndroidVersion: MIN_ANDROID_APP_VERSION});
+  } catch (error) {
+    res.status(500).send({error});
+  }
+});
 
 // start the server listening for requests
 app.listen(process.env.PORT || 3000, () => console.log("Server is running..."));
