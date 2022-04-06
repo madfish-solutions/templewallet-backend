@@ -1,4 +1,4 @@
-import {MIN_ANDROID_APP_VERSION, MIN_IOS_APP_VERSION} from "../config";
+import {MIN_ANDROID_APP_VERSION, MIN_IOS_APP_VERSION} from "./config";
 require("./configure");
 
 import cors from "cors";
@@ -130,7 +130,7 @@ app.get('/api/mobile-check', async (_req, res) => {
     res.status(200).send({
       minIosVersion: MIN_IOS_APP_VERSION,
       minAndroidVersion: MIN_ANDROID_APP_VERSION,
-      isAppCheckSucceeded: true
+      isAppCheckFailed: false
     });
   } catch (error) {
     console.log(error);
