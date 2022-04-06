@@ -1,3 +1,4 @@
+import {MIN_ANDROID_APP_VERSION, MIN_IOS_APP_VERSION} from "../config";
 require("./configure");
 
 import cors from "cors";
@@ -106,6 +107,14 @@ app.get(
       res.status(500).send({ error });
     }
   });
+
+app.get('/api/mobile-check', async (_req, res) => {
+  try {
+    res.status(200).send({minIosVersion: MIN_IOS_APP_VERSION, minAndroidVersion: MIN_ANDROID_APP_VERSION});
+  } catch (error) {
+    res.status(500).send({ error });
+  }
+});
 
 // start the server listening for requests
 app.listen(process.env.PORT || 3000, () => console.log("Server is running..."));
