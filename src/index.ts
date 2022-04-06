@@ -1,4 +1,4 @@
-import {MIN_ANDROID_APP_VERSION, MIN_IOS_APP_VERSION} from "../config";
+import {MIN_ANDROID_APP_VERSION, MIN_IOS_APP_VERSION} from "./config";
 require("./configure");
 
 import cors from "cors";
