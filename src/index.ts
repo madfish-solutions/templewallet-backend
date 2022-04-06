@@ -42,6 +42,12 @@ const dAppsProvider = new SingleQueryDataProvider(
   getDAppsStats
 );
 
+const firebaseAdmin = require('firebase-admin');
+const firebaseApp = firebaseAdmin.initializeApp({
+  projectId: 'templewallet',
+  appId: '1:14863818751:android:6e6bb01b103964a69f51ca'
+});
+
 const getProviderStateWithTimeout = <T>(provider: SingleQueryDataProvider<T>) =>
   Promise.race([
     provider.getState(),
@@ -109,9 +115,25 @@ app.get(
   });
 
 app.get('/api/mobile-check', async (_req, res) => {
+  const appCheckToken = _req.query.appCheckToken;
+  console.log(appCheckToken);
+
+  if (!appCheckToken) {
+    console.log(1);
+    res.status(400).send({ error: 'App Check token is not defined' });
+  }
+
   try {
-    res.status(200).send({minIosVersion: MIN_IOS_APP_VERSION, minAndroidVersion: MIN_ANDROID_APP_VERSION});
+    console.log(2);
+    await firebaseApp.appCheck().verifyToken(appCheckToken);
+
+    res.status(200).send({
+      minIosVersion: MIN_IOS_APP_VERSION,
+      minAndroidVersion: MIN_ANDROID_APP_VERSION,
+      isAppCheckSucceeded: true
+    });
   } catch (error) {
+    console.log(error);
     res.status(500).send({ error });
   }
 });
