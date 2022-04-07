@@ -116,15 +116,12 @@ app.get(
 
 app.get('/api/mobile-check', async (_req, res) => {
   const appCheckToken = _req.query.appCheckToken;
-  console.log(appCheckToken);
 
   if (!appCheckToken) {
-    console.log(1);
     res.status(400).send({ error: 'App Check token is not defined' });
   }
 
   try {
-    console.log(2);
     await firebaseApp.appCheck().verifyToken(appCheckToken);
 
     res.status(200).send({
@@ -133,7 +130,6 @@ app.get('/api/mobile-check', async (_req, res) => {
       isAppCheckFailed: false
     });
   } catch (error) {
-    console.log(error);
     res.status(500).send({ error });
   }
 });
