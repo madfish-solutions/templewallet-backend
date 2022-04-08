@@ -43,9 +43,13 @@ const dAppsProvider = new SingleQueryDataProvider(
 );
 
 const firebaseAdmin = require('firebase-admin');
-const firebaseApp = firebaseAdmin.initializeApp({
-  projectId: 'templewallet',
-  appId: '1:14863818751:android:6e6bb01b103964a69f51ca'
+const androidApp = firebaseAdmin.initializeApp({
+  projectId: 'templewallet-fa3b3',
+  appId: '1:1067475869467:android:a65f23f3674ab6052c3dbe'
+});
+const iosApp = firebaseAdmin.initializeApp({
+  projectId: 'templewallet-fa3b3',
+  appId: '1:1067475869467:ios:838d63298a5073892c3dbe'
 });
 
 const getProviderStateWithTimeout = <T>(provider: SingleQueryDataProvider<T>) =>
@@ -115,6 +119,7 @@ app.get(
   });
 
 app.get('/api/mobile-check', async (_req, res) => {
+  const platform = _req.query.platform;
   const appCheckToken = _req.query.appCheckToken;
 
   if (!appCheckToken) {
@@ -122,7 +127,11 @@ app.get('/api/mobile-check', async (_req, res) => {
   }
 
   try {
-    await firebaseApp.appCheck().verifyToken(appCheckToken);
+    if (platform === 'ios') {
+      await iosApp.appCheck().verifyToken(appCheckToken);
+    } else {
+      await androidApp.appCheck().verifyToken(appCheckToken);
+    }
 
     res.status(200).send({
       minIosVersion: MIN_IOS_APP_VERSION,
