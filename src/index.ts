@@ -45,11 +45,11 @@ const dAppsProvider = new SingleQueryDataProvider(
 const firebaseAdmin = require('firebase-admin');
 const androidApp = firebaseAdmin.initializeApp({
   projectId: 'templewallet-fa3b3',
-  appId: '1:1067475869467:android:a65f23f3674ab6052c3dbe'
+  appId: process.env.ANDROID_APP_ID!
 });
 const iosApp = firebaseAdmin.initializeApp({
   projectId: 'templewallet-fa3b3',
-  appId: '1:1067475869467:ios:838d63298a5073892c3dbe'
+  appId: process.env.IOS_APP_ID!
 });
 
 const getProviderStateWithTimeout = <T>(provider: SingleQueryDataProvider<T>) =>
