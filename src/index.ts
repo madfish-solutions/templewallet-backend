@@ -1,3 +1,4 @@
+import {MIN_ANDROID_APP_VERSION, MIN_IOS_APP_VERSION} from "./config";
 require("./configure");
 
 import cors from "cors";
@@ -40,6 +41,16 @@ const dAppsProvider = new SingleQueryDataProvider(
   15 * 60 * 1000,
   getDAppsStats
 );
+
+const firebaseAdmin = require('firebase-admin');
+const androidApp = firebaseAdmin.initializeApp({
+  projectId: 'templewallet-fa3b3',
+  appId: process.env.ANDROID_APP_ID!
+});
+const iosApp = firebaseAdmin.initializeApp({
+  projectId: 'templewallet-fa3b3',
+  appId: process.env.IOS_APP_ID!
+});
 
 const getProviderStateWithTimeout = <T>(provider: SingleQueryDataProvider<T>) =>
   Promise.race([
@@ -106,6 +117,31 @@ app.get(
       res.status(500).send({ error });
     }
   });
+
+app.get('/api/mobile-check', async (_req, res) => {
+  const platform = _req.query.platform;
+  const appCheckToken = _req.query.appCheckToken;
+
+  if (!appCheckToken) {
+    res.status(400).send({ error: 'App Check token is not defined' });
+  }
+
+  try {
+    if (platform === 'ios') {
+      await iosApp.appCheck().verifyToken(appCheckToken);
+    } else {
+      await androidApp.appCheck().verifyToken(appCheckToken);
+    }
+
+    res.status(200).send({
+      minIosVersion: MIN_IOS_APP_VERSION,
+      minAndroidVersion: MIN_ANDROID_APP_VERSION,
+      isAppCheckFailed: false
+    });
+  } catch (error) {
+    res.status(500).send({ error });
+  }
+});
 
 // start the server listening for requests
 app.listen(process.env.PORT || 3000, () => console.log("Server is running..."));
