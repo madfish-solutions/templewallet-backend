@@ -46,11 +46,11 @@ const firebaseAdmin = require('firebase-admin');
 const androidApp = firebaseAdmin.initializeApp({
   projectId: 'templewallet-fa3b3',
   appId: process.env.ANDROID_APP_ID!
-});
+}, 'androidApp');
 const iosApp = firebaseAdmin.initializeApp({
   projectId: 'templewallet-fa3b3',
   appId: process.env.IOS_APP_ID!
-});
+}, 'iosApp');
 
 const getProviderStateWithTimeout = <T>(provider: SingleQueryDataProvider<T>) =>
   Promise.race([
