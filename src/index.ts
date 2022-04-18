@@ -122,6 +122,8 @@ app.get('/api/mobile-check', async (_req, res) => {
   const platform = _req.query.platform;
   const appCheckToken = _req.query.appCheckToken;
 
+  console.log(platform, appCheckToken);
+
   if (!appCheckToken) {
     res.status(400).send({ error: 'App Check token is not defined' });
   }
