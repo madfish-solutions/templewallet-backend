@@ -144,7 +144,7 @@ app.get('/api/mobile-check', async (_req, res) => {
     res.status(200).send({
       minIosVersion: MIN_IOS_APP_VERSION,
       minAndroidVersion: MIN_ANDROID_APP_VERSION,
-      isAppCheckFailed: false // TODO: set "true" after FE firebase setup fix fix
+      isAppCheckFailed: true
     });
   }
 });
