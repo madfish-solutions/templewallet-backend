@@ -122,6 +122,10 @@ app.get('/api/mobile-check', async (_req, res) => {
   const platform = _req.query.platform;
   const appCheckToken = _req.query.appCheckToken;
 
+  console.log(1);
+  console.log("androidAppId", process.env.ANDROID_APP_ID);
+  console.log("iosAppId", process.env.IOS_APP_ID);
+
   console.log('A123', platform, appCheckToken);
 
   if (!appCheckToken) {
