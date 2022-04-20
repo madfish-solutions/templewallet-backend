@@ -120,6 +120,9 @@ app.get(
 
 app.get('/api/mobile-check', async (_req, res) => {
   console.log(1);
+  console.log("androidAppId", process.env.ANDROID_APP_ID);
+  console.log("iosAppId", process.env.IOS_APP_ID);
+
   const platform = _req.query.platform;
   const appCheckToken = _req.query.appCheckToken;
   console.log("token", appCheckToken);
