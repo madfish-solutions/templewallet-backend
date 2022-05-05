@@ -6,7 +6,7 @@ interface DappList {
     slug: string;
     categories: DappType[];
   }
-  
+
   enum DappType {
     Exchanges = "Exchanges",
     Marketplaces = "Marketplaces",
@@ -15,7 +15,7 @@ interface DappList {
     Collectibles = "Collectibles",
     Other = "Other"
   }
-  
+
   export const dappList: DappList[] = [
     {
         name: "QuipuSwap",
@@ -31,14 +31,6 @@ interface DappList {
         type: DappType.Marketplaces,
         logo: 'https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/objkt/objkt_logo.png',
         slug: 'objkt.com',
-        categories: [DappType.Marketplaces]
-    },
-    {
-        name: "Hic et Nunc",
-        dappUrl: 'https://www.hicetnunc.xyz',
-        type: DappType.Marketplaces,
-        logo: 'https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/hen/hen_logo.jpg',
-        slug: 'hen',
         categories: [DappType.Marketplaces]
     },
     {
@@ -75,7 +67,7 @@ interface DappList {
     },
     {
         name: "Plenty",
-        dappUrl: 'https://www.plentydefi.com ',
+        dappUrl: 'https://www.plentydefi.com',
         type: DappType.DeFi,
         logo: 'https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/plenty/plenty_logo.png',
         slug: 'plenty',
