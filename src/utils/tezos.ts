@@ -17,6 +17,7 @@ const MAINNET_RPC_URL = process.env.RPC_URL || "https://mainnet-node.madfish.sol
 const TEMPLE_WALLET_LV_ACCOUNT_PKH = "tz1fVQangAfb9J1hRRMP2bSB6LvASD6KpY8A";
 const TEMPLE_WALLET_LV_ACCOUNT_PUBLIC_KEY =
   "edpkvWbk81uh1DEvdWKR4g1bjyTGhdu1mDvznPUFE2zDwNsLXrEb9K";
+
 class LambdaViewSigner implements Signer {
   async publicKeyHash() {
     return TEMPLE_WALLET_LV_ACCOUNT_PKH;
@@ -117,7 +118,9 @@ export const getTokenMetadata = memoizee(
     try {
       // @ts-ignore
       tokenData = await contract.tzip12().getTokenMetadata(tokenId ?? 0);
-    } catch (err) {
+    }
+    // @ts-ignore
+    catch (err: Error) {
       latestErrMessage = err.message;
     }
 
@@ -130,7 +133,9 @@ export const getTokenMetadata = memoizee(
         // @ts-ignore
         const { metadata } = await contract.tzip16().getMetadata();
         tokenData = metadata;
-      } catch (err) {
+      }
+      // @ts-ignore
+      catch (err: Error) {
         latestErrMessage = err.message;
       }
     }
