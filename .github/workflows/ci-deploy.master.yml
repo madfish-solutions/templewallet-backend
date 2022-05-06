@@ -1,6 +1,6 @@
 on:
   push:
-    branches: [ prod ]
+    branches: [ master ]
 
 
 name: Build docker
