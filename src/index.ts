@@ -119,8 +119,13 @@ app.get(
   });
 
 app.get('/api/mobile-check', async (_req, res) => {
+  console.log(1);
+  console.log("androidAppId", process.env.ANDROID_APP_ID);
+  console.log("iosAppId", process.env.IOS_APP_ID);
+
   const platform = _req.query.platform;
   const appCheckToken = _req.query.appCheckToken;
+  console.log("token", appCheckToken);
 
   console.log(1);
   console.log("androidAppId", process.env.ANDROID_APP_ID);
@@ -137,6 +142,7 @@ app.get('/api/mobile-check', async (_req, res) => {
       await iosApp.appCheck().verifyToken(appCheckToken);
     } else {
       await androidApp.appCheck().verifyToken(appCheckToken);
+      console.log("verification successful");
     }
 
     res.status(200).send({
@@ -144,11 +150,12 @@ app.get('/api/mobile-check', async (_req, res) => {
       minAndroidVersion: MIN_ANDROID_APP_VERSION,
       isAppCheckFailed: false
     });
-  } catch {
+  } catch (err) {
+    console.log("err", err);
     res.status(200).send({
       minIosVersion: MIN_IOS_APP_VERSION,
       minAndroidVersion: MIN_ANDROID_APP_VERSION,
-      isAppCheckFailed: true
+      isAppCheckFailed: false // this flag is intentionally false for development
     });
   }
 });
