@@ -60,7 +60,9 @@ export default class DataProvider<T, A extends any[]> {
     try {
       const data = await this.fetchFn(...args);
       return { data };
-    } catch (error) {
+    }
+    // @ts-ignore
+    catch (error: Error) {
       return { error };
     }
   }

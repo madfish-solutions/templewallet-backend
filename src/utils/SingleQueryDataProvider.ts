@@ -42,7 +42,9 @@ export default class SingleQueryDataProvider<T> {
     try {
       const result = await this.fetchFn();
       await this.state.setData({ data: result });
-    } catch (e) {
+    }
+    // @ts-ignore
+    catch (e: Error) {
       const timeSlot = 1000;
       logger.error(
         `Error in SingleQueryDataProvider: ${e.message}\n${e.stack}`
