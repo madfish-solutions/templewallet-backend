@@ -106,22 +106,6 @@ interface DappList {
         categories: [DappType.DeFi]
     },
     {
-        name: "Alien'sFarm",
-        dappUrl: 'https://aliens.farm',
-        type: DappType.DeFi,
-        logo: 'https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/aliensfarm/aliensfarm_logo.png',
-        slug: 'aliensfarm',
-        categories: [DappType.DeFi, DappType.Exchanges]
-    },
-    {
-        name: "FlameDeFi",
-        dappUrl: 'https://flamedefi.io',
-        type: DappType.DeFi,
-        logo: 'https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/flame/flame_logo.jpg',
-        slug: 'flamedefi',
-        categories: [DappType.DeFi, DappType.Exchanges]
-    },
-    {
         name: "Kolibri",
         dappUrl: 'https://kolibri.finance',
         type: DappType.DeFi,
