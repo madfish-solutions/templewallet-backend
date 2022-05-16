@@ -21,7 +21,7 @@ interface DappList {
         name: "QuipuSwap",
         dappUrl: 'https://quipuswap.com',
         type: DappType.Exchanges,
-        logo: "https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/quipuswap/quipuswap_logo.jpg",
+        logo: "https://dashboard-assets.dappradar.com/document/7360/quipuswap-dapp-exchanges-tezos-logo-166x166_ebde5a0933878146d43d79b2cdd754f8.png",
         slug: "quipuswap",
         categories: [DappType.Exchanges, DappType.DeFi]
     },
