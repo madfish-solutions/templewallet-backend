@@ -21,7 +21,7 @@ interface DappList {
         name: "QuipuSwap",
         dappUrl: 'https://quipuswap.com',
         type: DappType.Exchanges,
-        logo: "https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/quipuswap/quipuswap_logo.jpg",
+        logo: "https://dashboard-assets.dappradar.com/document/7360/quipuswap-dapp-exchanges-tezos-logo-166x166_ebde5a0933878146d43d79b2cdd754f8.png",
         slug: "quipuswap",
         categories: [DappType.Exchanges, DappType.DeFi]
     },
@@ -104,22 +104,6 @@ interface DappList {
         logo: 'https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/crunchy/crunchy_logo.jpg',
         slug: 'crunchy',
         categories: [DappType.DeFi]
-    },
-    {
-        name: "Alien'sFarm",
-        dappUrl: 'https://aliens.farm',
-        type: DappType.DeFi,
-        logo: 'https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/aliensfarm/aliensfarm_logo.png',
-        slug: 'aliensfarm',
-        categories: [DappType.DeFi, DappType.Exchanges]
-    },
-    {
-        name: "FlameDeFi",
-        dappUrl: 'https://flamedefi.io',
-        type: DappType.DeFi,
-        logo: 'https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/flame/flame_logo.jpg',
-        slug: 'flamedefi',
-        categories: [DappType.DeFi, DappType.Exchanges]
     },
     {
         name: "Kolibri",
