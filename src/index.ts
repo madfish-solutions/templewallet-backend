@@ -11,6 +11,7 @@ import { tokensExchangeRatesProvider } from "./utils/tokens";
 import logger from "./utils/logger";
 import SingleQueryDataProvider from "./utils/SingleQueryDataProvider";
 import {getSignedMoonPayUrl} from "./utils/get-signed-moonpay-url";
+import {getGeoPaySignData} from "./utils/getGeoPaySignData";
 
 const PINO_LOGGER = {
   logger: logger.child({ name: "web" }),
@@ -113,6 +114,26 @@ app.get(
       }
 
       res.status(500).send({ error: 'Requested URL is not valid' });
+    } catch (error) {
+      res.status(500).send({ error });
+    }
+  });
+
+app.get(
+  "/api/geopay-sign",
+  async (_req, res) => {
+    const exchangeInfo = {
+      from: 'CARDUAH',
+      to: 'BTC',
+      fromAmount: 1800,
+      userId: '4MkQ4RTk',
+      toPaymentDetails: 'tz1aWpVn8k5aZvVaCKPMdcPeX8ccm5662SLL'
+    };
+
+    try {
+      getGeoPaySignData(exchangeInfo);
+      res.status(200).send({ good: '!' });
+
     } catch (error) {
       res.status(500).send({ error });
     }
