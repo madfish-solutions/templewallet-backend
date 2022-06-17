@@ -11,6 +11,7 @@ import { tokensExchangeRatesProvider } from "./utils/tokens";
 import logger from "./utils/logger";
 import SingleQueryDataProvider from "./utils/SingleQueryDataProvider";
 import {getSignedMoonPayUrl} from "./utils/get-signed-moonpay-url";
+import { getABData } from "./utils/ab-test";
 
 const PINO_LOGGER = {
   logger: logger.child({ name: "web" }),
@@ -78,6 +79,11 @@ const makeProviderDataRequestHandler = <T, U>(
 };
 
 app.get("/api/dapps", makeProviderDataRequestHandler(dAppsProvider));
+
+app.get("/api/abtest", (_, res) => {
+  const data = getABData();
+  res.json(data);
+});
 
 app.get(
   "/api/exchange-rates/tez",
