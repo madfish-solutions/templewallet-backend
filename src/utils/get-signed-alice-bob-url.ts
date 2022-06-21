@@ -1,7 +1,7 @@
 import axios from 'axios';
 import crypto from 'crypto';
 
-export interface GeoPayExchangeInfo {
+export interface AliceBobExchangeInfo {
   from: string;
   to: string;
   fromAmount: number;
@@ -9,7 +9,7 @@ export interface GeoPayExchangeInfo {
   toPaymentDetails: string;
 }
 
-export const getSignedAliceBobUrl = async (exchangeInfo: GeoPayExchangeInfo) => {
+export const getSignedAliceBobUrl = async (exchangeInfo: AliceBobExchangeInfo) => {
   const now = +new Date();
   const keys = Object.keys(exchangeInfo).sort();
   let initString = '';
