@@ -105,6 +105,7 @@ app.get("/api/exchange-rates", async (_req, res) => {
 app.get(
   "/api/moonpay-sign",
   async (_req, res) => {
+    console.log('Alice Bob exchange added');
     try {
       const url = _req.query.url;
 
