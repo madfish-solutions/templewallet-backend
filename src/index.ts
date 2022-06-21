@@ -10,8 +10,8 @@ import { tezExchangeRateProvider } from "./utils/tezos";
 import { tokensExchangeRatesProvider } from "./utils/tokens";
 import logger from "./utils/logger";
 import SingleQueryDataProvider from "./utils/SingleQueryDataProvider";
-import {getSignedMoonPayUrl} from "./utils/get-signed-moonpay-url";
-import {getGeoPaySignData} from "./utils/getGeoPaySignData";
+import { getSignedMoonPayUrl } from "./utils/get-signed-moonpay-url";
+import { getSignedAliceBobUrl } from "./utils/get-signed-alice-bob-url";
 
 const PINO_LOGGER = {
   logger: logger.child({ name: "web" }),
@@ -120,19 +120,19 @@ app.get(
   });
 
 app.get(
-  "/api/geopay-sign",
+  "/api/alice-bob-sign",
   async (_req, res) => {
-    const exchangeInfo = {
-      from: 'CARDUAH',
-      to: 'BTC',
-      fromAmount: 1800,
-      userId: '4MkQ4RTk',
-      toPaymentDetails: 'tz1aWpVn8k5aZvVaCKPMdcPeX8ccm5662SLL'
-    };
-
     try {
-      getGeoPaySignData(exchangeInfo);
-      res.status(200).send({ good: '!' });
+      const exchangeInfo = {
+        from: 'CARDUAH',
+        to: 'TEZ',
+        fromAmount: Number(_req.query.amount),
+        userId: String(_req.query.userId),
+        toPaymentDetails: String(_req.query.walletAddress)
+      };
+      const url = await getSignedAliceBobUrl(exchangeInfo);
+
+      res.status(200).send({ url });
 
     } catch (error) {
       res.status(500).send({ error });

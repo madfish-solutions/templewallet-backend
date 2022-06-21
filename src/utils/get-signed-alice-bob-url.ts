@@ -1,3 +1,4 @@
+import axios from 'axios';
 import crypto from 'crypto';
 
 export interface GeoPayExchangeInfo {
@@ -8,7 +9,7 @@ export interface GeoPayExchangeInfo {
   toPaymentDetails: string;
 }
 
-export const getGeoPaySignData = (exchangeInfo: GeoPayExchangeInfo) => {
+export const getSignedAliceBobUrl = async (exchangeInfo: GeoPayExchangeInfo) => {
   const now = +new Date();
   const keys = Object.keys(exchangeInfo).sort();
   let initString = '';
@@ -23,14 +24,19 @@ export const getGeoPaySignData = (exchangeInfo: GeoPayExchangeInfo) => {
   }
 
   initString += 'timestamp' + now;
-  parametersSequence += 'timestamp';
 
-  const signature = crypto.createHmac('SHA512', process.env.GEOPAY_PRIVATE_KEY!).update(initString).digest('hex');
+  const signature = crypto.createHmac('SHA512', process.env.ALICE_BOB_PRIVATE_KEY!).update(initString).digest('hex');
 
-  console.log('parametersSequence: ' + parametersSequence);
-  console.log('initString: ' + initString + '\n');
-  console.log('Headers:');
-  console.log('trustee-public-key: ' + process.env.GEOPAY_PUBLIC_KEY!);
-  console.log('trustee-timestamp: ' + now);
-  console.log('trustee-signature: ' + signature);
+  const response = await axios.post<{ payUrl: string }>(
+    'https://exchange.alice-bob.io/api/v3/create-order',
+    exchangeInfo,
+    {
+      headers: {
+        'public-key': process.env.ALICE_BOB_PUBLIC_KEY!,
+        'timestamp': now,
+        signature
+      }
+    });
+
+  return response.data.payUrl;
 };
