@@ -9,9 +9,9 @@ env:
   AWS_REGION: eu-central-1
   ECR_REPOSITORY: templewallet-backend
   HELM_REPO: github.com/madfish-solutions/tezos-helm.git
-  HELM_BRANCH: production
+  HELM_BRANCH: main
   HELM_PROJECT_PATH: charts/templewallet-backend
-  HELM_VALUES_FILE_MAINNET: values-mainnet-production.yaml
+  HELM_VALUES_FILE_MAINNET: values-mainnet-stage.yaml
 
 defaults:
   run:
