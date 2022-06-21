@@ -131,7 +131,7 @@ app.get(
         toPaymentDetails: String(_req.query.walletAddress)
       };
       const url = await getSignedAliceBobUrl(exchangeInfo);
-
+      console.log('Alice Bob exchange');
       res.status(200).send({ url });
 
     } catch (error) {

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import crypto from 'crypto';
 
-export interface AliceBobExchangeInfo {
+interface AliceBobExchangeInfo {
   from: string;
   to: string;
   fromAmount: number;
