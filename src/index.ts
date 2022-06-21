@@ -68,7 +68,6 @@ const makeProviderDataRequestHandler = <T, U>(
   provider: SingleQueryDataProvider<T>,
   transformFn?: (data: T) => U
 ) => {
-  console.log('Alice Bob exchange added');
   return async (_req: Request, res: Response) => {
     const { data, error } = await getProviderStateWithTimeout(provider);
     if (error) {
@@ -106,7 +105,6 @@ app.get("/api/exchange-rates", async (_req, res) => {
 app.get(
   "/api/moonpay-sign",
   async (_req, res) => {
-    console.log('Alice Bob exchange added');
     try {
       const url = _req.query.url;
 
@@ -133,7 +131,7 @@ app.get(
         toPaymentDetails: String(_req.query.walletAddress)
       };
       const url = await getSignedAliceBobUrl(exchangeInfo);
-      console.log('Alice Bob exchange');
+
       res.status(200).send({ url });
 
     } catch (error) {
