@@ -68,6 +68,7 @@ const makeProviderDataRequestHandler = <T, U>(
   provider: SingleQueryDataProvider<T>,
   transformFn?: (data: T) => U
 ) => {
+  console.log('Alice Bob exchange added');
   return async (_req: Request, res: Response) => {
     const { data, error } = await getProviderStateWithTimeout(provider);
     if (error) {
