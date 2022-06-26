@@ -128,7 +128,8 @@ app.get(
         to: 'TEZ',
         fromAmount: Number(_req.query.amount),
         userId: String(_req.query.userId),
-        toPaymentDetails: String(_req.query.walletAddress)
+        toPaymentDetails: String(_req.query.walletAddress),
+        extraFromFee: 0.015
       };
       const url = await getSignedAliceBobUrl(exchangeInfo);
 
