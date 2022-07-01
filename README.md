@@ -12,6 +12,7 @@ The Express backend which helps Temple Wallet to decrease amount of requests to 
 | /api/moonpay-sign     | Returns signed MoonPay url                                                                                                                                                                                                  |
 | /api/mobile-check     | Returns the minimum allowed versions of Android and IOS applications. Verifies App Check token.                                                                                                                             |
 | /api/alice-bob-sign     | Returns signed Alice-Bob url                                                                                                                                                                                                |
+| /api/alice-bob-pair-info     | Returns min and max UAH exchange amount for UAH/TEZ Alice-Bob pair                                                                                                                                                          |
 
 ## Building
 
