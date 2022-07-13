@@ -6,7 +6,7 @@ export const getABData = () => {
   const result = counter % 2 === 0 ? "A" : "B";
   logger.info(`Getting A/B test ${counter}:${result}`);
   counter++;
-  if(counter > 5000) counter = 0;
+  if(counter === Number.MAX_SAFE_INTEGER) counter = 0;
   return {
     ab: result
   };  
