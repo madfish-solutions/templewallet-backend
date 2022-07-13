@@ -10,8 +10,10 @@ import { tezExchangeRateProvider } from "./utils/tezos";
 import { tokensExchangeRatesProvider } from "./utils/tokens";
 import logger from "./utils/logger";
 import SingleQueryDataProvider from "./utils/SingleQueryDataProvider";
-import {getSignedMoonPayUrl} from "./utils/get-signed-moonpay-url";
 import { getABData } from "./utils/ab-test";
+import { getSignedMoonPayUrl } from "./utils/get-signed-moonpay-url";
+import { getSignedAliceBobUrl } from "./utils/get-signed-alice-bob-url";
+import {getAliceBobPairInfo} from "./utils/get-alice-bob-pair-info";
 
 const PINO_LOGGER = {
   logger: logger.child({ name: "web" }),
@@ -119,6 +121,40 @@ app.get(
       }
 
       res.status(500).send({ error: 'Requested URL is not valid' });
+    } catch (error) {
+      res.status(500).send({ error });
+    }
+  });
+
+app.get(
+  "/api/alice-bob-sign",
+  async (_req, res) => {
+    try {
+      const exchangeInfo = {
+        from: 'CARDUAH',
+        to: 'TEZ',
+        fromAmount: Number(_req.query.amount),
+        userId: String(_req.query.userId),
+        toPaymentDetails: String(_req.query.walletAddress),
+        extraFromFee: 0.015
+      };
+      const url = await getSignedAliceBobUrl(exchangeInfo);
+
+      res.status(200).send({ url });
+
+    } catch (error) {
+      res.status(500).send({ error });
+    }
+  });
+
+app.get(
+  "/api/alice-bob-pair-info",
+  async (_req, res) => {
+    try {
+      const { minAmount, maxAmount } = await getAliceBobPairInfo();
+
+      res.status(200).send({ minAmount, maxAmount });
+
     } catch (error) {
       res.status(500).send({ error });
     }
