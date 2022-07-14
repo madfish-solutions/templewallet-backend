@@ -10,6 +10,7 @@ import { tezExchangeRateProvider } from "./utils/tezos";
 import { tokensExchangeRatesProvider } from "./utils/tokens";
 import logger from "./utils/logger";
 import SingleQueryDataProvider from "./utils/SingleQueryDataProvider";
+import { getABData } from "./utils/ab-test";
 import { getSignedMoonPayUrl } from "./utils/get-signed-moonpay-url";
 import { getSignedAliceBobUrl } from "./utils/get-signed-alice-bob-url";
 import {getAliceBobPairInfo} from "./utils/get-alice-bob-pair-info";
@@ -80,6 +81,11 @@ const makeProviderDataRequestHandler = <T, U>(
 };
 
 app.get("/api/dapps", makeProviderDataRequestHandler(dAppsProvider));
+
+app.get("/api/abtest", (_, res) => {
+  const data = getABData();
+  res.json(data);
+});
 
 app.get(
   "/api/exchange-rates/tez",
