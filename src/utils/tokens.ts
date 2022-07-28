@@ -153,7 +153,9 @@ const getPoolTokenExchangeRate = memoizee(
           try {
             decimals = (await getTokenMetadata(tokenAddress, token_id)).decimals;
           } catch(e) {
-            decimals = 12;
+            if(tokenAddress === 'KT1Xobej4mc6XgEjDoJoHtTKgbD1ELMvcQuL' && token_id === 0) {
+              decimals = 12;
+            }
           }
         } else {
           decimals = metadata[0].decimals;
