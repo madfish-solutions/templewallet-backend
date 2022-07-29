@@ -155,6 +155,8 @@ const getPoolTokenExchangeRate = memoizee(
           } catch(e) {
             if(tokenAddress === 'KT1Xobej4mc6XgEjDoJoHtTKgbD1ELMvcQuL' && token_id === 0) {
               decimals = 12;
+            } else {
+              decimals = 0;
             }
           }
         } else {
