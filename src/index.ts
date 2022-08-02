@@ -1,4 +1,4 @@
-import {MIN_ANDROID_APP_VERSION, MIN_IOS_APP_VERSION} from "./config";
+import { MIN_ANDROID_APP_VERSION, MIN_IOS_APP_VERSION } from "./config";
 require("./configure");
 
 import cors from "cors";
@@ -13,7 +13,7 @@ import SingleQueryDataProvider from "./utils/SingleQueryDataProvider";
 import { getABData } from "./utils/ab-test";
 import { getSignedMoonPayUrl } from "./utils/get-signed-moonpay-url";
 import { getSignedAliceBobUrl } from "./utils/get-signed-alice-bob-url";
-import {getAliceBobPairInfo} from "./utils/get-alice-bob-pair-info";
+import { getAliceBobPairInfo } from "./utils/get-alice-bob-pair-info";
 import { getNewsNotifications, getNewsNotificationsCount } from "./notifications/news-notifications/news-notifications";
 import { getActivityNotifications, getActivityNotificationsCount } from "./notifications/activity-notifications/activity-notifications";
 
@@ -102,8 +102,14 @@ app.get("/api/news/count", async (_req, res) => {
 
 app.get("/api/activity", async (_req, res) => {
   try {
-    const data = await getActivityNotifications(_req.query);
-    res.status(200).send(data);
+    const accountAddress = _req.query.accountAddress;
+    
+    if (typeof (accountAddress) === 'string') {
+      const data = await getActivityNotifications(_req.query);
+      res.status(200).send(data);
+    }
+
+    res.status(500).send({ error: 'Requested URL is not valid' });
   } catch (error) {
     res.status(500).send({ error });
   }
@@ -111,23 +117,12 @@ app.get("/api/activity", async (_req, res) => {
 
 app.get("/api/activity/count", async (_req, res) => {
   try {
-    const data = await getActivityNotificationsCount(_req.query);
-    res.status(200).send(data);
-  } catch (error) {
-    res.status(500).send({ error });
-  }
-});
-
-app.get("/api/activity", async (_req, res) => {
-  try {
-    const url = _req.query.url;
-
-    if (typeof(url) === 'string') {
-      const signedUrl = getSignedMoonPayUrl(url);
-      res.status(200).send({ signedUrl });
+    const accountAddress = _req.query.accountAddress;
+    
+    if (typeof (accountAddress) === 'string') {
+      const data = await getActivityNotificationsCount(_req.query);
+      res.status(200).send(data);
     }
-
-    res.status(500).send({ error: 'Requested URL is not valid' });
   } catch (error) {
     res.status(500).send({ error });
   }
@@ -168,7 +163,7 @@ app.get(
     try {
       const url = _req.query.url;
 
-      if (typeof(url) === 'string') {
+      if (typeof (url) === 'string') {
         const signedUrl = getSignedMoonPayUrl(url);
         res.status(200).send({ signedUrl });
       }
