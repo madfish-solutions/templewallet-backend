@@ -1,0 +1,138 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      .main {
+        width: 100%;
+        display: flex;
+        justify-content: flex-end;
+      }
+      .news_item {
+        margin-bottom: 24px;
+      }
+      .badge {
+        color: white;
+        padding: 4px 2px;
+        border-radius: 4px;
+        margin-left: 12px;
+      }
+      .read {
+        background-color: darkgreen;
+      }
+      .notRead {
+        background-color: darkred;
+      }
+      .img {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        margin-right: 12px;
+      }
+      .description {
+        margin-top: 4px;
+      }
+      .header {
+        display: flex;
+      }
+      .date {
+        margin-top: 8px;
+        color: darkgray;
+        font-size: 0.8rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="main">
+      <div>News: <span id="newsCount"></span></div>
+      <div class="news_list" id="newsContent"></div>
+    </div>
+    <script>
+      const dateFormatOptions = {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+      };
+      const queryParams = {
+        // welcome: true
+        // platform: 'Extension'
+        // platform: 'Mobile',
+        // timeGt: new Date('2021-01-01').getTime(),
+        // timeGt: new Date('2022-01-21').getTime(),
+        // sorted: '1',
+      };
+      const newsLoader = () =>
+        fetch(
+          "http://localhost:8080/api/news?" + new URLSearchParams(queryParams),
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        )
+          .then((x) => x.json())
+          .then((x) => {
+            const root = document.getElementById("newsContent");
+            root.innerHTML = "";
+            const sortedList = x;
+            for (item of sortedList) {
+              const itemDom = document.createElement("div");
+              itemDom.innerHTML = `
+              <div class="news_item">
+                <div class="header">
+                  <div>
+                    <img src="${item.extensionImageUrl}" class="img" alt="" />
+                  </div>
+                  <div>
+                    <div class="title">${item.title} <span class="badge ${
+                item.status === "New" ? "notRead" : "read"
+              }">${item.status}</span></div>
+                    <div class="description">${item.description}</div>
+                  </div>
+                  </div>
+                <div class="date">
+                  ${new Date(item.createdAt).toLocaleDateString(
+                    "en-GB",
+                    dateFormatOptions
+                  )}
+                </div>
+              </div>`;
+              root.appendChild(itemDom);
+            }
+          })
+          .catch((x) => {
+            document.getElementById("newsContent").innerHTML =
+              "Error: " + x.message;
+          });
+      const newsCountLoader = () =>
+        fetch(
+          "http://localhost:8080/api/news/count?" +
+            new URLSearchParams(queryParams),
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        )
+          .then((x) => x.json())
+          .then((x) => {
+            const root = document.getElementById("newsCount");
+            root.innerHTML = x.count;
+          })
+          .catch((x) => {
+            document.getElementById("newsCount").innerHTML =
+              "Error: " + x.message;
+          });
+      setInterval(() => {
+        newsLoader();
+        newsCountLoader();
+      }, 5000);
+    </script>
+  </body>
+</html>
