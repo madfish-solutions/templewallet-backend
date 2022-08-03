@@ -1,4 +1,4 @@
-import {MIN_ANDROID_APP_VERSION, MIN_IOS_APP_VERSION} from "./config";
+import { MIN_ANDROID_APP_VERSION, MIN_IOS_APP_VERSION } from "./config";
 require("./configure");
 
 import cors from "cors";
@@ -13,7 +13,8 @@ import SingleQueryDataProvider from "./utils/SingleQueryDataProvider";
 import { getABData } from "./utils/ab-test";
 import { getSignedMoonPayUrl } from "./utils/get-signed-moonpay-url";
 import { getSignedAliceBobUrl } from "./utils/get-signed-alice-bob-url";
-import {getAliceBobPairInfo} from "./utils/get-alice-bob-pair-info";
+import { getAliceBobPairInfo } from "./utils/get-alice-bob-pair-info";
+import { getNewsNotifications, getNewsNotificationsCount } from "./notifications/news-notifications/news-notifications";
 
 const PINO_LOGGER = {
   logger: logger.child({ name: "web" }),
@@ -80,6 +81,24 @@ const makeProviderDataRequestHandler = <T, U>(
   };
 };
 
+app.get("/api/news", async (_req, res) => {
+  try {
+    const data = await getNewsNotifications(_req.query);
+    res.status(200).send(data);
+  } catch (error) {
+    res.status(500).send({ error });
+  }
+});
+
+app.get("/api/news/count", async (_req, res) => {
+  try {
+    const data = await getNewsNotificationsCount(_req.query);
+    res.status(200).send(data);
+  } catch (error) {
+    res.status(500).send({ error });
+  }
+})
+
 app.get("/api/dapps", makeProviderDataRequestHandler(dAppsProvider));
 
 app.get("/api/abtest", (_, res) => {
@@ -115,7 +134,7 @@ app.get(
     try {
       const url = _req.query.url;
 
-      if (typeof(url) === 'string') {
+      if (typeof (url) === 'string') {
         const signedUrl = getSignedMoonPayUrl(url);
         res.status(200).send({ signedUrl });
       }
