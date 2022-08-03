@@ -15,7 +15,6 @@ import { getSignedMoonPayUrl } from "./utils/get-signed-moonpay-url";
 import { getSignedAliceBobUrl } from "./utils/get-signed-alice-bob-url";
 import { getAliceBobPairInfo } from "./utils/get-alice-bob-pair-info";
 import { getNewsNotifications, getNewsNotificationsCount } from "./notifications/news-notifications/news-notifications";
-import { getActivityNotifications, getActivityNotificationsCount } from "./notifications/activity-notifications/activity-notifications";
 
 const PINO_LOGGER = {
   logger: logger.child({ name: "web" }),
@@ -98,35 +97,7 @@ app.get("/api/news/count", async (_req, res) => {
   } catch (error) {
     res.status(500).send({ error });
   }
-});
-
-app.get("/api/activity", async (_req, res) => {
-  try {
-    const accountAddress = _req.query.accountAddress;
-    
-    if (typeof (accountAddress) === 'string') {
-      const data = await getActivityNotifications(_req.query);
-      res.status(200).send(data);
-    }
-
-    res.status(500).send({ error: 'Requested URL is not valid' });
-  } catch (error) {
-    res.status(500).send({ error });
-  }
-});
-
-app.get("/api/activity/count", async (_req, res) => {
-  try {
-    const accountAddress = _req.query.accountAddress;
-    
-    if (typeof (accountAddress) === 'string') {
-      const data = await getActivityNotificationsCount(_req.query);
-      res.status(200).send(data);
-    }
-  } catch (error) {
-    res.status(500).send({ error });
-  }
-});
+})
 
 app.get("/api/dapps", makeProviderDataRequestHandler(dAppsProvider));
 

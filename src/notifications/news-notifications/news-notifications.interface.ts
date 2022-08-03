@@ -9,16 +9,9 @@ export enum PlatformType {
   Extension = "Extension",
 }
 
-export enum StatusType {
-  New = "New",
-  Read = "Read",
-  Viewed = "Viewed",
-}
-
 export interface NewsNotification {
   id: string;
   createdAt: string;
-  status: StatusType;
   type: NewsType;
   platform: PlatformType;
   language: string;

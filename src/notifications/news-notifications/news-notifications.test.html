@@ -19,10 +19,10 @@
         border-radius: 4px;
         margin-left: 12px;
       }
-      .read {
+      .basic {
         background-color: darkgreen;
       }
-      .notRead {
+      .alert {
         background-color: darkred;
       }
       .img {
@@ -90,8 +90,8 @@
                   </div>
                   <div>
                     <div class="title">${item.title} <span class="badge ${
-                item.status === "New" ? "notRead" : "read"
-              }">${item.status}</span></div>
+                item.type === "News" ? "basic" : "alert"
+              }">${item.type}</span></div>
                     <div class="description">${item.description}</div>
                   </div>
                   </div>

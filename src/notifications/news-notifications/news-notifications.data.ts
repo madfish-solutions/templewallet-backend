@@ -1,10 +1,9 @@
-import { NewsNotification, NewsType, PlatformType, StatusType } from "./news-notifications.interface";
+import { NewsNotification, NewsType, PlatformType } from "./news-notifications.interface";
 
 export const mockData: Array<NewsNotification> = [
   {
     id: "1e",
     createdAt: "2020-01-01T00:00:00.000Z",
-    status: StatusType.New,
     type: NewsType.News,
     platform: PlatformType.Extension,
     language: 'en-US',
@@ -17,7 +16,6 @@ export const mockData: Array<NewsNotification> = [
   {
     id: "1m",
     createdAt: "2020-01-01T00:00:00.000Z",
-    status: StatusType.New,
     type: NewsType.News,
     platform: PlatformType.Mobile,
     language: 'en-US',
@@ -30,7 +28,6 @@ export const mockData: Array<NewsNotification> = [
   {
     id: "2e",
     createdAt: "2022-02-01T00:00:00.000Z",
-    status: StatusType.Read,
     type: NewsType.News,
     platform: PlatformType.Extension,
     language: 'en-US',
@@ -43,7 +40,6 @@ export const mockData: Array<NewsNotification> = [
   {
     id: "2m",
     createdAt: "2022-02-01T00:00:00.000Z",
-    status: StatusType.Read,
     type: NewsType.News,
     platform: PlatformType.Mobile,
     language: 'en-US',
@@ -56,7 +52,6 @@ export const mockData: Array<NewsNotification> = [
   {
     id: "3e",
     createdAt: "2022-01-01T00:00:00.000Z",
-    status: StatusType.Read,
     type: NewsType.ApplicationUpdate,
     platform: PlatformType.Extension,
     language: 'en-US',
@@ -69,7 +64,6 @@ export const mockData: Array<NewsNotification> = [
   {
     id: "3m",
     createdAt: "2022-01-01T00:00:00.000Z",
-    status: StatusType.Read,
     type: NewsType.ApplicationUpdate,
     platform: PlatformType.Mobile,
     language: 'en-US',
@@ -82,7 +76,6 @@ export const mockData: Array<NewsNotification> = [
   {
     id: "4e",
     createdAt: "2022-01-03T00:00:00.000Z",
-    status: StatusType.New,
     type: NewsType.ApplicationUpdate,
     platform: PlatformType.Extension,
     language: 'en-US',
@@ -95,7 +88,6 @@ export const mockData: Array<NewsNotification> = [
   {
     id: "4m",
     createdAt: "2022-01-03T00:00:00.000Z",
-    status: StatusType.New,
     type: NewsType.ApplicationUpdate,
     platform: PlatformType.Mobile,
     language: 'en-US',
@@ -108,7 +100,6 @@ export const mockData: Array<NewsNotification> = [
   {
     id: "5e",
     createdAt: "2022-01-01T00:00:00.000Z",
-    status: StatusType.New,
     type: NewsType.Alert,
     platform: PlatformType.Extension,
     language: 'en-US',
@@ -121,7 +112,6 @@ export const mockData: Array<NewsNotification> = [
   {
     id: "5m",
     createdAt: "2022-01-01T00:00:00.000Z",
-    status: StatusType.New,
     type: NewsType.Alert,
     platform: PlatformType.Mobile,
     language: 'en-US',
@@ -134,7 +124,6 @@ export const mockData: Array<NewsNotification> = [
   {
     id: "6e",
     createdAt: "2022-01-02T00:00:00.000Z",
-    status: StatusType.Read,
     type: NewsType.Alert,
     platform: PlatformType.Extension,
     language: 'en-US',
@@ -147,7 +136,6 @@ export const mockData: Array<NewsNotification> = [
   {
     id: "6m",
     createdAt: "2022-01-02T00:00:00.000Z",
-    status: StatusType.Read,
     type: NewsType.Alert,
     platform: PlatformType.Mobile,
     language: 'en-US',
@@ -163,7 +151,6 @@ export const mockWelcomeData: Array<NewsNotification> = [
   {
     id: "0e",
     createdAt: "2020-01-01T00:00:00.000Z",
-    status: StatusType.New,
     type: NewsType.News,
     platform: PlatformType.Extension,
     language: 'en-US',
@@ -176,7 +163,6 @@ export const mockWelcomeData: Array<NewsNotification> = [
   {
     id: "0m",
     createdAt: "2020-01-01T00:00:00.000Z",
-    status: StatusType.New,
     type: NewsType.News,
     platform: PlatformType.Mobile,
     language: 'en-US',
