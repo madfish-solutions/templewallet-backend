@@ -13,6 +13,7 @@ The Express backend which helps Temple Wallet to decrease amount of requests to 
 | /api/mobile-check     | Returns the minimum allowed versions of Android and IOS applications. Verifies App Check token.                                                                                                                             |
 | /api/alice-bob-sign     | Returns signed Alice-Bob url                                                                                                                                                                                                |
 | /api/alice-bob-pair-info     | Returns min and max UAH exchange amount for UAH/TEZ Alice-Bob pair                                                                                                                                                          |
+| /api/news     | Returns list of news for mobile or extension                                                                                                                                                          |
 
 ## Building
 
