@@ -26,6 +26,14 @@ interface DappList {
         categories: [DappType.Exchanges, DappType.DeFi]
     },
     {
+        name: "Yupana",
+        dappUrl: 'https://yupana.finance',
+        type: DappType.DeFi,
+        logo: "https://pbs.twimg.com/profile_images/1450382829062393859/NSu06S5C_400x400.png",
+        slug: "yupana",
+        categories: [DappType.DeFi]
+    },
+    {
         name: "Objkt.com",
         dappUrl: 'https://objkt.com',
         type: DappType.Marketplaces,
@@ -64,6 +72,14 @@ interface DappList {
         logo: 'https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/tezosdomains/tezosdomains_logo.png',
         slug: 'tezosdomains',
         categories: [DappType.Other]
+    },
+    {
+        name: "DNS.xyz",
+        dappUrl: 'https://dns.xyz/',
+        type: DappType.DeFi,
+        logo: 'https://pbs.twimg.com/profile_images/1527763993577697280/ksQvdq_8_400x400.jpg',
+        slug: 'dnsxyz',
+        categories: [DappType.Marketplaces, DappType.Collectibles]
     },
     {
         name: "Plenty",
