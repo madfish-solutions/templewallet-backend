@@ -177,9 +177,9 @@ app.get(
           to: booleanIsWithdraw ? 'CARDUAH' : 'TEZ',
           fromAmount: Number(amount)
         };
-        const { outputAmount, rate } = await getAliceBobOutputEstimation(booleanIsWithdraw, exchangeInfo);
+        const { outputAmount, exchangeRate } = await getAliceBobOutputEstimation(booleanIsWithdraw, exchangeInfo);
 
-        res.status(200).send({ outputAmount, rate });
+        res.status(200).send({ outputAmount, exchangeRate });
 
       } catch (error) {
         res.status(500).send({ error });

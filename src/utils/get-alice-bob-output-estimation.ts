@@ -16,5 +16,5 @@ export const getAliceBobOutputEstimation = async (isWithdraw: boolean, exchangeI
       }
     });
 
-  return { outputAmount: response.data.toAmount, rate: isWithdraw ? response.data.toRate : response.data.fromRate };
+  return { outputAmount: response.data.toAmount, exchangeRate: isWithdraw ? response.data.toRate : response.data.fromRate };
 };
