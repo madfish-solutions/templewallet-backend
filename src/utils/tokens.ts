@@ -232,7 +232,6 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
   logger.info("Getting tokens exchange rates...");
   const { data: quipuswapExchangers, error: quipuswapError } = await quipuswapExchangersDataProvider.getState();
   if (quipuswapError) {
-    logger.info('qs error', quipuswapError)
     throw quipuswapError;
   }
   logger.info("Getting tokens exchange rates from Quipuswap pools");
@@ -306,30 +305,3 @@ export const tokensExchangeRatesProvider = new SingleQueryDataProvider(
   13 * 60 * 1000,
   getTokensExchangeRates
 );
-
-// export const getTotalSupplyPrice = async (
-//   token: Pick<BcdTokenData, "contract" | "token_id" | "supply" | "decimals">
-// ) => {
-//   const { data: exchangeableTokensWithPrices, error } =
-//     await tokensExchangeRatesProvider.getState();
-//   if (error) {
-//     throw error;
-//   }
-//   const exchangeableToken = exchangeableTokensWithPrices!.find(
-//     ({ tokenAddress, tokenId }) =>
-//       tokenAddress === token.contract &&
-//       (tokenId === undefined || tokenId === token.token_id)
-//   );
-//   const tokenPrice = exchangeableToken
-//     ? exchangeableToken.exchangeRate
-//     : new BigNumber(0);
-//   let tokenSupply: BigNumber | number | string | undefined = token.supply;
-//   if (tokenSupply === undefined) {
-//     const storage = await getStorage(token.contract);
-//     tokenSupply = storage.total_supply || storage.totalSupply || 0;
-//   }
-//   const tvl = new BigNumber(tokenSupply!)
-//     .div(new BigNumber(10).pow(token.decimals))
-//     .multipliedBy(tokenPrice);
-//   return tvl;
-// };
