@@ -7,9 +7,9 @@ import {
 import { tzip12 } from "@taquito/tzip12";
 import { tzip16 } from "@taquito/tzip16";
 import memoizee from "memoizee";
-import { BcdTokenData } from "./better-call-dev";
 import fetch from "./fetch";
 import SingleQueryDataProvider from "./SingleQueryDataProvider";
+import { BcdTokenData } from "./tzkt";
 
 const MAINNET_RPC_URL = process.env.RPC_URL || "https://mainnet-node.madfish.solutions";
 const TEMPLE_WALLET_LV_ACCOUNT_PKH = "tz1fVQangAfb9J1hRRMP2bSB6LvASD6KpY8A";
