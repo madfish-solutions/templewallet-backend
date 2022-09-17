@@ -93,10 +93,8 @@ app.get(
 );
 
 app.get("/api/exchange-rates", async (_req, res) => {
-  const { data: tokensExchangeRates, error: tokensExchangeRatesError } =
-    await getProviderStateWithTimeout(tokensExchangeRatesProvider);
-  const { data: tezExchangeRate, error: tezExchangeRateError } =
-    await getProviderStateWithTimeout(tezExchangeRateProvider);
+  const { data: tokensExchangeRates, error: tokensExchangeRatesError } = await getProviderStateWithTimeout(tokensExchangeRatesProvider);
+  const { data: tezExchangeRate, error: tezExchangeRateError } = await getProviderStateWithTimeout(tezExchangeRateProvider);
   if (tokensExchangeRatesError || tezExchangeRateError) {
     res.status(500).send({
       error: (tokensExchangeRatesError || tezExchangeRateError)!.message,
