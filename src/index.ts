@@ -156,9 +156,9 @@ app.get(
     const isWithdraw = _req.query.isWithdraw;
 
     try {
-      const { minAmount, maxAmount } = await getAliceBobPairInfo(isWithdraw === 'true');
+      const data = await getAliceBobPairInfo(isWithdraw === 'true');
 
-      res.status(200).send({ minAmount, maxAmount });
+      res.status(200).send(data);
 
     } catch (error) {
       res.status(500).send({ error });

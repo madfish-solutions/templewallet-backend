@@ -18,5 +18,5 @@ export const getAliceBobPairInfo = async (isWithdraw = false) => {
       }
     });
 
-  return { minAmount: response.data.minamount, maxAmount: response.data.maxamount };
+  return response.data;
 };
