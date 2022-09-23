@@ -5,9 +5,7 @@ export const getAliceBobOutputEstimation = async (isWithdraw: boolean, exchangeI
   const now = +new Date();
   const signature = getAliceBobSignature(exchangeInfo, now);
 
-  let response;
-try {
-  response = await axios.post<{ toAmount: number, fromRate: number, toRate: number }>(
+  const response = await axios.post<{ toAmount: number, fromRate: number, toRate: number }>(
     'https://api.abex.pro/api/v3/estimate-amount',
     exchangeInfo,
     {
@@ -17,10 +15,6 @@ try {
         signature
       }
     });
-}catch(err){
-  console.log(response.data, 'data2');
-  console.log(err, 'errrrr2');
-}
 
   return { outputAmount: response.data.toAmount, exchangeRate: isWithdraw ? response.data.toRate : response.data.fromRate };
 };
