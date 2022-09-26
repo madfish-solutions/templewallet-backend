@@ -1,5 +1,5 @@
-import axios from 'axios';
 import crypto from 'crypto';
+import {aliceBobApi} from "./api.sevice";
 
 export interface AliceBobExchangeInfo {
   from: string;
@@ -10,11 +10,11 @@ export interface AliceBobExchangeInfo {
 }
 
 export const getSignedAliceBobUrl = async (exchangeInfo: AliceBobExchangeInfo) => {
-  const now = +new Date();
+  const now = Date.now();
   const signature = getAliceBobSignature(exchangeInfo, now);
 
-  const response = await axios.post<{ payUrl: string }>(
-    'https://api.abex.pro/api/v3/create-order',
+  const response = await aliceBobApi.post<{ payUrl: string }>(
+    '/create-order',
     exchangeInfo,
     {
       headers: {

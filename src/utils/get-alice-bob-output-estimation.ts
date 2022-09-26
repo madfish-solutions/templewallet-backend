@@ -1,12 +1,12 @@
-import axios from 'axios';
 import {AliceBobExchangeInfo, getAliceBobSignature} from "./get-signed-alice-bob-url";
+import {aliceBobApi} from "./api.sevice";
 
 export const getAliceBobOutputEstimation = async (isWithdraw: boolean, exchangeInfo: AliceBobExchangeInfo) => {
-  const now = +new Date();
+  const now = Date.now();
   const signature = getAliceBobSignature(exchangeInfo, now);
 
-  const response = await axios.post<{ toAmount: number, fromRate: number, toRate: number }>(
-    'https://api.abex.pro/api/v3/estimate-amount',
+  const response = await aliceBobApi.post<{ toAmount: number, fromRate: number, toRate: number }>(
+    '/estimate-amount',
     exchangeInfo,
     {
       headers: {
