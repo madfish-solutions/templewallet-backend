@@ -107,7 +107,7 @@ interface DappList {
     },
     {
         name: "Youves",
-        dappUrl: 'https://app.youves.com',
+        dappUrl: 'https://app.youves.com/?ref=tz1UbRzhYjQKTtWYvGUWcRtVT4fN3NESDVYT',
         type: DappType.DeFi,
         logo: 'https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/youves/youves_logo.png',
         slug: 'youves',

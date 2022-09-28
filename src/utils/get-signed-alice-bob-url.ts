@@ -1,16 +1,33 @@
-import axios from 'axios';
 import crypto from 'crypto';
+import {aliceBobApi} from "./api.sevice";
 
-interface AliceBobExchangeInfo {
+export interface AliceBobExchangeInfo {
   from: string;
   to: string;
   fromAmount: number;
-  userId: string;
-  toPaymentDetails: string;
+  userId?: string;
+  toPaymentDetails?: string;
 }
 
 export const getSignedAliceBobUrl = async (exchangeInfo: AliceBobExchangeInfo) => {
-  const now = +new Date();
+  const now = Date.now();
+  const signature = getAliceBobSignature(exchangeInfo, now);
+
+  const response = await aliceBobApi.post<{ payUrl: string }>(
+    '/create-order',
+    exchangeInfo,
+    {
+      headers: {
+        'public-key': process.env.ALICE_BOB_PUBLIC_KEY!,
+        'timestamp': now,
+        signature
+      }
+    });
+
+  return response.data.payUrl;
+};
+
+export const getAliceBobSignature = (exchangeInfo: AliceBobExchangeInfo, now: number) => {
   const keys = Object.keys(exchangeInfo).sort();
   let initString = '';
   let parametersSequence = ''; // needed only for check the initString generation sequence.
@@ -25,18 +42,5 @@ export const getSignedAliceBobUrl = async (exchangeInfo: AliceBobExchangeInfo) =
 
   initString += 'timestamp' + now;
 
-  const signature = crypto.createHmac('SHA512', process.env.ALICE_BOB_PRIVATE_KEY!).update(initString).digest('hex');
-
-  const response = await axios.post<{ payUrl: string }>(
-    'https://exchange.alice-bob.io/api/v3/create-order',
-    exchangeInfo,
-    {
-      headers: {
-        'public-key': process.env.ALICE_BOB_PUBLIC_KEY!,
-        'timestamp': now,
-        signature
-      }
-    });
-
-  return response.data.payUrl;
-};
+  return crypto.createHmac('SHA512', process.env.ALICE_BOB_PRIVATE_KEY!).update(initString).digest('hex');
+}
