@@ -14,6 +14,7 @@ import { getABData } from "./utils/ab-test";
 import { getSignedMoonPayUrl } from "./utils/get-signed-moonpay-url";
 import { getSignedAliceBobUrl } from "./utils/get-signed-alice-bob-url";
 import {getAliceBobPairInfo} from "./utils/get-alice-bob-pair-info";
+import {getAliceBobOutputEstimation} from "./utils/get-alice-bob-output-estimation";
 
 const PINO_LOGGER = {
   logger: logger.child({ name: "web" }),
@@ -127,14 +128,16 @@ app.get(
 app.get(
   "/api/alice-bob-sign",
   async (_req, res) => {
+    const { isWithdraw, amount, userId, walletAddress } = _req.query;
+    const booleanIsWithdraw = isWithdraw === 'true';
+
     try {
       const exchangeInfo = {
-        from: 'CARDUAH',
-        to: 'TEZ',
-        fromAmount: Number(_req.query.amount),
-        userId: String(_req.query.userId),
-        toPaymentDetails: String(_req.query.walletAddress),
-        extraFromFee: 0.015
+        from: booleanIsWithdraw ? 'TEZ' : 'CARDUAH',
+        to: booleanIsWithdraw ? 'CARDUAH' : 'TEZ',
+        fromAmount: Number(amount),
+        userId: String(userId),
+        toPaymentDetails: booleanIsWithdraw ? undefined : String(walletAddress)
       };
       const url = await getSignedAliceBobUrl(exchangeInfo);
 
@@ -148,8 +151,10 @@ app.get(
 app.get(
   "/api/alice-bob-pair-info",
   async (_req, res) => {
+    const isWithdraw = _req.query.isWithdraw;
+
     try {
-      const { minAmount, maxAmount } = await getAliceBobPairInfo();
+      const { minAmount, maxAmount } = await getAliceBobPairInfo(isWithdraw === 'true');
 
       res.status(200).send({ minAmount, maxAmount });
 
@@ -157,6 +162,27 @@ app.get(
       res.status(500).send({ error });
     }
   });
+
+app.get(
+    "/api/alice-bob-output-estimation",
+    async (_req, res) => {
+      const { isWithdraw, amount } = _req.query;
+      const booleanIsWithdraw = isWithdraw === 'true';
+
+      try {
+        const exchangeInfo = {
+          from: booleanIsWithdraw ? 'TEZ' : 'CARDUAH',
+          to: booleanIsWithdraw ? 'CARDUAH' : 'TEZ',
+          fromAmount: Number(amount)
+        };
+        const { outputAmount, exchangeRate } = await getAliceBobOutputEstimation(booleanIsWithdraw, exchangeInfo);
+
+        res.status(200).send({ outputAmount, exchangeRate });
+
+      } catch (error) {
+        res.status(500).send({ error });
+      }
+    });
 
 app.get('/api/mobile-check', async (_req, res) => {
   console.log(1);
