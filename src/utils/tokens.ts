@@ -1,10 +1,5 @@
 import BigNumber from "bignumber.js";
 import memoizee from "memoizee";
-import {
-  BcdTokenData,
-  contractTokensProvider,
-  tokensMetadataProvider,
-} from "./better-call-dev";
 import fetch from "./fetch";
 import {
   getTokenMetadata,
@@ -15,6 +10,7 @@ import SingleQueryDataProvider from "./SingleQueryDataProvider";
 import { range } from "./helpers";
 import { MichelsonMap } from "@taquito/michelson-encoder";
 import logger from "./logger";
+import { BcdTokenData, contractTokensProvider, mapTzktTokenDataToBcdTokenData, tokensMetadataProvider, TZKT_NETWORKS } from "./tzkt";
 
 const fa12Factories = process.env.QUIPUSWAP_FA12_FACTORIES!.split(",");
 const fa2Factories = process.env.QUIPUSWAP_FA2_FACTORIES!.split(",");
@@ -55,9 +51,9 @@ const getQuipuswapExchangers = async (): Promise<QuipuswapExchanger[]> => {
         return Promise.all(
           [...rawFa12ExchangersChunk.entries()].map(
             async ([tokenAddress, exchangerAddress]) => {
-              await contractTokensProvider.subscribe("mainnet", tokenAddress);
+              await contractTokensProvider.subscribe(TZKT_NETWORKS.MAINNET, tokenAddress);
               const { data: tokensMetadata, error } =
-                await contractTokensProvider.get("mainnet", tokenAddress);
+                await contractTokensProvider.get(TZKT_NETWORKS.MAINNET, tokenAddress);
               if (error) {
                 throw error;
               }
@@ -103,9 +99,9 @@ const getQuipuswapExchangers = async (): Promise<QuipuswapExchanger[]> => {
         .map(async ([tokenDescriptor, exchangerAddress]) => {
           const address = tokenDescriptor[0];
           const token_id = tokenDescriptor[1].toNumber();
-          await contractTokensProvider.subscribe("mainnet", address, token_id);
+          await contractTokensProvider.subscribe(TZKT_NETWORKS.MAINNET, address, token_id);
           const { data: tokensMetadata, error } =
-            await contractTokensProvider.get("mainnet", address, token_id);
+            await contractTokensProvider.get(TZKT_NETWORKS.MAINNET, address, token_id);
           if (error) {
             throw error;
           }
@@ -119,7 +115,10 @@ const getQuipuswapExchangers = async (): Promise<QuipuswapExchanger[]> => {
     )
   ).flat();
   logger.info("Successfully got Quipuswap exchangers");
-  return [...fa12Exchangers, ...fa2Exchangers];
+  return [...fa12Exchangers, ...fa2Exchangers].map((exchanger) => ({
+    ...exchanger,
+    tokenMetadata: mapTzktTokenDataToBcdTokenData(exchanger.tokenMetadata)
+  }));
 };
 export const quipuswapExchangersDataProvider = new SingleQueryDataProvider(
   14 * 60 * 1000,
@@ -140,19 +139,19 @@ const getPoolTokenExchangeRate = memoizee(
     if (decimals === undefined) {
       try {
         await tokensMetadataProvider.subscribe(
-          "mainnet",
+          TZKT_NETWORKS.MAINNET,
           tokenAddress,
           token_id
         );
         const { data: metadata } = await tokensMetadataProvider.get(
-          "mainnet",
+          TZKT_NETWORKS.MAINNET,
           tokenAddress,
           token_id
         );
-        if (!metadata || metadata.length === 0 || !metadata[0].decimals) {
+        if (!metadata || metadata.length === 0 || !metadata[0].metadata.decimals) {
             decimals = (await getTokenMetadata(tokenAddress, token_id).then(x => x.decimals).catch(() => tokenAddress === 'KT1Xobej4mc6XgEjDoJoHtTKgbD1ELMvcQuL' && token_id === 0 ? 12 : 0));
         } else {
-          decimals = metadata[0].decimals;
+          decimals = metadata[0].metadata.decimals;
         }
       } catch (e) {
         decimals = 0;
@@ -227,12 +226,11 @@ export type TokenExchangeRateEntry = {
 };
 
 export const ASPENCOIN_ADDRESS = "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM";
-tokensMetadataProvider.subscribe("mainnet", ASPENCOIN_ADDRESS);
+tokensMetadataProvider.subscribe(TZKT_NETWORKS.MAINNET, ASPENCOIN_ADDRESS);
 
 const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
   logger.info("Getting tokens exchange rates...");
-  const { data: quipuswapExchangers, error: quipuswapError } =
-    await quipuswapExchangersDataProvider.getState();
+  const { data: quipuswapExchangers, error: quipuswapError } = await quipuswapExchangersDataProvider.getState();
   if (quipuswapError) {
     throw quipuswapError;
   }
@@ -274,7 +272,7 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
     logger.info("Getting exchange rate for Aspencoin");
     try {
       const { data: aspencoinMetadata, error: aspencoinMetadataError } =
-        await tokensMetadataProvider.get("mainnet", ASPENCOIN_ADDRESS);
+        await tokensMetadataProvider.get(TZKT_NETWORKS.MAINNET, ASPENCOIN_ADDRESS);
       if (aspencoinMetadataError) {
         throw aspencoinMetadataError;
       }
@@ -292,7 +290,7 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
         tokenAddress: ASPENCOIN_ADDRESS,
         tokenId: undefined,
         exchangeRate: tokenPrice,
-        metadata: aspencoinMetadata![0],
+        metadata: mapTzktTokenDataToBcdTokenData(aspencoinMetadata![0])!,
       });
     } catch (e) {}
   }
@@ -307,30 +305,3 @@ export const tokensExchangeRatesProvider = new SingleQueryDataProvider(
   13 * 60 * 1000,
   getTokensExchangeRates
 );
-
-export const getTotalSupplyPrice = async (
-  token: Pick<BcdTokenData, "contract" | "token_id" | "supply" | "decimals">
-) => {
-  const { data: exchangeableTokensWithPrices, error } =
-    await tokensExchangeRatesProvider.getState();
-  if (error) {
-    throw error;
-  }
-  const exchangeableToken = exchangeableTokensWithPrices!.find(
-    ({ tokenAddress, tokenId }) =>
-      tokenAddress === token.contract &&
-      (tokenId === undefined || tokenId === token.token_id)
-  );
-  const tokenPrice = exchangeableToken
-    ? exchangeableToken.exchangeRate
-    : new BigNumber(0);
-  let tokenSupply: BigNumber | number | string | undefined = token.supply;
-  if (tokenSupply === undefined) {
-    const storage = await getStorage(token.contract);
-    tokenSupply = storage.total_supply || storage.totalSupply || 0;
-  }
-  const tvl = new BigNumber(tokenSupply!)
-    .div(new BigNumber(10).pow(token.decimals))
-    .multipliedBy(tokenPrice);
-  return tvl;
-};
