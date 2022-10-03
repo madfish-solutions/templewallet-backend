@@ -139,7 +139,8 @@ app.get(
         to: booleanIsWithdraw ? 'CARDUAH' : 'TEZ',
         fromAmount: Number(amount),
         userId: String(userId),
-        toPaymentDetails: booleanIsWithdraw ? undefined : String(walletAddress)
+        toPaymentDetails: booleanIsWithdraw ? undefined : String(walletAddress),
+        redirectUrl: 'https://templewallet.com/mobile'
       };
       const url = await getSignedAliceBobUrl(exchangeInfo);
 
