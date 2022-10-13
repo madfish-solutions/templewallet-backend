@@ -31,6 +31,11 @@ export interface aliceBobOrder {
   orderExpirationTimetamp: number;
 }
 
+export interface AliceBobPairInfo {
+  minamount: number,
+  maxamount: number
+}
+
 export interface AliceBobEstimateAmountPayload {
   from: string;
   to: string;

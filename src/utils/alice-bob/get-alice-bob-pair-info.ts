@@ -1,21 +1,17 @@
-import crypto from 'crypto';
 import {aliceBobApi} from "../api.sevice";
+import {AliceBobPairInfo} from "../../interfaces/alice-bob/alice-bob.interfaces";
+import {getAliceBobSignature} from "./get-alice-bob-signature";
+import {getAliceBobRequestHeaders} from "./get-alice-bob-request-headers";
 
 export const getAliceBobPairInfo = async (isWithdraw = false) => {
   const pair = isWithdraw ? 'TEZ/CARDUAH' : 'CARDUAH/TEZ';
 
-  const now = Date.now();
-  let initString = 'timestamp' + now;
-  const signature = crypto.createHmac('SHA512', process.env.ALICE_BOB_PRIVATE_KEY!).update(initString).digest('hex');
+  const { signature, now } = getAliceBobSignature();
 
-  const response = await aliceBobApi.get<{ minamount: string, maxamount: string }>(
+  const response = await aliceBobApi.get<AliceBobPairInfo>(
     '/get-pair-info/' + pair,
     {
-      headers: {
-        'public-key': process.env.ALICE_BOB_PUBLIC_KEY!,
-        'timestamp': now,
-        signature
-      }
+      headers: getAliceBobRequestHeaders(signature, now)
     });
 
   return { minAmount: response.data.minamount, maxAmount: response.data.maxamount };

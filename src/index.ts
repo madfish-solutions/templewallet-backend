@@ -151,7 +151,7 @@ app.post(
       res.status(200).send({ orderInfo });
 
     } catch (error) {
-      res.status(500).send({ error });
+      res.status(error.response.status).send(error.response.data);
     }
   });
 
@@ -166,7 +166,7 @@ app.post(
       res.status(200);
 
     } catch (error) {
-      res.status(500).send({ error });
+      res.status(error.response.status).send(error.response.data);
     }
   });
 
@@ -176,12 +176,12 @@ app.get(
     const { isWithdraw } = _req.query;
 
     try {
-      const { minAmount, maxAmount } = await getAliceBobPairInfo(isWithdraw === 'true');
+      const pairInfo = await getAliceBobPairInfo(isWithdraw === 'true');
 
-      res.status(200).send({ minAmount, maxAmount });
+      res.status(200).send({ pairInfo });
 
     } catch (error) {
-      res.status(500).send({ error });
+      res.status(error.response.status).send({ error: error.response.data });
     }
   });
 
@@ -196,7 +196,7 @@ app.get(
       res.status(200).send({ orders });
 
     } catch (error) {
-      res.status(500).send({ error });
+      res.status(error.response.status).send({ error: error.response.data });
     }
   });
 
@@ -211,7 +211,7 @@ app.get(
       res.status(200).send({ orderInfo });
 
     } catch (error) {
-      res.status(500).send({ error });
+      res.status(error.response.status).send({ error: error.response.data });
     }
   });
 
@@ -232,7 +232,7 @@ app.post(
         res.status(200).send({ outputAmount });
 
       } catch (error) {
-        res.status(500).send({ error });
+        res.status(error.response.status).send({ error: error.response.data });
       }
     });
 
