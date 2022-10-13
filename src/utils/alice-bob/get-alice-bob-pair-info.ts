@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import {aliceBobApi} from "./api.sevice";
+import {aliceBobApi} from "../api.sevice";
 
 export const getAliceBobPairInfo = async (isWithdraw = false) => {
   const pair = isWithdraw ? 'TEZ/CARDUAH' : 'CARDUAH/TEZ';
