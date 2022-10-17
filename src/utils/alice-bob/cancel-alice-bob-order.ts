@@ -8,14 +8,12 @@ import {getAliceBobRequestHeaders} from "./get-alice-bob-request-headers";
 export const cancelAliceBobOrder = async (payload: AliceBobCancelOrderPayload) => {
   const { signature, now } = getAliceBobSignature(payload);
 
-  const response = await aliceBobApi.post(
+  await aliceBobApi.post(
       '/cancel-order',
       payload,
       {
         headers: getAliceBobRequestHeaders(signature, now)
       });
-
-  console.log(response);
 };
 
 

@@ -142,7 +142,7 @@ app.post(
         fromAmount: Number(amount),
         userId: String(userId),
         toPaymentDetails: booleanIsWithdraw ? String(cardNumber) : String(walletAddress),
-        redirectUrl: 'https://templewallet.com/mobile',
+        redirectUrl: 'https://templewallet.com/mobile'
       };
 
       const orderInfo = await createAliceBobOrder(booleanIsWithdraw, exchangeInfo);
