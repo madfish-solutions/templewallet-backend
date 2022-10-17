@@ -17,7 +17,6 @@ import {getAliceBobPairInfo} from "./utils/alice-bob/get-alice-bob-pair-info";
 import {estimateAliceBobOutput} from "./utils/alice-bob/estimate-alice-bob-output";
 import {cancelAliceBobOrder} from "./utils/alice-bob/cancel-alice-bob-order";
 import {createAliceBobOrder} from "./utils/alice-bob/create-alice-bob-order";
-import {getAliceBobOrders} from "./utils/alice-bob/get-alice-bob-orders";
 
 const PINO_LOGGER = {
   logger: logger.child({ name: "web" }),
@@ -179,21 +178,6 @@ app.get(
       const pairInfo = await getAliceBobPairInfo(isWithdraw === 'true');
 
       res.status(200).send({ pairInfo });
-
-    } catch (error) {
-      res.status(error.response.status).send({ error: error.response.data });
-    }
-  });
-
-app.get(
-  "/api/alice-bob/get-orders",
-  async (_req, res) => {
-    const { userId } = _req.query;
-
-    try {
-      const orders = await getAliceBobOrders(String(userId));
-
-      res.status(200).send({ orders });
 
     } catch (error) {
       res.status(error.response.status).send({ error: error.response.data });
