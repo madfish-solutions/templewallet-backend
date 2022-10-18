@@ -11,10 +11,12 @@ import { tokensExchangeRatesProvider } from "./utils/tokens";
 import logger from "./utils/logger";
 import SingleQueryDataProvider from "./utils/SingleQueryDataProvider";
 import { getABData } from "./utils/ab-test";
-import { getSignedMoonPayUrl } from "./utils/get-signed-moonpay-url";
-import { getSignedAliceBobUrl } from "./utils/get-signed-alice-bob-url";
-import {getAliceBobPairInfo} from "./utils/get-alice-bob-pair-info";
-import {getAliceBobOutputEstimation} from "./utils/get-alice-bob-output-estimation";
+import { getSignedMoonPayUrl } from "./utils/moonpay/get-signed-moonpay-url";
+import {getAliceBobOrderInfo} from "./utils/alice-bob/get-alice-bob-order-info";
+import {getAliceBobPairInfo} from "./utils/alice-bob/get-alice-bob-pair-info";
+import {estimateAliceBobOutput} from "./utils/alice-bob/estimate-alice-bob-output";
+import {cancelAliceBobOrder} from "./utils/alice-bob/cancel-alice-bob-order";
+import {createAliceBobOrder} from "./utils/alice-bob/create-alice-bob-order";
 
 const PINO_LOGGER = {
   logger: logger.child({ name: "web" }),
@@ -125,10 +127,10 @@ app.get(
     }
   });
 
-app.get(
-  "/api/alice-bob-sign",
+app.post(
+  "/api/alice-bob/create-order",
   async (_req, res) => {
-    const { isWithdraw, amount, userId, walletAddress } = _req.query;
+    const { isWithdraw, amount, userId, walletAddress, cardNumber } = _req.query;
     const booleanIsWithdraw = isWithdraw === 'true';
 
     try {
@@ -137,35 +139,66 @@ app.get(
         to: booleanIsWithdraw ? 'CARDUAH' : 'TEZ',
         fromAmount: Number(amount),
         userId: String(userId),
-        toPaymentDetails: booleanIsWithdraw ? undefined : String(walletAddress),
+        toPaymentDetails: booleanIsWithdraw ? String(cardNumber) : String(walletAddress),
         redirectUrl: 'https://templewallet.com/mobile'
       };
-      const url = await getSignedAliceBobUrl(exchangeInfo);
 
-      res.status(200).send({ url });
+      const orderInfo = await createAliceBobOrder(booleanIsWithdraw, exchangeInfo);
+
+      res.status(200).send({ orderInfo });
 
     } catch (error) {
-      res.status(500).send({ error });
+      res.status(error.response.status).send(error.response.data);
     }
   });
 
-app.get(
-  "/api/alice-bob-pair-info",
+app.post(
+  "/api/alice-bob/cancel-order",
   async (_req, res) => {
-    const isWithdraw = _req.query.isWithdraw;
+    const { orderId } = _req.query;
 
     try {
-      const { minAmount, maxAmount } = await getAliceBobPairInfo(isWithdraw === 'true');
+      await cancelAliceBobOrder({ id: String(orderId) });
 
-      res.status(200).send({ minAmount, maxAmount });
+      res.status(200);
 
     } catch (error) {
-      res.status(500).send({ error });
+      res.status(error.response.status).send(error.response.data);
     }
   });
 
 app.get(
-    "/api/alice-bob-output-estimation",
+  "/api/alice-bob/get-pair-info",
+  async (_req, res) => {
+    const { isWithdraw } = _req.query;
+
+    try {
+      const pairInfo = await getAliceBobPairInfo(isWithdraw === 'true');
+
+      res.status(200).send({ pairInfo });
+
+    } catch (error) {
+      res.status(error.response.status).send({ error: error.response.data });
+    }
+  });
+
+app.get(
+  "/api/alice-bob/check-order",
+  async (_req, res) => {
+    const { orderId } = _req.query;
+
+    try {
+      const orderInfo = await getAliceBobOrderInfo(String(orderId));
+
+      res.status(200).send({ orderInfo });
+
+    } catch (error) {
+      res.status(error.response.status).send({ error: error.response.data });
+    }
+  });
+
+app.post(
+    "/api/alice-bob/estimate-amount",
     async (_req, res) => {
       const { isWithdraw, amount } = _req.query;
       const booleanIsWithdraw = isWithdraw === 'true';
@@ -176,12 +209,12 @@ app.get(
           to: booleanIsWithdraw ? 'CARDUAH' : 'TEZ',
           fromAmount: Number(amount)
         };
-        const { outputAmount, exchangeRate } = await getAliceBobOutputEstimation(booleanIsWithdraw, exchangeInfo);
+        const outputAmount = await estimateAliceBobOutput(booleanIsWithdraw, exchangeInfo);
 
-        res.status(200).send({ outputAmount, exchangeRate });
+        res.status(200).send({ outputAmount });
 
       } catch (error) {
-        res.status(500).send({ error });
+        res.status(error.response.status).send({ error: error.response.data });
       }
     });
 
