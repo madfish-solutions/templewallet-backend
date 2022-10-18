@@ -4,15 +4,18 @@ The Express backend which helps Temple Wallet to decrease amount of requests to 
 
 ## Routes
 
-| Path                    | Description                                                                                                                                                                                                                 |
-| ----------------------- |-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| /api/dapps              | Provides a list of dApps with their TVL, summary TVL and amount of TEZ locked in them.                                                                                                                                      |
-| /api/exchange-rates/tez | Returns a single number, which is TEZ to USD exchange rate according to markets tickers from tzstats.com                                                                                                                    |
-| /api/exchange-rates     | Returns the exchange rates of tokens to USD based on Quipuswap and Dexter pools (for most of them), stats from TZero (only for Aspencoin) and exchange rates from Coingecko (for WRAP tokens which are still not in pools). |
-| /api/moonpay-sign     | Returns signed MoonPay url                                                                                                                                                                                                  |
-| /api/mobile-check     | Returns the minimum allowed versions of Android and IOS applications. Verifies App Check token.                                                                                                                             |
-| /api/alice-bob-sign     | Returns signed Alice-Bob url                                                                                                                                                                                                |
-| /api/alice-bob-pair-info     | Returns min and max UAH exchange amount for UAH/TEZ Alice-Bob pair                                                                                                                                                          |
+| Path                           | Description                                                                                                                                                                                                                 |
+|--------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| /api/dapps                     | Provides a list of dApps with their TVL, summary TVL and amount of TEZ locked in them.                                                                                                                                      |
+| /api/exchange-rates/tez        | Returns a single number, which is TEZ to USD exchange rate according to markets tickers from tzstats.com                                                                                                                    |
+| /api/exchange-rates            | Returns the exchange rates of tokens to USD based on Quipuswap and Dexter pools (for most of them), stats from TZero (only for Aspencoin) and exchange rates from Coingecko (for WRAP tokens which are still not in pools). |
+| /api/moonpay-sign              | Returns signed MoonPay url                                                                                                                                                                                                  |
+| /api/mobile-check              | Returns the minimum allowed versions of Android and IOS applications. Verifies App Check token.                                                                                                                             |
+| /api/alice-bob/create-order    | Returns Alice-Bob order info                                                                                                                                                                                                |
+| /api/alice-bob/cancel-order    | Cancels Alice-Bob order                                                                                                                                                                                                     |
+| /api/alice-bob/get-pair-info   | Returns min and max UAH(TEZ) exchange amount for UAH/TEZ(TEZ/UAH) Alice-Bob pair                                                                                                                                            |
+| /api/alice-bob/check-order     | Returns info for given order id                                                                                                                                                                                             |
+| /api/alice-bob/estimate-amount | Returns Alice-Bob output exchange amount in UAH(TEZ)                                                                                                                                                                        |
 
 ## Building
 
