@@ -128,5 +128,13 @@ interface DappList {
         logo: 'https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/kolibri/kolibri_logo.png',
         slug: 'kolibri',
         categories: [DappType.DeFi, DappType.Other]
+    },
+    {
+        name: "signum",
+        dappUrl: 'https://signum.loans',
+        type: DappType.DeFi,
+        logo: 'https://signum.loans/logo.svg',
+        slug: 'signum',
+        categories: [DappType.DeFi, DappType.Collectibles]
     }
   ]
