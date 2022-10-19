@@ -133,7 +133,7 @@ interface DappList {
         name: "signum",
         dappUrl: 'https://signum.loans',
         type: DappType.DeFi,
-        logo: 'https://signum.loans/logo.svg',
+        logo: 'https://pbs.twimg.com/profile_images/1578001954026016768/aYYGtOsL_200x200.jpg',
         slug: 'signum',
         categories: [DappType.DeFi, DappType.Collectibles]
     }
