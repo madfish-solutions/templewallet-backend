@@ -19,6 +19,7 @@ import {cancelAliceBobOrder} from "./utils/alice-bob/cancel-alice-bob-order";
 import {createAliceBobOrder} from "./utils/alice-bob/create-alice-bob-order";
 import { getNewsNotifications } from "./notifications/news/news-notifications";
 import { PlatformType } from "./notifications/news/news-notifications.interface";
+import { getAdvertisingInfo } from "./advertising/advertising";
 
 const PINO_LOGGER = {
   logger: logger.child({ name: "web" }),
@@ -85,11 +86,11 @@ const makeProviderDataRequestHandler = <T, U>(
   };
 };
 
-app.get('/api/news', async (_req, res) => {
+app.get('/api/news', (_req, res) => {
   try {
     const { addWelcomeNotifications, platform, startFromDate } = _req.query;
-
     const data = getNewsNotifications(addWelcomeNotifications === 'true', platform === PlatformType.Mobile ? PlatformType.Mobile : PlatformType.Extension, String(startFromDate));
+
     res.status(200).send(data)
   } catch (error) {
     res.status(500).send({ error })
@@ -318,6 +319,17 @@ app.get('/api/mobile-check', async (_req, res) => {
       minAndroidVersion: MIN_ANDROID_APP_VERSION,
       isAppCheckFailed: process.env.SHOULD_APP_CHECK_BLOCK_THE_APP === 'true' // this flag is intentionally false for development
     });
+  }
+});
+
+app.get('/api/advertising-info', (_req, res) => {
+  try {
+    const data = getAdvertisingInfo();
+
+    res.status(200).send(data)
+  } catch (error) {
+
+    res.status(500).send({ error })
   }
 });
 
