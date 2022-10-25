@@ -10,10 +10,10 @@ export enum PlatformType {
 }
 
 export interface NewsNotification {
-  id: string;
+  id: number;
   createdAt: string;
   type: NewsType;
-  platform: PlatformType;
+  platforms: PlatformType[];
   language: string;
   title: string;
   description: string;

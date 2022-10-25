@@ -18,6 +18,7 @@ import {estimateAliceBobOutput} from "./utils/alice-bob/estimate-alice-bob-outpu
 import {cancelAliceBobOrder} from "./utils/alice-bob/cancel-alice-bob-order";
 import {createAliceBobOrder} from "./utils/alice-bob/create-alice-bob-order";
 import { getNewsNotifications } from "./notifications/news-notifications/news-notifications";
+import { PlatformType } from "./notifications/news-notifications/news-notifications.interface";
 
 const PINO_LOGGER = {
   logger: logger.child({ name: "web" }),
@@ -86,7 +87,9 @@ const makeProviderDataRequestHandler = <T, U>(
 
 app.get('/api/news', async (_req, res) => {
   try {
-    const data = await getNewsNotifications(_req.query)
+    const { addWelcomeNotifications, platform, startFromDate } = _req.query;
+
+    const data = getNewsNotifications(addWelcomeNotifications === 'true', platform === PlatformType.Mobile ? PlatformType.Mobile : PlatformType.Extension, String(startFromDate));
     res.status(200).send(data)
   } catch (error) {
     res.status(500).send({ error })
