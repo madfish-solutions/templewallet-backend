@@ -16,6 +16,7 @@ The Express backend which helps Temple Wallet to decrease amount of requests to 
 | /api/alice-bob/get-pair-info   | Returns min and max UAH(TEZ) exchange amount for UAH/TEZ(TEZ/UAH) Alice-Bob pair                                                                                                                                            |
 | /api/alice-bob/check-order     | Returns info for given order id                                                                                                                                                                                             |
 | /api/alice-bob/estimate-amount | Returns Alice-Bob output exchange amount in UAH(TEZ)                                                                                                                                                                        |
+| /api/news     | Returns list of news for mobile or extension
 
 ## Building
 
