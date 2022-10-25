@@ -1,4 +1,4 @@
-import { NEWS_LIST, WELCOME_NOTIFICATIONS_LIST } from "./news-notifications.data";
+import { NEWS_NOTIFICATIONS_LIST, WELCOME_NOTIFICATIONS_LIST } from "./news-notifications.data";
 import { PlatformType } from "./news-notifications.interface";
 
 export const getNewsNotifications = (addWelcomeNotifications = false, platform: PlatformType, startFromDate?: string) => {
@@ -6,7 +6,7 @@ export const getNewsNotifications = (addWelcomeNotifications = false, platform: 
 
   return [
     ...addWelcomeNotifications ? WELCOME_NOTIFICATIONS_LIST : [],
-    ...NEWS_LIST.filter(notification => {
+    ...NEWS_NOTIFICATIONS_LIST.filter(notification => {
       if (isNaN(startFromTime)) {
         return true;
       }

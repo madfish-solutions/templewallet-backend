@@ -1,6 +1,22 @@
 import { NewsNotification, NewsType, PlatformType } from "./news-notifications.interface";
 
-export const NEWS_LIST: NewsNotification[] = [
+export const WELCOME_NOTIFICATIONS_LIST: Array<NewsNotification> = [
+  {
+    id: 0,
+    createdAt: "2020-01-01T00:00:00.000Z",
+    type: NewsType.News,
+    platforms: [PlatformType.Extension, PlatformType.Mobile],
+    language: 'en-US',
+    title: "Temple Wallet Greetings #0",
+    description: "Welcome message",
+    content: "Some welcome message lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quidem.",
+    extensionImageUrl: "https://pbs.twimg.com/profile_images/1364551906283110400/4Ts3YPJz_400x400.jpg",
+    mobileImageUrl: "https://pbs.twimg.com/profile_images/1364551906283110400/4Ts3YPJz_400x400.jpg",
+    readInOriginalUrl: 'https://templewallet.com/',
+  }
+]
+
+export const NEWS_NOTIFICATIONS_LIST: NewsNotification[] = [
   {
     id: 6,
     createdAt: "2022-01-06T00:00:00.000Z",
@@ -8,7 +24,7 @@ export const NEWS_LIST: NewsNotification[] = [
     platforms: [PlatformType.Extension, PlatformType.Mobile],
     language: 'en-US',
     title: "Temple Wallet News #6",
-    description: "First news",
+    description: "Mega news",
     content: "First news lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quidem.",
     extensionImageUrl: "https://pbs.twimg.com/profile_images/1364551906283110400/4Ts3YPJz_400x400.jpg",
     mobileImageUrl: "https://pbs.twimg.com/profile_images/1364551906283110400/4Ts3YPJz_400x400.jpg",
@@ -21,7 +37,7 @@ export const NEWS_LIST: NewsNotification[] = [
     platforms: [PlatformType.Extension],
     language: 'en-US',
     title: "Temple Wallet News #5",
-    description: "Second news",
+    description: "News",
     content: "Second news lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quidem.",
     extensionImageUrl: "https://mj-gallery.com/ce5347a1-000e-4d77-8703-aef971c835ee/grid_0.png",
     mobileImageUrl: "https://mj-gallery.com/ce5347a1-000e-4d77-8703-aef971c835ee/grid_0.png",
@@ -77,22 +93,6 @@ export const NEWS_LIST: NewsNotification[] = [
     content: "Very important alert readed lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quidem.",
     extensionImageUrl: "https://mj-gallery.com/876c08c5-3ead-4fd8-99ba-215812e03885/grid_0.png",
     mobileImageUrl: "https://mj-gallery.com/876c08c5-3ead-4fd8-99ba-215812e03885/grid_0.png",
-    readInOriginalUrl: 'https://templewallet.com/',
-  }
-]
-
-export const WELCOME_NOTIFICATIONS_LIST: Array<NewsNotification> = [
-  {
-    id: 0,
-    createdAt: "2020-01-01T00:00:00.000Z",
-    type: NewsType.News,
-    platforms: [PlatformType.Extension, PlatformType.Mobile],
-    language: 'en-US',
-    title: "Temple Wallet Greetings #0",
-    description: "Welcome message",
-    content: "Some welcome message lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quidem.",
-    extensionImageUrl: "https://pbs.twimg.com/profile_images/1364551906283110400/4Ts3YPJz_400x400.jpg",
-    mobileImageUrl: "https://pbs.twimg.com/profile_images/1364551906283110400/4Ts3YPJz_400x400.jpg",
     readInOriginalUrl: 'https://templewallet.com/',
   }
 ]
