@@ -17,6 +17,7 @@ import {getAliceBobPairInfo} from "./utils/alice-bob/get-alice-bob-pair-info";
 import {estimateAliceBobOutput} from "./utils/alice-bob/estimate-alice-bob-output";
 import {cancelAliceBobOrder} from "./utils/alice-bob/cancel-alice-bob-order";
 import {createAliceBobOrder} from "./utils/alice-bob/create-alice-bob-order";
+import { getNewsNotifications } from "./notifications/news-notifications/news-notifications";
 
 const PINO_LOGGER = {
   logger: logger.child({ name: "web" }),
