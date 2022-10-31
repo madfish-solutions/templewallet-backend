@@ -326,7 +326,7 @@ app.get('/api/advertising-info', (_req, res) => {
   try {
     const data = getAdvertisingInfo();
 
-    res.status(200).send(data)
+    res.status(200).send({ data });
   } catch (error) {
 
     res.status(500).send({ error })
