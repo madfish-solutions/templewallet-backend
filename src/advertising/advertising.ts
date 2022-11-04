@@ -12,4 +12,4 @@ const ZEPHYR: AdvertisingInterface = {
   mobileBannerUrl: `${DIGITAL_OCEAN_URL}/banners/mobile-banner.svg`,
 };
 
-export const getAdvertisingInfo = (): AdvertisingInterface | undefined => ZEPHYR;
+export const getAdvertisingInfo = (): AdvertisingInterface | undefined => undefined;
