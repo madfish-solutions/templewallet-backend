@@ -77,7 +77,7 @@ interface DappList {
         name: "DNS.xyz",
         dappUrl: 'https://dns.xyz/',
         type: DappType.DeFi,
-        logo: 'https://pbs.twimg.com/profile_images/1527763993577697280/ksQvdq_8_400x400.jpg',
+        logo: 'https://pbs.twimg.com/profile_images/1586824458651590656/C-r5Veh3_200x200.png',
         slug: 'dnsxyz',
         categories: [DappType.Marketplaces, DappType.Collectibles]
     },
@@ -136,5 +136,13 @@ interface DappList {
         logo: 'https://pbs.twimg.com/profile_images/1578001954026016768/aYYGtOsL_200x200.jpg',
         slug: 'signum',
         categories: [DappType.DeFi, DappType.Collectibles]
+    },
+    {
+      name: "Kord.Fi",
+      dappUrl: 'https://kord.fi/',
+      type: DappType.DeFi,
+      logo: 'https://pbs.twimg.com/profile_images/1538616711536156672/eRwz1uNE_400x400.jpg',
+      slug: 'kordfi',
+      categories: [DappType.DeFi]
     }
   ]
