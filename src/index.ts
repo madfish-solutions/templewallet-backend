@@ -17,9 +17,9 @@ import {getAliceBobPairInfo} from "./utils/alice-bob/get-alice-bob-pair-info";
 import {estimateAliceBobOutput} from "./utils/alice-bob/estimate-alice-bob-output";
 import {cancelAliceBobOrder} from "./utils/alice-bob/cancel-alice-bob-order";
 import {createAliceBobOrder} from "./utils/alice-bob/create-alice-bob-order";
-import { getNewsNotifications } from "./notifications/news/news-notifications";
-import { PlatformType } from "./notifications/news/news-notifications.interface";
+import { getNotifications } from "./notifications/notifications.utils";
 import { getAdvertisingInfo } from "./advertising/advertising";
+import { PlatformType } from "./notifications/notification.interface";
 
 const PINO_LOGGER = {
   logger: logger.child({ name: "web" }),
@@ -86,10 +86,10 @@ const makeProviderDataRequestHandler = <T, U>(
   };
 };
 
-app.get('/api/news', (_req, res) => {
+app.get('/api/notifications', (_req, res) => {
   try {
-    const { addWelcomeNotifications, platform, startFromDate } = _req.query;
-    const data = getNewsNotifications(addWelcomeNotifications === 'true', platform === PlatformType.Mobile ? PlatformType.Mobile : PlatformType.Extension, String(startFromDate));
+    const { platform, startFromTime } = _req.query;
+    const data = getNotifications(platform === PlatformType.Mobile ? PlatformType.Mobile : PlatformType.Extension, Number(startFromTime) ?? 0);
 
     res.status(200).send(data)
   } catch (error) {

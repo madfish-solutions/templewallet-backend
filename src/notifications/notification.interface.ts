@@ -1,7 +1,7 @@
-export enum NewsType {
+export enum NotificationType {
   News = "News",
-  ApplicationUpdate = "ApplicationUpdate",
-  Alert = "Alert",
+  PlatformUpdate = "PlatformUpdate",
+  SecurityNote = "SecurityNote",
 }
 
 export enum PlatformType {
@@ -9,10 +9,10 @@ export enum PlatformType {
   Extension = "Extension",
 }
 
-export interface NewsNotification {
+export interface Notification {
   id: number;
   createdAt: string;
-  type: NewsType;
+  type: NotificationType;
   platforms: PlatformType[];
   language: string;
   title: string;
@@ -20,5 +20,11 @@ export interface NewsNotification {
   content: string;
   extensionImageUrl: string;
   mobileImageUrl: string;
-  readInOriginalUrl: string;
+  sourceUrl?: string;
+  link?: {
+    url: string;
+    beforeLinkText: string;
+    linkText: string;
+    afterLinkText: string;
+  }
 }
