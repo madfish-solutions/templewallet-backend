@@ -17,18 +17,6 @@ const DEFAULT_BANNER_URLS = {
 
 export const NOTIFICATIONS_LIST: Notification[] = [
   {
-    id: 2,
-    createdAt: '2022-11-29T13:00:00.000Z',
-    type: NotificationType.PlatformUpdate,
-    platforms: [PlatformType.Mobile],
-    language: 'en-US',
-    title: 'Test',
-    description: 'Please read this short write-up to learn how we help you secure your wallet and what additional steps you may take on your part.',
-    content: "UPDATE TEST",
-    extensionImageUrl: DEFAULT_BANNER_URLS.extension.platformUpdate,
-    mobileImageUrl: DEFAULT_BANNER_URLS.mobile.platformUpdate
-  },
-  {
     id: 1,
     createdAt: '2022-11-29T13:00:00.000Z',
     type: NotificationType.SecurityNote,
@@ -67,7 +55,7 @@ export const NOTIFICATIONS_LIST: Notification[] = [
     type: NotificationType.SecurityNote,
     platforms: [PlatformType.Mobile],
     language: 'en-US',
-    title: 'A note on security [update]',
+    title: 'A note on security',
     description: 'Please read this short write-up to learn how we help you secure your wallet and what additional steps you may take on your part.',
     content: "Attention\n" +
       "\n" +
