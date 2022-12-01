@@ -109,7 +109,7 @@ export const MANDATORY_NOTIFICATIONS_LIST: Notification[] = [
       "\n",
       "To quickly learn the ropes, check our ",
       {text: "knowledge base", url: "https://madfish.crunch.help/temple-wallet"},
-      "and ",
+      " and ",
       {
         text: "YouTube video tutorials",
         url: 'https://www.youtube.com/watch?v=0wgR-H8I9xg&list=PLVfSwYHwGJ2Gyyf16LEIgvkNoC1YtgjX1'
@@ -119,7 +119,7 @@ export const MANDATORY_NOTIFICATIONS_LIST: Notification[] = [
       {text: "info@madfish.solutions", url: "mailto:info@madfish.solutions"},
       ". To talk to us directly, join our online communities in ",
       {text: "Telegram", url: "https://t.me/MadFishCommunity"},
-      "and ",
+      " and ",
       {text: "Discord", url: "https://discord.com/invite/qFRZ8kVzkv"},
       ". We’re happy to have you!\n"
     ],
