@@ -9,6 +9,11 @@ export enum PlatformType {
   Extension = "Extension",
 }
 
+interface NotificationLink {
+  text: string;
+  url: string;
+}
+
 export interface Notification {
   id: number;
   createdAt: string;
@@ -17,14 +22,8 @@ export interface Notification {
   language: string;
   title: string;
   description: string;
-  content: string;
+  content: Array<string | NotificationLink>;
   extensionImageUrl: string;
   mobileImageUrl: string;
   sourceUrl?: string;
-  link?: {
-    url: string;
-    beforeLinkText: string;
-    linkText: string;
-    afterLinkText: string;
-  }
 }
