@@ -15,7 +15,59 @@ const DEFAULT_BANNER_URLS = {
   }
 };
 
-export const NOTIFICATIONS_LIST: Notification[] = [];
+export const NOTIFICATIONS_LIST: Notification[] = [
+  {
+    id: 5,
+    createdAt: '2022-12-03T13:00:00.000Z',
+    type: NotificationType.SecurityNote,
+    platforms: [PlatformType.Extension, PlatformType.Mobile],
+    language: 'en-US',
+    title: 'SecurityNote test title',
+    description: 'SecurityNote test description.',
+    content: [
+      "SecurityNote!\n",
+      "\n",
+      "test content.\n",
+      "\n"
+    ],
+    extensionImageUrl: DEFAULT_BANNER_URLS.extension.securityNote,
+    mobileImageUrl: DEFAULT_BANNER_URLS.mobile.securityNote
+  },
+  {
+    id: 4,
+    createdAt: '2022-12-03T13:00:00.000Z',
+    type: NotificationType.News,
+    platforms: [PlatformType.Extension, PlatformType.Mobile],
+    language: 'en-US',
+    title: 'News test title',
+    description: 'News test description.',
+    content: [
+      "News!\n",
+      "\n",
+      "test content.\n",
+      "\n"
+    ],
+    extensionImageUrl: DEFAULT_BANNER_URLS.extension.news,
+    mobileImageUrl: DEFAULT_BANNER_URLS.mobile.news
+  },
+  {
+    id: 3,
+    createdAt: '2022-12-03T13:00:00.000Z',
+    type: NotificationType.PlatformUpdate,
+    platforms: [PlatformType.Extension, PlatformType.Mobile],
+    language: 'en-US',
+    title: 'PlatformUpdate test title',
+    description: 'PlatformUpdate test description.',
+    content: [
+      "PlatformUpdate!\n",
+      "\n",
+      "test content.\n",
+      "\n"
+    ],
+    extensionImageUrl: DEFAULT_BANNER_URLS.extension.platformUpdate,
+    mobileImageUrl: DEFAULT_BANNER_URLS.mobile.platformUpdate
+  }
+];
 
 export const MANDATORY_NOTIFICATIONS_LIST: Notification[] = [
   {
