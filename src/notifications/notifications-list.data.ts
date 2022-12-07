@@ -17,6 +17,40 @@ const DEFAULT_BANNER_URLS = {
 
 export const NOTIFICATIONS_LIST: Notification[] = [
   {
+    id: 7,
+    createdAt: '2022-12-07T14:30:00.000Z',
+    type: NotificationType.SecurityNote,
+    platforms: [PlatformType.Extension],
+    language: 'en-US',
+    title: 'SecurityNote 222 test title',
+    description: 'SecurityNote test description.',
+    content: [
+      "SecurityNote!\n",
+      "\n",
+      "test content.\n",
+      "\n"
+    ],
+    extensionImageUrl: DEFAULT_BANNER_URLS.extension.securityNote,
+    mobileImageUrl: DEFAULT_BANNER_URLS.mobile.securityNote
+  },
+  {
+    id: 6,
+    createdAt: '2022-12-07T14:30:00.000Z',
+    type: NotificationType.PlatformUpdate,
+    platforms: [PlatformType.Extension, ],
+    language: 'en-US',
+    title: 'PlatformUpdate for Vlad TTT',
+    description: 'TTT is the best QA.',
+    content: [
+      "PlatformUpdate!\n",
+      "\n",
+      "test content.\n",
+      "\n"
+    ],
+    extensionImageUrl: DEFAULT_BANNER_URLS.extension.platformUpdate,
+    mobileImageUrl: DEFAULT_BANNER_URLS.mobile.platformUpdate
+  },
+  {
     id: 5,
     createdAt: '2022-12-03T13:00:00.000Z',
     type: NotificationType.SecurityNote,
