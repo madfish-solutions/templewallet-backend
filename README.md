@@ -5,7 +5,7 @@ The Express backend which helps Temple Wallet to decrease amount of requests to 
 ## Routes
 
 | Path                           | Description                                                                                                                                                                                                                 |
-|--------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | /api/dapps                     | Provides a list of dApps with their TVL, summary TVL and amount of TEZ locked in them.                                                                                                                                      |
 | /api/exchange-rates/tez        | Returns a single number, which is TEZ to USD exchange rate according to markets tickers from tzstats.com                                                                                                                    |
 | /api/exchange-rates            | Returns the exchange rates of tokens to USD based on Quipuswap and Dexter pools (for most of them), stats from TZero (only for Aspencoin) and exchange rates from Coingecko (for WRAP tokens which are still not in pools). |
@@ -16,7 +16,9 @@ The Express backend which helps Temple Wallet to decrease amount of requests to 
 | /api/alice-bob/get-pair-info   | Returns min and max UAH(TEZ) exchange amount for UAH/TEZ(TEZ/UAH) Alice-Bob pair                                                                                                                                            |
 | /api/alice-bob/check-order     | Returns info for given order id                                                                                                                                                                                             |
 | /api/alice-bob/estimate-amount | Returns Alice-Bob output exchange amount in UAH(TEZ)                                                                                                                                                                        |
-| /api/news     | Returns list of news for mobile or extension
+| /api/news                      | Returns list of news for mobile or extension                                                                                                                                                                                |
+| /api/top-coins                 | Returns dictionary of the best market coins' ids and slugs                                                                                                                                                                  |
+|                                |
 
 ## Building
 

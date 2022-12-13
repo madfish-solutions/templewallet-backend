@@ -20,6 +20,7 @@ import {createAliceBobOrder} from "./utils/alice-bob/create-alice-bob-order";
 import { getNotifications } from "./notifications/notifications.utils";
 import { getAdvertisingInfo } from "./advertising/advertising";
 import { PlatformType } from "./notifications/notification.interface";
+import { coinGeckoTokens } from './utils/gecko-tokens';
 
 const PINO_LOGGER = {
   logger: logger.child({ name: "web" }),
@@ -85,6 +86,10 @@ const makeProviderDataRequestHandler = <T, U>(
     }
   };
 };
+
+app.get('/api/top-coins', (_req, res) => {
+  res.status(200).send(coinGeckoTokens);
+});
 
 app.get('/api/notifications', (_req, res) => {
   try {
