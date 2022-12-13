@@ -88,7 +88,7 @@ const makeProviderDataRequestHandler = <T, U>(
 };
 
 app.get('/api/top-coins', (_req, res) => {
-  res.status(200).send(Object.fromEntries(coinGeckoTokens.entries()));
+  res.status(200).send(coinGeckoTokens);
 });
 
 app.get('/api/notifications', (_req, res) => {
