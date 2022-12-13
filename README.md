@@ -18,7 +18,7 @@ The Express backend which helps Temple Wallet to decrease amount of requests to 
 | /api/alice-bob/estimate-amount | Returns Alice-Bob output exchange amount in UAH(TEZ)                                                                                                                                                                        |
 | /api/news                      | Returns list of news for mobile or extension                                                                                                                                                                                |
 | /api/top-coins                 | Returns dictionary of the best market coins' ids and slugs                                                                                                                                                                  |
-| /api/top-coins/:id             | Returns coin slug by id extension                                                                                                                                                                                           |
+|                                |
 
 ## Building
 
