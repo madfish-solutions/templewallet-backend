@@ -17,13 +17,11 @@ const DEFAULT_BANNER_URLS = {
   }
 };
 
-export const NOTIFICATIONS_LIST: Notification[] = [];
-
-export const MANDATORY_NOTIFICATIONS_LIST: Notification[] = [
+export const NOTIFICATIONS_LIST: Notification[] = [
   {
     id: 3,
     createdAt: '2022-12-19T15:00:00.000Z',
-    type: NotificationType.WinNft,
+    type: NotificationType.News,
     platforms: [PlatformType.Extension, PlatformType.Mobile],
     language: 'en-US',
     title: 'Win a free NFT by Mario Klingemann',
@@ -46,7 +44,10 @@ export const MANDATORY_NOTIFICATIONS_LIST: Notification[] = [
     ],
     extensionImageUrl: DEFAULT_BANNER_URLS.extension.winNft,
     mobileImageUrl: DEFAULT_BANNER_URLS.mobile.winNft
-  },
+  }
+];
+
+export const MANDATORY_NOTIFICATIONS_LIST: Notification[] = [
   {
     id: 2,
     createdAt: '2022-11-29T13:00:00.000Z',
