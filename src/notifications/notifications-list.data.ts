@@ -15,9 +15,7 @@ const DEFAULT_BANNER_URLS = {
   }
 };
 
-export const NOTIFICATIONS_LIST: Notification[] = [];
-
-export const MANDATORY_NOTIFICATIONS_LIST: Notification[] = [
+export const NOTIFICATIONS_LIST: Notification[] = [
   {
     id: 3,
     createdAt: '2022-12-19T15:00:00.000Z',
@@ -44,7 +42,10 @@ export const MANDATORY_NOTIFICATIONS_LIST: Notification[] = [
     ],
     extensionImageUrl: DEFAULT_BANNER_URLS.extension.news,
     mobileImageUrl: DEFAULT_BANNER_URLS.mobile.news
-  },
+  }
+];
+
+export const MANDATORY_NOTIFICATIONS_LIST: Notification[] = [
   {
     id: 2,
     createdAt: '2022-11-29T13:00:00.000Z',
