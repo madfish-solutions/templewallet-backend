@@ -6,12 +6,14 @@ const DEFAULT_BANNER_URLS = {
   extension: {
     news: `${BANNERS_BUCKET_URL}/extension/news.svg`,
     platformUpdate: `${BANNERS_BUCKET_URL}/extension/platform-update.svg`,
-    securityNote: `${BANNERS_BUCKET_URL}/extension/security-note.svg`
+    securityNote: `${BANNERS_BUCKET_URL}/extension/security-note.svg`,
+    winNft:`${BANNERS_BUCKET_URL}/extension/extension-win-nft.svg`
   },
   mobile: {
     news: `${BANNERS_BUCKET_URL}/mobile/news.svg`,
     platformUpdate: `${BANNERS_BUCKET_URL}/mobile/platform-update.svg`,
-    securityNote: `${BANNERS_BUCKET_URL}/mobile/security-note.svg`
+    securityNote: `${BANNERS_BUCKET_URL}/mobile/security-note.svg`,
+    winNft:`${BANNERS_BUCKET_URL}/mobile/mobile-win-nft.svg`
   }
 };
 
@@ -40,8 +42,8 @@ export const NOTIFICATIONS_LIST: Notification[] = [
         url: 'https://story.madfish.solutions/discover-the-tezos-nft-world-and-stand-a-chance-to-win-an-nft-artwork-by-the-famous-artist-mario-klingemann/'
       }
     ],
-    extensionImageUrl: DEFAULT_BANNER_URLS.extension.news,
-    mobileImageUrl: DEFAULT_BANNER_URLS.mobile.news
+    extensionImageUrl: DEFAULT_BANNER_URLS.extension.winNft,
+    mobileImageUrl: DEFAULT_BANNER_URLS.mobile.winNft
   }
 ];
 
