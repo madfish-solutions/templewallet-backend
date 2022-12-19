@@ -19,6 +19,33 @@ export const NOTIFICATIONS_LIST: Notification[] = [];
 
 export const MANDATORY_NOTIFICATIONS_LIST: Notification[] = [
   {
+    id: 3,
+    createdAt: '2022-12-19T15:00:00.000Z',
+    type: NotificationType.News,
+    platforms: [PlatformType.Extension, PlatformType.Mobile],
+    language: 'en-US',
+    title: 'Win a free NFT by Mario Klingemann',
+    description:
+      'Use the Quipuswap/Allbridge Tezos cross-chain Bridge to win a limited edition nft by a famous nft artist.',
+    content: [
+      'To raise awareness about the new cross-chain bridge MadFish and Allbridge teamed up with one of the top digital artists on Tezos - Mario Klingemann (a.k.a @Quasimondo).\n',
+      '\n',
+      'How to participate:\n',
+      ' • Bridge at least $200 worth of BUSD (BNB Chain), USDC (Polygon), or ABR (any) to Tezos using Allbridge.\n',
+      ' • Buy any NFT on Teia.art, Rarible.com (tezos nfts only), or Objkt.com.\n',
+      ' • Win one of the 75 unique NFTs by a famous artist.\n',
+      '\n',
+      'Participants are automatically registered, and no further user action is required.\n',
+      '\n',
+      {
+        text: 'Read more.',
+        url: 'https://story.madfish.solutions/discover-the-tezos-nft-world-and-stand-a-chance-to-win-an-nft-artwork-by-the-famous-artist-mario-klingemann/'
+      }
+    ],
+    extensionImageUrl: DEFAULT_BANNER_URLS.extension.news,
+    mobileImageUrl: DEFAULT_BANNER_URLS.mobile.news
+  },
+  {
     id: 2,
     createdAt: '2022-11-29T13:00:00.000Z',
     type: NotificationType.SecurityNote,
