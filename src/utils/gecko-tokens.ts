@@ -1,4 +1,5 @@
 export const coinGeckoTokens = {
+  tether: 'KT1XnTn74bUtxHfDtBmm2bGZAQfhPbvKWR8o_0',
   tzbtc: 'KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn_0',
   dogami: 'KT1Ha4yFVeyzw6KRAdkzq6TxDHB97KG4pZe8_0',
   usdtez: 'KT1LN4LPSqTMS7Sd2CJw4bbDGRkMv2t68Fy9_0',
