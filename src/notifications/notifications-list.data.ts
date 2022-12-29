@@ -19,6 +19,25 @@ const DEFAULT_BANNER_URLS = {
 
 export const NOTIFICATIONS_LIST: Notification[] = [
   {
+    id: 4,
+    createdAt: '2022-12-29T16:00:00.000Z',
+    type: NotificationType.News,
+    platforms: [PlatformType.Mobile],
+    language: 'en-US',
+    title: 'Temple mobile update!',
+    description: 'Don’t forget to update your Mobile app to the latest version. Click “Details” to learn what’s in this patch.',
+    content: [
+      "In this update:\n",
+      " • The new market feature was released. Track your favorite Tezos coins directly in your wallet. Add to favorites by clicking the star icon, or instantly buy tokens you like. To start using all features - choose a token and swipe it.\n",
+      " • Added fixes related to the latest Beacon update.\n",
+      " • Other minor improvements.\n",
+      "\n",
+      "Check whether your mobile app has the latest version.",
+    ],
+    extensionImageUrl: DEFAULT_BANNER_URLS.extension.news,
+    mobileImageUrl: DEFAULT_BANNER_URLS.mobile.news
+  },
+  {
     id: 3,
     createdAt: '2022-12-19T15:00:00.000Z',
     type: NotificationType.News,
@@ -48,25 +67,6 @@ export const NOTIFICATIONS_LIST: Notification[] = [
 ];
 
 export const MANDATORY_NOTIFICATIONS_LIST: Notification[] = [
-  {
-    id: 4,
-    createdAt: '2022-12-29T16:00:00.000Z',
-    type: NotificationType.News,
-    platforms: [PlatformType.Mobile],
-    language: 'en-US',
-    title: 'Temple mobile update!',
-    description: 'Don’t forget to update your Mobile app to the latest version. Click “Details” to learn what’s in this patch.',
-    content: [
-      "In this update:\n",
-      " • The new market feature was released. Track your favorite Tezos coins directly in your wallet. Add to favorites by clicking the star icon, or instantly buy tokens you like. To start using all features - choose a token and swipe it.\n",
-      " • Added fixes related to the latest Beacon update.\n",
-      " • Other minor improvements.\n",
-      "\n",
-      "Check whether your mobile app has the latest version.",
-    ],
-    extensionImageUrl: DEFAULT_BANNER_URLS.extension.news,
-    mobileImageUrl: DEFAULT_BANNER_URLS.mobile.news
-  },
   {
     id: 2,
     createdAt: '2022-11-29T13:00:00.000Z',
