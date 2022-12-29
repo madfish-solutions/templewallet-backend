@@ -29,7 +29,7 @@ export const NOTIFICATIONS_LIST: Notification[] = [
     content: [
       "In this update:\n",
       " • The new market feature was released. Track your favorite Tezos coins directly in your wallet. Add to favorites by clicking the star icon, or instantly buy tokens you like. To start using all features - choose a token and swipe it.\n",
-      " • Added fixes related to the latest Beacon update.\n",
+      " • Added fixes related to the latest Taquito update.\n",
       " • Other minor improvements.\n",
       "\n",
       "Check whether your mobile app has the latest version.",
