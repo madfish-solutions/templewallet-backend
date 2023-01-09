@@ -30,6 +30,7 @@
     "start-prod": "cross-env NODE_ENV=production node dist/index.js",
     "build": "tsc --skipLibCheck",
     "ts": "tsc --pretty",
+    "lint": "eslint . --ext .js,.ts --fix",
     "clean": "rimraf dist/"
   },
   "devDependencies": {
@@ -39,7 +40,12 @@
     "@types/pino": "^6.3.8",
     "@types/pino-http": "^5.4.1",
     "@types/semaphore": "^1.1.1",
+    "@typescript-eslint/eslint-plugin": "^5.39.0",
+    "@typescript-eslint/parser": "^5.39.0",
     "cross-env": "^7.0.3",
+    "eslint": "^7.32.0",
+    "eslint-import-resolver-typescript": "^2.7.1",
+    "eslint-plugin-import": "^2.26.0",
     "npm-run-all": "^4.1.5",
     "rimraf": "^3.0.2",
     "ts-node-dev": "^1.1.8",

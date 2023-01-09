@@ -56,7 +56,7 @@ const buildQuery =
   );
 
 const getCoins = buildQuery<CoinsListParams, CoinsListItem[]>("/coins/list", [
-  "include_platform",
+  "include_platform"
 ]);
 const getMarkets = buildQuery<MarketsParams, Market[]>(
   "/coins/markets",
@@ -66,14 +66,14 @@ const getMarkets = buildQuery<MarketsParams, Market[]>(
     order = "market_cap_desc",
     per_page = 100,
     page = 1,
-    sparkline = false,
+    sparkline = false
   }) => ({
     vs_currency,
     ids: ids.join(","),
     order,
     per_page,
     page,
-    sparkline,
+    sparkline
   })
 );
 
@@ -98,9 +98,10 @@ export const getMarketsBySymbols = async (symbols: string[]) => {
     pagesNumbers.map((pageNumber) =>
       getMarkets({
         ids,
-        page: pageNumber,
+        page: pageNumber
       })
     )
   );
-  return chunks.flat();
+  
+return chunks.flat();
 };

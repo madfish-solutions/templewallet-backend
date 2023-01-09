@@ -1,6 +1,6 @@
 import MutexProtectedData from "./MutexProtectedData";
 import SingleQueryDataProvider, {
-  SingleQueryDataProviderState,
+  SingleQueryDataProviderState
 } from "./SingleQueryDataProvider";
 
 type DataSubscriptionItem<T, A extends any[]> = {
@@ -43,7 +43,7 @@ export default class DataProvider<T, A extends any[]> {
           () => this.fetchFn(...args),
           this.shouldGiveUp
         ),
-        args,
+        args
       });
       this.subscriptions.data = subscriptions;
     });
@@ -59,7 +59,8 @@ export default class DataProvider<T, A extends any[]> {
     }
     try {
       const data = await this.fetchFn(...args);
-      return { data };
+      
+return { data };
     }
     // @ts-ignore
     catch (error: Error) {

@@ -1,5 +1,6 @@
 import axios, { AxiosRequestConfig } from "axios";
 import qs from "qs";
+
 import PromisifiedSemaphore from "./PromisifiedSemaphore";
 
 function pick<T, U extends keyof T>(obj: T, keys: U[]) {
@@ -9,7 +10,8 @@ function pick<T, U extends keyof T>(obj: T, keys: U[]) {
       newObj[key] = obj[key];
     }
   });
-  return newObj as Pick<T, U>;
+  
+return newObj as Pick<T, U>;
 }
 
 function isAbsoluteURL(url) {
@@ -26,7 +28,8 @@ export default function makeBuildQueryFn<P, R>(
   const semaphore = maxConcurrentQueries
     ? new PromisifiedSemaphore(maxConcurrentQueries)
     : undefined;
-  return function f1<P1 extends P, R1 extends R>(
+  
+return function f1<P1 extends P, R1 extends R>(
     path: string | ((params: P1) => string),
     toQueryParams?: (keyof P1)[] | ((params: P1) => Record<string, any>),
     config?: Omit<AxiosRequestConfig, "url">
@@ -52,7 +55,7 @@ export default function makeBuildQueryFn<P, R>(
             try {
               const { data } = await axios.request<R1>({
                 url: fullUrl,
-                ...config,
+                ...config
               });
               resolve(data);
             } catch (e) {
@@ -62,7 +65,8 @@ export default function makeBuildQueryFn<P, R>(
         });
       }
       const { data } = await axios.request<R1>({ url: fullUrl, ...config });
-      return data;
+      
+return data;
     };
   };
 }

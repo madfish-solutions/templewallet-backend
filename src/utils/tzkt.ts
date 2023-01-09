@@ -99,7 +99,7 @@ export type TzktTokenData = {
 
 const buildQueryMainnet = makeBuildQueryFn<
   | SeriesParams
-  | {}
+  | object
   | { slug: string }
   | AccountTokenBalancesParams
   | ContractTokensParams,
@@ -112,7 +112,7 @@ const buildQueryMainnet = makeBuildQueryFn<
 
 const buildQueryGhostnet = makeBuildQueryFn<
   | SeriesParams
-  | {}
+  | object
   | { slug: string }
   | AccountTokenBalancesParams
   | ContractTokensParams,
@@ -122,19 +122,6 @@ const buildQueryGhostnet = makeBuildQueryFn<
   | AccountTokenBalancesResponse
   | TzktTokenData[]
 >(TZKT_BASE_URL_GHOSTNET, 5);
-
-const buildQueryJakartanet = makeBuildQueryFn<
-  | SeriesParams
-  | {}
-  | { slug: string }
-  | AccountTokenBalancesParams
-  | ContractTokensParams,
-  | [number, number][]
-  | DAppsListItem[]
-  | DAppDetails
-  | AccountTokenBalancesResponse
-  | TzktTokenData[]
->(TZKT_BASE_URL_JAKARTANET, 5);
 
 export const tokensMetadataProvider = new DataProvider(
   24 * 3600 * 1000,
@@ -146,9 +133,10 @@ export const tokensMetadataProvider = new DataProvider(
       () => `/tokens`,
       ["limit", "offset", "contract", "tokenId"]
     );
-    return getTokensMetadata({
+
+return getTokensMetadata({
       contract: address,
-      tokenId: token_id,
+      tokenId: token_id
     })
   }
 );
@@ -170,11 +158,12 @@ export const contractTokensProvider = new DataProvider(
       () => `/tokens`,
       ["limit", "offset", "tokenId", "contract"]
     );
-    return getContractTokens({
+
+return getContractTokens({
       contract: address,
       limit: size,
       offset,
-      tokenId: token_id,
+      tokenId: token_id
     })
   }
 );
@@ -191,5 +180,5 @@ export const mapTzktTokenDataToBcdTokenData = (x?: TzktTokenData) : BcdTokenData
   should_prefer_symbol: x.metadata?.shouldPreferSymbol,
   extras: x.metadata?.extras,
   token_info: x.metadata,
-  supply: x.totalSupply,
+  supply: x.totalSupply
 })

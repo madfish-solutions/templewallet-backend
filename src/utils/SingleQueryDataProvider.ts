@@ -72,7 +72,8 @@ export default class SingleQueryDataProvider<T> {
 
   async getState() {
     await this.readyMutex.exec(() => {});
-    return this.state.getData();
+    
+return this.state.getData();
   }
 
   finalize() {

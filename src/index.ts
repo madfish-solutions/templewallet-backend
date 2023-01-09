@@ -5,22 +5,23 @@ import cors from "cors";
 import express, { Request, Response } from "express";
 import pino from "pino";
 import pinoHttp from "pino-http";
+
+import { getAdvertisingInfo } from "./advertising/advertising";
 import getDAppsStats from "./getDAppsStats";
-import { tezExchangeRateProvider } from "./utils/tezos";
-import { tokensExchangeRatesProvider } from "./utils/tokens";
-import logger from "./utils/logger";
-import SingleQueryDataProvider from "./utils/SingleQueryDataProvider";
+import { PlatformType } from "./notifications/notification.interface";
+import { getNotifications } from "./notifications/notifications.utils";
 import { getABData } from "./utils/ab-test";
-import { getSignedMoonPayUrl } from "./utils/moonpay/get-signed-moonpay-url";
-import {getAliceBobOrderInfo} from "./utils/alice-bob/get-alice-bob-order-info";
-import {getAliceBobPairInfo} from "./utils/alice-bob/get-alice-bob-pair-info";
-import {estimateAliceBobOutput} from "./utils/alice-bob/estimate-alice-bob-output";
 import {cancelAliceBobOrder} from "./utils/alice-bob/cancel-alice-bob-order";
 import {createAliceBobOrder} from "./utils/alice-bob/create-alice-bob-order";
-import { getNotifications } from "./notifications/notifications.utils";
-import { getAdvertisingInfo } from "./advertising/advertising";
-import { PlatformType } from "./notifications/notification.interface";
+import {estimateAliceBobOutput} from "./utils/alice-bob/estimate-alice-bob-output";
+import {getAliceBobOrderInfo} from "./utils/alice-bob/get-alice-bob-order-info";
+import {getAliceBobPairInfo} from "./utils/alice-bob/get-alice-bob-pair-info";
 import { coinGeckoTokens } from './utils/gecko-tokens';
+import logger from "./utils/logger";
+import { getSignedMoonPayUrl } from "./utils/moonpay/get-signed-moonpay-url";
+import SingleQueryDataProvider from "./utils/SingleQueryDataProvider";
+import { tezExchangeRateProvider } from "./utils/tezos";
+import { tokensExchangeRatesProvider } from "./utils/tokens";
 
 const PINO_LOGGER = {
   logger: logger.child({ name: "web" }),
@@ -31,16 +32,17 @@ const PINO_LOGGER = {
       body: req.body,
       remoteAddress: req.remoteAddress,
       remotePort: req.remotePort,
-      id: req.id,
+      id: req.id
     }),
     err: (err) => {
       const { type, message } = pino.stdSerializers.err(err);
-      return { type, message };
+      
+return { type, message };
     },
     res: (res) => ({
-      statusCode: res.statusCode,
-    }),
-  },
+      statusCode: res.statusCode
+    })
+  }
 };
 
 const app = express();
@@ -70,7 +72,7 @@ const getProviderStateWithTimeout = <T>(provider: SingleQueryDataProvider<T>) =>
         () => resolve({ error: new Error("Response timed out") }),
         30000
       )
-    ),
+    )
   ]);
 
 const makeProviderDataRequestHandler = <T, U>(
@@ -119,12 +121,12 @@ app.get("/api/exchange-rates", async (_req, res) => {
   const { data: tezExchangeRate, error: tezExchangeRateError } = await getProviderStateWithTimeout(tezExchangeRateProvider);
   if (tokensExchangeRatesError || tezExchangeRateError) {
     res.status(500).send({
-      error: (tokensExchangeRatesError || tezExchangeRateError)!.message,
+      error: (tokensExchangeRatesError || tezExchangeRateError)!.message
     });
   } else {
     res.json([
       ...tokensExchangeRates!.map(({ metadata, ...restProps }) => restProps),
-      { exchangeRate: tezExchangeRate!.toString() },
+      { exchangeRate: tezExchangeRate!.toString() }
     ]);
   }
 });

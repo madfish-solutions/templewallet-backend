@@ -1,4 +1,5 @@
 import crypto from "crypto";
+
 import {AliceBobPayload} from "../../interfaces/alice-bob/alice-bob.interfaces";
 
 export const getAliceBobSignature = (payload?: AliceBobPayload) => {

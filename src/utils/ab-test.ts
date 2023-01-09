@@ -7,7 +7,8 @@ export const getABData = () => {
   logger.info(`Getting A/B test ${counter}:${result}`);
   counter++;
   if(counter === Number.MAX_SAFE_INTEGER) counter = 0;
-  return {
+  
+return {
     ab: result
   };  
 };

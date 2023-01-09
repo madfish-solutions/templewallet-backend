@@ -2,11 +2,12 @@ import {
   compose,
   MichelCodecPacker,
   Signer,
-  TezosToolkit,
+  TezosToolkit
 } from "@taquito/taquito";
 import { tzip12 } from "@taquito/tzip12";
 import { tzip16 } from "@taquito/tzip16";
 import memoizee from "memoizee";
+
 import fetch from "./fetch";
 import SingleQueryDataProvider from "./SingleQueryDataProvider";
 import { BcdTokenData } from "./tzkt";
@@ -53,7 +54,8 @@ const getContract = memoizee(
 export const getStorage = memoizee(
   async (contractAddress: string) => {
     const contract = await getContract(contractAddress);
-    return contract.storage<any>();
+    
+return contract.storage<any>();
   },
   { promise: true, maxAge: 30000 }
 );
@@ -129,7 +131,7 @@ export const getTokenMetadata = memoizee(
       name: tokenData.name || tokenData.symbol || "Unknown Token",
       contract: tokenAddress,
       token_id: tokenId ?? 0,
-      network: "mainnet",
+      network: "mainnet"
     };
   },
   { promise: true }

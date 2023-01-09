@@ -1,7 +1,7 @@
-import {aliceBobApi} from "../api.sevice";
-import {getAliceBobSignature} from "./get-alice-bob-signature";
 import {AliceBobCreateOrderPayload, aliceBobOrder} from "../../interfaces/alice-bob/alice-bob.interfaces";
+import {aliceBobApi} from "../api.sevice";
 import {getAliceBobRequestHeaders} from "./get-alice-bob-request-headers";
+import {getAliceBobSignature} from "./get-alice-bob-signature";
 
 export const createAliceBobOrder = async (isWithdraw: boolean, payload: AliceBobCreateOrderPayload) => {
   const { signature, now } = getAliceBobSignature(payload);

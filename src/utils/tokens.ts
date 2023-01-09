@@ -1,15 +1,16 @@
+import { MichelsonMap } from "@taquito/michelson-encoder";
 import BigNumber from "bignumber.js";
 import memoizee from "memoizee";
+
 import fetch from "./fetch";
+import { range } from "./helpers";
+import logger from "./logger";
+import SingleQueryDataProvider from "./SingleQueryDataProvider";
 import {
   getTokenMetadata,
   getStorage,
-  tezExchangeRateProvider,
+  tezExchangeRateProvider
 } from "./tezos";
-import SingleQueryDataProvider from "./SingleQueryDataProvider";
-import { range } from "./helpers";
-import { MichelsonMap } from "@taquito/michelson-encoder";
-import logger from "./logger";
 import { BcdTokenData, contractTokensProvider, mapTzktTokenDataToBcdTokenData, tokensMetadataProvider, TZKT_NETWORKS } from "./tzkt";
 
 const fa12Factories = process.env.QUIPUSWAP_FA12_FACTORIES!.split(",");
@@ -41,7 +42,7 @@ const getQuipuswapExchangers = async (): Promise<QuipuswapExchanger[]> => {
   const rawFa12Exchangers: MichelsonMap<string, string>[] = await Promise.all(
     fa12FactoryStorages.map((storage, index) =>
       storage.token_to_exchange.getMultipleValues([
-        ...rawFa12FactoryTokens[index].values(),
+        ...rawFa12FactoryTokens[index].values()
       ])
     )
   );
@@ -57,10 +58,11 @@ const getQuipuswapExchangers = async (): Promise<QuipuswapExchanger[]> => {
               if (error) {
                 throw error;
               }
-              return {
+
+return {
                 tokenAddress,
                 exchangerAddress,
-                tokenMetadata: tokensMetadata ? tokensMetadata[0] : undefined,
+                tokenMetadata: tokensMetadata ? tokensMetadata[0] : undefined
               };
             }
           )
@@ -85,7 +87,7 @@ const getQuipuswapExchangers = async (): Promise<QuipuswapExchanger[]> => {
         [...rawTokens.values()].map(
           async (token): Promise<[[string, BigNumber], string]> => [
             token,
-            await fa2FactoryStorages[index].token_to_exchange.get(token),
+            await fa2FactoryStorages[index].token_to_exchange.get(token)
           ]
         )
       );
@@ -105,17 +107,19 @@ const getQuipuswapExchangers = async (): Promise<QuipuswapExchanger[]> => {
           if (error) {
             throw error;
           }
-          return {
+
+return {
             exchangerAddress,
             tokenAddress: address,
             tokenId: token_id,
-            tokenMetadata: tokensMetadata ? tokensMetadata[0] : undefined,
+            tokenMetadata: tokensMetadata ? tokensMetadata[0] : undefined
           };
         })
     )
   ).flat();
   logger.info("Successfully got Quipuswap exchangers");
-  return [...fa12Exchangers, ...fa2Exchangers].map((exchanger) => ({
+
+return [...fa12Exchangers, ...fa2Exchangers].map((exchanger) => ({
     ...exchanger,
     tokenMetadata: mapTzktTokenDataToBcdTokenData(exchanger.tokenMetadata)
   }));
@@ -130,7 +134,7 @@ const getPoolTokenExchangeRate = memoizee(
   async ({
     contract: tokenAddress,
     decimals,
-    token_id,
+    token_id
   }: {
     decimals?: number;
     token_id?: number;
@@ -167,8 +171,8 @@ const getPoolTokenExchangeRate = memoizee(
     }
     let quipuswapExchangeRate = new BigNumber(0);
     let quipuswapWeight = new BigNumber(0);
-    let dexterExchangeRate = new BigNumber(0);
-    let dexterWeight = new BigNumber(0);
+    const dexterExchangeRate = new BigNumber(0);
+    const dexterWeight = new BigNumber(0);
     const tokenElementaryParts = new BigNumber(10).pow(decimals);
     const matchingQuipuswapExchangers = quipuswapExchangers!.filter(
       ({ tokenAddress: swappableTokenAddress, tokenId: swappableTokenId }) =>
@@ -179,17 +183,18 @@ const getPoolTokenExchangeRate = memoizee(
       const exchangersCharacteristics = await Promise.all(
         matchingQuipuswapExchangers.map(async ({ exchangerAddress }) => {
           const {
-            storage: { tez_pool, token_pool },
+            storage: { tez_pool, token_pool }
           } = await getStorage(exchangerAddress);
           if (!tez_pool.eq(0) && !token_pool.eq(0)) {
             return {
               weight: tez_pool,
               exchangeRate: tez_pool
                 .div(1e6)
-                .div(token_pool.div(tokenElementaryParts)),
+                .div(token_pool.div(tokenElementaryParts))
             };
           }
-          return { weight: new BigNumber(0), exchangeRate: new BigNumber(0) };
+
+return { weight: new BigNumber(0), exchangeRate: new BigNumber(0) };
         })
       );
       quipuswapWeight = exchangersCharacteristics.reduce(
@@ -209,7 +214,8 @@ const getPoolTokenExchangeRate = memoizee(
     if (quipuswapExchangeRate.eq(0) && dexterExchangeRate.eq(0)) {
       return new BigNumber(0);
     }
-    return quipuswapExchangeRate
+
+return quipuswapExchangeRate
       .times(quipuswapWeight)
       .plus(dexterExchangeRate.times(dexterWeight))
       .div(quipuswapWeight.plus(dexterWeight))
@@ -235,7 +241,7 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
     throw quipuswapError;
   }
   logger.info("Getting tokens exchange rates from Quipuswap pools");
-  let exchangeRates = await Promise.all(
+  const exchangeRates = await Promise.all(
     quipuswapExchangers!
       .reduce((onePerTokenExchangers, exchanger) => {
         if (
@@ -247,19 +253,21 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
         ) {
           onePerTokenExchangers.push(exchanger);
         }
-        return onePerTokenExchangers;
+
+return onePerTokenExchangers;
       }, [] as QuipuswapExchanger[])
       .map(async ({ tokenAddress, tokenId, tokenMetadata }) => {
         logger.info(tokenMetadata?.name ?? tokenAddress);
-        return {
+
+return {
           tokenAddress,
           tokenId,
           exchangeRate: await getPoolTokenExchangeRate({
             contract: tokenAddress,
             decimals: tokenMetadata && tokenMetadata.decimals,
-            token_id: tokenId,
+            token_id: tokenId
           }),
-          metadata: tokenMetadata!,
+          metadata: tokenMetadata!
         };
       })
   );
@@ -283,20 +291,21 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
         ({ close }) => close !== null
       );
       const tokenPrice = latestValidEntry
-        ? new BigNumber(latestValidEntry.close)
+        ? new BigNumber(latestValidEntry.close ?? 0)
         : new BigNumber(0);
 
       exchangeRates.push({
         tokenAddress: ASPENCOIN_ADDRESS,
         tokenId: undefined,
         exchangeRate: tokenPrice,
-        metadata: mapTzktTokenDataToBcdTokenData(aspencoinMetadata![0])!,
+        metadata: mapTzktTokenDataToBcdTokenData(aspencoinMetadata![0])!
       });
     } catch (e) {}
   }
 
   logger.info("Successfully got tokens exchange rates");
-  return [...exchangeRates /*, ...tzwrapExchangeRates */].filter(
+
+return [...exchangeRates /*, ...tzwrapExchangeRates */].filter(
     ({ exchangeRate }) => !exchangeRate.eq(0)
   );
 };

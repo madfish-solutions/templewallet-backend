@@ -9,7 +9,7 @@ const ZEPHYR: AdvertisingInterface = {
   fullPageLogoUrl: `${DIGITAL_OCEAN_URL}/banners/fullpage-logo.svg`,
   popupBannerUrl: `${DIGITAL_OCEAN_URL}/banners/popup-banner.svg`,
   popupLogoUrl: `${DIGITAL_OCEAN_URL}/banners/popup-logo.svg`,
-  mobileBannerUrl: `${DIGITAL_OCEAN_URL}/banners/mobile-banner.svg`,
+  mobileBannerUrl: `${DIGITAL_OCEAN_URL}/banners/mobile-banner.svg`
 };
 
 export const getAdvertisingInfo = (): AdvertisingInterface | undefined => undefined;

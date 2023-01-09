@@ -32,7 +32,7 @@ export const NOTIFICATIONS_LIST: Notification[] = [
       " • Added fixes related to the latest Taquito update.\n",
       " • Other minor improvements.\n",
       "\n",
-      "Check whether your mobile app has the latest version.",
+      "Check whether your mobile app has the latest version."
     ],
     extensionImageUrl: DEFAULT_BANNER_URLS.extension.news,
     mobileImageUrl: DEFAULT_BANNER_URLS.mobile.news

@@ -21,5 +21,6 @@ export default async function fetch<T>(
   if (!res.ok) {
     throw new NotOkFetchError("An error occurred while fetching");
   }
-  return body;
+  
+return body;
 }

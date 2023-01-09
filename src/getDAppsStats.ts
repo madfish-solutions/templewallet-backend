@@ -3,7 +3,8 @@ import logger from "./utils/logger";
 
 const getDAppsStats = async () => {
   logger.info("Getting dApps list...");
-  return {
+  
+return {
     dApps: dappList
   };
 };
