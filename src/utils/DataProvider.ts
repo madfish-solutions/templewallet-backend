@@ -1,7 +1,7 @@
-import MutexProtectedData from "./MutexProtectedData";
+import MutexProtectedData from './MutexProtectedData';
 import SingleQueryDataProvider, {
   SingleQueryDataProviderState
-} from "./SingleQueryDataProvider";
+} from './SingleQueryDataProvider';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DataSubscriptionItem<T, A extends any[]> = {

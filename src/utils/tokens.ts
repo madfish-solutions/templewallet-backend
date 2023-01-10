@@ -1,23 +1,23 @@
-import { MichelsonMap } from "@taquito/michelson-encoder";
-import { BigNumber } from "bignumber.js";
-import memoizee from "memoizee";
+import { MichelsonMap } from '@taquito/michelson-encoder';
+import { BigNumber } from 'bignumber.js';
+import memoizee from 'memoizee';
 
-import { IPriceHistory } from "../interfaces/price-history";
-import fetch from "./fetch";
-import { range } from "./helpers";
-import logger from "./logger";
-import SingleQueryDataProvider from "./SingleQueryDataProvider";
+import { IPriceHistory } from '../interfaces/price-history';
+import fetch from './fetch';
+import { range } from './helpers';
+import logger from './logger';
+import SingleQueryDataProvider from './SingleQueryDataProvider';
 import {
   getTokenMetadata,
   getStorage,
   tezExchangeRateProvider
-} from "./tezos";
-import { BcdTokenData, contractTokensProvider, mapTzktTokenDataToBcdTokenData, tokensMetadataProvider, TZKT_NETWORKS } from "./tzkt";
+} from './tezos';
+import { BcdTokenData, contractTokensProvider, mapTzktTokenDataToBcdTokenData, tokensMetadataProvider, TZKT_NETWORKS } from './tzkt';
 
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-const fa12Factories = process.env.QUIPUSWAP_FA12_FACTORIES!.split(",");
+const fa12Factories = process.env.QUIPUSWAP_FA12_FACTORIES!.split(',');
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-const fa2Factories = process.env.QUIPUSWAP_FA2_FACTORIES!.split(",");
+const fa2Factories = process.env.QUIPUSWAP_FA2_FACTORIES!.split(',');
 
 type QuipuswapExchanger = {
   exchangerAddress: string;
@@ -33,7 +33,7 @@ const getQuipuswapExchangers = async (): Promise<QuipuswapExchanger[]> => {
   const fa2FactoryStorages = await Promise.all(
     fa2Factories.map((factoryAddress) => getStorage(factoryAddress))
   );
-  logger.info("Getting FA1.2 Quipuswap exchangers...");
+  logger.info('Getting FA1.2 Quipuswap exchangers...');
   const rawFa12FactoryTokens: MichelsonMap<string, string>[] =
     await Promise.all(
       fa12FactoryStorages.map((storage) => {
@@ -74,7 +74,7 @@ const getQuipuswapExchangers = async (): Promise<QuipuswapExchanger[]> => {
     )
   ).flat();
 
-  logger.info("Getting FA2 Quipuswap exchangers...");
+  logger.info('Getting FA2 Quipuswap exchangers...');
   const rawFa2FactoryTokens: MichelsonMap<number, [string, BigNumber]>[] =
     await Promise.all(
       fa2FactoryStorages.map((storage) =>
@@ -120,7 +120,7 @@ const getQuipuswapExchangers = async (): Promise<QuipuswapExchanger[]> => {
         })
     )
   ).flat();
-  logger.info("Successfully got Quipuswap exchangers");
+  logger.info('Successfully got Quipuswap exchangers');
 
 return [...fa12Exchangers, ...fa2Exchangers].map((exchanger) => ({
     ...exchanger,
@@ -236,16 +236,16 @@ export type TokenExchangeRateEntry = {
   metadata: BcdTokenData;
 };
 
-export const ASPENCOIN_ADDRESS = "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM";
+export const ASPENCOIN_ADDRESS = 'KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM';
 tokensMetadataProvider.subscribe(TZKT_NETWORKS.MAINNET, ASPENCOIN_ADDRESS);
 
 const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
-  logger.info("Getting tokens exchange rates...");
+  logger.info('Getting tokens exchange rates...');
   const { data: quipuswapExchangers, error: quipuswapError } = await quipuswapExchangersDataProvider.getState();
   if (quipuswapError) {
     throw quipuswapError;
   }
-  logger.info("Getting tokens exchange rates from Quipuswap pools");
+  logger.info('Getting tokens exchange rates from Quipuswap pools');
   const exchangeRates = await Promise.all(
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     quipuswapExchangers!
@@ -284,7 +284,7 @@ return onePerTokenExchangers;
       ({ tokenAddress }) => tokenAddress === ASPENCOIN_ADDRESS
     )
   ) {
-    logger.info("Getting exchange rate for Aspencoin");
+    logger.info('Getting exchange rate for Aspencoin');
     try {
       const { data: aspencoinMetadata, error: aspencoinMetadataError } =
         await tokensMetadataProvider.get(TZKT_NETWORKS.MAINNET, ASPENCOIN_ADDRESS);
@@ -292,7 +292,7 @@ return onePerTokenExchangers;
         throw aspencoinMetadataError;
       }
       const priceHistory = await fetch<IPriceHistory>(
-        "https://gateway-web-markets.tzero.com/mdt/public-pricehistory/ASPD?page=1"
+        'https://gateway-web-markets.tzero.com/mdt/public-pricehistory/ASPD?page=1'
       );
       const latestValidEntry = priceHistory.priceHistories.find(
         ({ close }) => close !== null
@@ -311,7 +311,7 @@ return onePerTokenExchangers;
     } catch (e) {}
   }
 
-  logger.info("Successfully got tokens exchange rates");
+  logger.info('Successfully got tokens exchange rates');
 
 return [...exchangeRates /*, ...tzwrapExchangeRates */].filter(
     ({ exchangeRate }) => !exchangeRate.eq(0)

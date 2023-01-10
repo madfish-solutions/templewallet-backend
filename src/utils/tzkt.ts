@@ -1,5 +1,5 @@
-import DataProvider from "./DataProvider";
-import makeBuildQueryFn from "./makeBuildQueryFn";
+import DataProvider from './DataProvider';
+import makeBuildQueryFn from './makeBuildQueryFn';
 
 export type BcdTokenData = {
   network: string;
@@ -29,8 +29,8 @@ const TZKT_BASE_URL_GHOSTNET = 'https://api.ghostnet.tzkt.io/v1'
 
 type SeriesParams = {
   addresses: string[];
-  period: "day" | "month" | "year";
-  name: "users" | "operation";
+  period: 'day' | 'month' | 'year';
+  name: 'users' | 'operation';
 };
 
 type AccountTokenBalancesParams = {
@@ -129,11 +129,11 @@ export const tokensMetadataProvider = new DataProvider(
   24 * 3600 * 1000,
   (network: TZKT_NETWORKS, address?: string, token_id?: number) => {
     const getTokensMetadata = network === TZKT_NETWORKS.MAINNET ? buildQueryMainnet<TokensMetadataParams, TzktTokenData[]>(
-      () => `/tokens`,
-      ["limit", "offset", "contract", "tokenId"]
+      () => '/tokens',
+      ['limit', 'offset', 'contract', 'tokenId']
     ) : buildQueryGhostnet<TokensMetadataParams, TzktTokenData[]>(
-      () => `/tokens`,
-      ["limit", "offset", "contract", "tokenId"]
+      () => '/tokens',
+      ['limit', 'offset', 'contract', 'tokenId']
     );
 
 return getTokensMetadata({
@@ -154,11 +154,11 @@ export const contractTokensProvider = new DataProvider(
   ) =>
   {
     const getContractTokens = network === TZKT_NETWORKS.MAINNET ? buildQueryMainnet<ContractTokensParams, TzktTokenData[]>(
-      () => `/tokens`,
-      ["limit", "offset", "tokenId", "contract"]
+      () => '/tokens',
+      ['limit', 'offset', 'tokenId', 'contract']
     ) : buildQueryGhostnet<ContractTokensParams, TzktTokenData[]>(
-      () => `/tokens`,
-      ["limit", "offset", "tokenId", "contract"]
+      () => '/tokens',
+      ['limit', 'offset', 'tokenId', 'contract']
     );
 
 return getContractTokens({

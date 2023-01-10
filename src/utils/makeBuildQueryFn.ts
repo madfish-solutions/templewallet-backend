@@ -1,7 +1,7 @@
-import axios, { AxiosRequestConfig } from "axios";
-import { stringify } from "qs";
+import axios, { AxiosRequestConfig } from 'axios';
+import { stringify } from 'qs';
 
-import PromisifiedSemaphore from "./PromisifiedSemaphore";
+import PromisifiedSemaphore from './PromisifiedSemaphore';
 
 function pick<T, U extends keyof T>(obj: T, keys: U[]) {
   const newObj: Partial<T> = {};
@@ -33,12 +33,12 @@ return function f1<P1 extends P, R1 extends R>(
     path: string | ((params: P1) => string),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     toQueryParams?: (keyof P1)[] | ((params: P1) => Record<string,  any>),
-    config?: Omit<AxiosRequestConfig, "url">
+    config?: Omit<AxiosRequestConfig, 'url'>
   ) {
     return async (params: P1) => {
-      const url = typeof path === "function" ? path(params) : path;
+      const url = typeof path === 'function' ? path(params) : path;
       const queryParams =
-        typeof toQueryParams === "function"
+        typeof toQueryParams === 'function'
           ? toQueryParams(params)
           : toQueryParams
           ? pick(params, toQueryParams)
@@ -48,7 +48,7 @@ return function f1<P1 extends P, R1 extends R>(
         ? `${url}/`
         : `${baseUrl}${url}`;
       const fullUrl = `${noQueryParamsUrl}${
-        queryStr.length === 0 ? "" : `?${queryStr}`
+        queryStr.length === 0 ? '' : `?${queryStr}`
       }`;
       if (semaphore) {
         return new Promise<R1>((resolve, reject) => {

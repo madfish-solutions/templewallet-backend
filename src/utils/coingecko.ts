@@ -1,6 +1,6 @@
-import { range } from "./helpers";
-import makeBuildQueryFn from "./makeBuildQueryFn";
-import SingleQueryDataProvider from "./SingleQueryDataProvider";
+import { range } from './helpers';
+import makeBuildQueryFn from './makeBuildQueryFn';
+import SingleQueryDataProvider from './SingleQueryDataProvider';
 
 type CoinsListParams = {
   include_platform?: boolean;
@@ -9,15 +9,15 @@ type MarketsParams = {
   vs_currency?: string;
   ids: string[];
   order?:
-    | "market_cap_desc"
-    | "gecko_desc"
-    | "gecko_asc"
-    | "market_cap_asc"
-    | "market_cap_desc"
-    | "volume_asc"
-    | "volume_desc"
-    | "id_asc"
-    | "id_desc";
+    | 'market_cap_desc'
+    | 'gecko_desc'
+    | 'gecko_asc'
+    | 'market_cap_asc'
+    | 'market_cap_desc'
+    | 'volume_asc'
+    | 'volume_desc'
+    | 'id_asc'
+    | 'id_desc';
   per_page?: number;
   page?: number;
   sparkline?: boolean;
@@ -48,28 +48,28 @@ type Market = {
   last_updated: string;
 };
 
-const COINGECKO_BASE_URL = "https://api.coingecko.com/api/v3";
+const COINGECKO_BASE_URL = 'https://api.coingecko.com/api/v3';
 
 const buildQuery =
   makeBuildQueryFn<CoinsListParams | MarketsParams, CoinsListItem[] | Market[]>(
     COINGECKO_BASE_URL
   );
 
-const getCoins = buildQuery<CoinsListParams, CoinsListItem[]>("/coins/list", [
-  "include_platform"
+const getCoins = buildQuery<CoinsListParams, CoinsListItem[]>('/coins/list', [
+  'include_platform'
 ]);
 const getMarkets = buildQuery<MarketsParams, Market[]>(
-  "/coins/markets",
+  '/coins/markets',
   ({
-    vs_currency = "usd",
+    vs_currency = 'usd',
     ids,
-    order = "market_cap_desc",
+    order = 'market_cap_desc',
     per_page = 100,
     page = 1,
     sparkline = false
   }) => ({
     vs_currency,
-    ids: ids.join(","),
+    ids: ids.join(','),
     order,
     per_page,
     page,

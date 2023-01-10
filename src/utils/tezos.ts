@@ -3,20 +3,20 @@ import {
   MichelCodecPacker,
   Signer,
   TezosToolkit
-} from "@taquito/taquito";
-import { tzip12 } from "@taquito/tzip12";
-import { tzip16 } from "@taquito/tzip16";
-import memoizee from "memoizee";
+} from '@taquito/taquito';
+import { tzip12 } from '@taquito/tzip12';
+import { tzip16 } from '@taquito/tzip16';
+import memoizee from 'memoizee';
 
-import { ITicker } from "../interfaces/tickers";
-import fetch from "./fetch";
-import SingleQueryDataProvider from "./SingleQueryDataProvider";
-import { BcdTokenData } from "./tzkt";
+import { ITicker } from '../interfaces/tickers';
+import fetch from './fetch';
+import SingleQueryDataProvider from './SingleQueryDataProvider';
+import { BcdTokenData } from './tzkt';
 
-const MAINNET_RPC_URL = process.env.RPC_URL !== undefined ? process.env.RPC_URL : "https://mainnet-node.madfish.solutions";
-const TEMPLE_WALLET_LV_ACCOUNT_PKH = "tz1fVQangAfb9J1hRRMP2bSB6LvASD6KpY8A";
+const MAINNET_RPC_URL = process.env.RPC_URL !== undefined ? process.env.RPC_URL : 'https://mainnet-node.madfish.solutions';
+const TEMPLE_WALLET_LV_ACCOUNT_PKH = 'tz1fVQangAfb9J1hRRMP2bSB6LvASD6KpY8A';
 const TEMPLE_WALLET_LV_ACCOUNT_PUBLIC_KEY =
-  "edpkvWbk81uh1DEvdWKR4g1bjyTGhdu1mDvznPUFE2zDwNsLXrEb9K";
+  'edpkvWbk81uh1DEvdWKR4g1bjyTGhdu1mDvznPUFE2zDwNsLXrEb9K';
 
 class LambdaViewSigner implements Signer {
   async publicKeyHash() {
@@ -28,7 +28,7 @@ class LambdaViewSigner implements Signer {
   }
 
   async secretKey(): Promise<string> {
-    throw new Error("Secret key cannot be exposed");
+    throw new Error('Secret key cannot be exposed');
   }
 
   async sign(): Promise<{
@@ -37,7 +37,7 @@ class LambdaViewSigner implements Signer {
     prefixSig: string;
     sbytes: string;
   }> {
-    throw new Error("Cannot sign");
+    throw new Error('Cannot sign');
   }
 }
 
@@ -64,9 +64,9 @@ export const getStorage = memoizee(
 
 const getTezExchangeRate = async () => {
   const marketTickers = await fetch<Array<ITicker>>(
-    "https://api.tzstats.com/markets/tickers"
+    'https://api.tzstats.com/markets/tickers'
   );
-  const usdTickers = marketTickers.filter((e) => e.quote === "USD");
+  const usdTickers = marketTickers.filter((e) => e.quote === 'USD');
   // price index: use all USD ticker last prices with equal weight
   const vol = usdTickers.reduce((s, t) => s + t.volume_base, 0) || null;
   const price =
@@ -123,19 +123,19 @@ export const getTokenMetadata = memoizee(
     }
 
     if (tokenData === undefined) {
-      throw new MetadataParseError(latestErrMessage ?? "Unknown error");
+      throw new MetadataParseError(latestErrMessage ?? 'Unknown error');
     }
 
     return {
       decimals: Boolean(tokenData) ? +tokenData.decimals : 0,
       // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       symbol: tokenData.symbol ||
-        (Boolean(tokenData.name) ? tokenData.name.substr(0, 8) : "???"),
+        (Boolean(tokenData.name) ? tokenData.name.substr(0, 8) : '???'),
       // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-      name: tokenData.name || tokenData.symbol || "Unknown Token",
+      name: tokenData.name || tokenData.symbol || 'Unknown Token',
       contract: tokenAddress,
       token_id: tokenId ?? 0,
-      network: "mainnet"
+      network: 'mainnet'
     };
   },
   { promise: true }

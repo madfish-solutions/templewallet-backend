@@ -1,7 +1,7 @@
-import {AliceBobEstimateAmountPayload} from "../../interfaces/alice-bob/alice-bob.interfaces";
-import {aliceBobApi} from "../api.sevice";
-import {getAliceBobRequestHeaders} from "./get-alice-bob-request-headers";
-import { getAliceBobSignature } from "./get-alice-bob-signature";
+import {AliceBobEstimateAmountPayload} from '../../interfaces/alice-bob/alice-bob.interfaces';
+import {aliceBobApi} from '../api.sevice';
+import {getAliceBobRequestHeaders} from './get-alice-bob-request-headers';
+import { getAliceBobSignature } from './get-alice-bob-signature';
 
 export const estimateAliceBobOutput = async (isWithdraw: boolean, payload: AliceBobEstimateAmountPayload) => {
   const { signature, now } = getAliceBobSignature(payload);

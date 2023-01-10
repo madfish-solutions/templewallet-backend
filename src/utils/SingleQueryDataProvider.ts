@@ -1,7 +1,7 @@
-import { emptyFn } from "./helpers";
-import logger from "./logger";
-import MutexProtectedData from "./MutexProtectedData";
-import PromisifiedSemaphore from "./PromisifiedSemaphore";
+import { emptyFn } from './helpers';
+import logger from './logger';
+import MutexProtectedData from './MutexProtectedData';
+import PromisifiedSemaphore from './PromisifiedSemaphore';
 
 export type SingleQueryDataProviderState<T> = {
   data?: T;

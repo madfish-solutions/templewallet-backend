@@ -38,7 +38,9 @@
     "@typescript-eslint/no-unused-vars": "error",
     "@typescript-eslint/explicit-module-boundary-types": "off",
     "@typescript-eslint/no-unnecessary-type-constraint": "off",
-    "@typescript-eslint/ban-ts-comment": "off"
+    "@typescript-eslint/e": "off",
+    "@typescript-eslint/ban-ts-comment": "off",
+    "quotes": ["error", "single"]
   },
   "globals": {
     "localStorage": true

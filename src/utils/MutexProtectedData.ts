@@ -1,4 +1,4 @@
-import PromisifiedSemaphore from "./PromisifiedSemaphore";
+import PromisifiedSemaphore from './PromisifiedSemaphore';
 
 export default class MutexProtectedData<T> {
   private mutex: PromisifiedSemaphore;

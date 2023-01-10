@@ -1,30 +1,30 @@
-require("./configure");
+require('./configure');
 
-import cors from "cors";
-import express, { Request, Response } from "express";
-import { stdSerializers } from "pino";
-import pinoHttp from "pino-http";
+import cors from 'cors';
+import express, { Request, Response } from 'express';
+import { stdSerializers } from 'pino';
+import pinoHttp from 'pino-http';
 
-import { getAdvertisingInfo } from "./advertising/advertising";
-import { MIN_ANDROID_APP_VERSION, MIN_IOS_APP_VERSION } from "./config";
-import getDAppsStats from "./getDAppsStats";
-import { PlatformType } from "./notifications/notification.interface";
-import { getNotifications } from "./notifications/notifications.utils";
-import { getABData } from "./utils/ab-test";
-import { cancelAliceBobOrder } from "./utils/alice-bob/cancel-alice-bob-order";
-import { createAliceBobOrder } from "./utils/alice-bob/create-alice-bob-order";
-import { estimateAliceBobOutput } from "./utils/alice-bob/estimate-alice-bob-output";
-import { getAliceBobOrderInfo } from "./utils/alice-bob/get-alice-bob-order-info";
-import { getAliceBobPairInfo } from "./utils/alice-bob/get-alice-bob-pair-info";
+import { getAdvertisingInfo } from './advertising/advertising';
+import { MIN_ANDROID_APP_VERSION, MIN_IOS_APP_VERSION } from './config';
+import getDAppsStats from './getDAppsStats';
+import { PlatformType } from './notifications/notification.interface';
+import { getNotifications } from './notifications/notifications.utils';
+import { getABData } from './utils/ab-test';
+import { cancelAliceBobOrder } from './utils/alice-bob/cancel-alice-bob-order';
+import { createAliceBobOrder } from './utils/alice-bob/create-alice-bob-order';
+import { estimateAliceBobOutput } from './utils/alice-bob/estimate-alice-bob-output';
+import { getAliceBobOrderInfo } from './utils/alice-bob/get-alice-bob-order-info';
+import { getAliceBobPairInfo } from './utils/alice-bob/get-alice-bob-pair-info';
 import { coinGeckoTokens } from './utils/gecko-tokens';
-import logger from "./utils/logger";
-import { getSignedMoonPayUrl } from "./utils/moonpay/get-signed-moonpay-url";
-import SingleQueryDataProvider from "./utils/SingleQueryDataProvider";
-import { tezExchangeRateProvider } from "./utils/tezos";
-import { tokensExchangeRatesProvider } from "./utils/tokens";
+import logger from './utils/logger';
+import { getSignedMoonPayUrl } from './utils/moonpay/get-signed-moonpay-url';
+import SingleQueryDataProvider from './utils/SingleQueryDataProvider';
+import { tezExchangeRateProvider } from './utils/tezos';
+import { tokensExchangeRatesProvider } from './utils/tokens';
 
 const PINO_LOGGER = {
-  logger: logger.child({ name: "web" }),
+  logger: logger.child({ name: 'web' }),
   serializers: {
     req: (req) => ({
       method: req.method,
@@ -72,7 +72,7 @@ const getProviderStateWithTimeout = <T>(provider: SingleQueryDataProvider<T>) =>
     provider.getState(),
     new Promise<{ data?: undefined; error: Error }>((resolve) =>
       setTimeout(
-        () => resolve({ error: new Error("Response timed out") }),
+        () => resolve({ error: new Error('Response timed out') }),
         30000
       )
     )
@@ -108,19 +108,19 @@ app.get('/api/notifications', (_req, res) => {
   }
 })
 
-app.get("/api/dapps", makeProviderDataRequestHandler(dAppsProvider));
+app.get('/api/dapps', makeProviderDataRequestHandler(dAppsProvider));
 
-app.get("/api/abtest", (_, res) => {
+app.get('/api/abtest', (_, res) => {
   const data = getABData();
   res.json(data);
 });
 
 app.get(
-  "/api/exchange-rates/tez",
+  '/api/exchange-rates/tez',
   makeProviderDataRequestHandler(tezExchangeRateProvider)
 );
 
-app.get("/api/exchange-rates", async (_req, res) => {
+app.get('/api/exchange-rates', async (_req, res) => {
   const { data: tokensExchangeRates, error: tokensExchangeRatesError } = await getProviderStateWithTimeout(tokensExchangeRatesProvider);
   const { data: tezExchangeRate, error: tezExchangeRateError } = await getProviderStateWithTimeout(tezExchangeRateProvider);
   if (tokensExchangeRatesError || tezExchangeRateError) {
@@ -139,7 +139,7 @@ app.get("/api/exchange-rates", async (_req, res) => {
 });
 
 app.get(
-  "/api/moonpay-sign",
+  '/api/moonpay-sign',
   async (_req, res) => {
     try {
       const url = _req.query.url;
@@ -163,7 +163,7 @@ return res.status(200).send({ signedUrl });
  * delete after 1.14.14 release
  */
 app.get(
-  "/api/alice-bob-sign",
+  '/api/alice-bob-sign',
   async (_req, res) => {
     const { isWithdraw, amount, userId, walletAddress, cardNumber } = _req.query;
     const booleanIsWithdraw = isWithdraw === 'true';
@@ -188,7 +188,7 @@ app.get(
   });
 
 app.post(
-  "/api/alice-bob/create-order",
+  '/api/alice-bob/create-order',
   async (_req, res) => {
     const { isWithdraw, amount, userId, walletAddress, cardNumber } = _req.query;
     const booleanIsWithdraw = isWithdraw === 'true';
@@ -213,7 +213,7 @@ app.post(
   });
 
 app.post(
-  "/api/alice-bob/cancel-order",
+  '/api/alice-bob/cancel-order',
   async (_req, res) => {
     const { orderId } = _req.query;
 
@@ -232,7 +232,7 @@ app.post(
  * delete after 1.14.14 release
  */
 app.get(
-  "/api/alice-bob-pair-info",
+  '/api/alice-bob-pair-info',
   async (_req, res) => {
     const isWithdraw = _req.query.isWithdraw;
 
@@ -247,7 +247,7 @@ app.get(
   });
 
 app.get(
-  "/api/alice-bob/get-pair-info",
+  '/api/alice-bob/get-pair-info',
   async (_req, res) => {
     const { isWithdraw } = _req.query;
 
@@ -262,7 +262,7 @@ app.get(
   });
 
 app.get(
-  "/api/alice-bob/check-order",
+  '/api/alice-bob/check-order',
   async (_req, res) => {
     const { orderId } = _req.query;
 
@@ -277,7 +277,7 @@ app.get(
   });
 
 app.post(
-    "/api/alice-bob/estimate-amount",
+    '/api/alice-bob/estimate-amount',
     async (_req, res) => {
       const { isWithdraw, amount } = _req.query;
       const booleanIsWithdraw = isWithdraw === 'true';
@@ -299,16 +299,16 @@ app.post(
 
 app.get('/api/mobile-check', async (_req, res) => {
   console.log(1);
-  console.log("androidAppId", process.env.ANDROID_APP_ID);
-  console.log("iosAppId", process.env.IOS_APP_ID);
+  console.log('androidAppId', process.env.ANDROID_APP_ID);
+  console.log('iosAppId', process.env.IOS_APP_ID);
 
   const platform = _req.query.platform;
   const appCheckToken = _req.query.appCheckToken;
-  console.log("token", appCheckToken);
+  console.log('token', appCheckToken);
 
   console.log(1);
-  console.log("androidAppId", process.env.ANDROID_APP_ID);
-  console.log("iosAppId", process.env.IOS_APP_ID);
+  console.log('androidAppId', process.env.ANDROID_APP_ID);
+  console.log('iosAppId', process.env.IOS_APP_ID);
 
   console.log('A123', platform, appCheckToken);
 
@@ -321,7 +321,7 @@ app.get('/api/mobile-check', async (_req, res) => {
       await iosApp.appCheck().verifyToken(appCheckToken);
     } else {
       await androidApp.appCheck().verifyToken(appCheckToken);
-      console.log("verification successful");
+      console.log('verification successful');
     }
 
     res.status(200).send({
@@ -330,7 +330,7 @@ app.get('/api/mobile-check', async (_req, res) => {
       isAppCheckFailed: false
     });
   } catch (err) {
-    console.log("err", err);
+    console.log('err', err);
     res.status(200).send({
       minIosVersion: MIN_IOS_APP_VERSION,
       minAndroidVersion: MIN_ANDROID_APP_VERSION,
@@ -351,4 +351,4 @@ app.get('/api/advertising-info', (_req, res) => {
 });
 
 // start the server listening for requests
-app.listen(Boolean(process.env.PORT) ? process.env.PORT : 3000, () => console.log("Server is running..."));
+app.listen(Boolean(process.env.PORT) ? process.env.PORT : 3000, () => console.log('Server is running...'));

@@ -8,33 +8,33 @@ interface DappList {
   }
 
   enum DappType {
-    Exchanges = "Exchanges",
-    Marketplaces = "Marketplaces",
-    Games = "Games",
-    DeFi = "DeFi",
-    Collectibles = "Collectibles",
-    Other = "Other"
+    Exchanges = 'Exchanges',
+    Marketplaces = 'Marketplaces',
+    Games = 'Games',
+    DeFi = 'DeFi',
+    Collectibles = 'Collectibles',
+    Other = 'Other'
   }
 
   export const dappList: DappList[] = [
     {
-        name: "QuipuSwap",
+        name: 'QuipuSwap',
         dappUrl: 'https://quipuswap.com',
         type: DappType.Exchanges,
-        logo: "https://dashboard-assets.dappradar.com/document/7360/quipuswap-dapp-exchanges-tezos-logo-166x166_ebde5a0933878146d43d79b2cdd754f8.png",
-        slug: "quipuswap",
+        logo: 'https://dashboard-assets.dappradar.com/document/7360/quipuswap-dapp-exchanges-tezos-logo-166x166_ebde5a0933878146d43d79b2cdd754f8.png',
+        slug: 'quipuswap',
         categories: [DappType.Exchanges, DappType.DeFi]
     },
     {
-        name: "Yupana",
+        name: 'Yupana',
         dappUrl: 'https://yupana.finance',
         type: DappType.DeFi,
-        logo: "https://pbs.twimg.com/profile_images/1450382829062393859/NSu06S5C_400x400.png",
-        slug: "yupana",
+        logo: 'https://pbs.twimg.com/profile_images/1450382829062393859/NSu06S5C_400x400.png',
+        slug: 'yupana',
         categories: [DappType.DeFi]
     },
     {
-        name: "Objkt.com",
+        name: 'Objkt.com',
         dappUrl: 'https://objkt.com',
         type: DappType.Marketplaces,
         logo: 'https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/objkt/objkt_logo.png',
@@ -42,7 +42,7 @@ interface DappList {
         categories: [DappType.Marketplaces]
     },
     {
-        name: "PixelPotus",
+        name: 'PixelPotus',
         dappUrl: 'https://www.pixelpotus.com',
         type: DappType.Collectibles,
         logo: 'https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/pixelpotus/pixelpotus_logo.png',
@@ -50,7 +50,7 @@ interface DappList {
         categories: [DappType.Collectibles, DappType.Games]
     },
     {
-        name: "DOGAMÍ",
+        name: 'DOGAMÍ',
         dappUrl: 'https://dogami.com',
         type: DappType.Games,
         logo: 'https://dashboard-assets.dappradar.com/document/13974/dogam-dapp-games-tezos-logo-166x166_b7394b584e1bfd58e7d5ef8a654fae0c.png',
@@ -58,7 +58,7 @@ interface DappList {
         categories: [DappType.Games, DappType.Collectibles]
     },
     {
-        name: "Tezotopia",
+        name: 'Tezotopia',
         dappUrl: 'https://tezotop.io',
         type: DappType.Games,
         logo: 'https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/tezotopia/tezotopia_logo.png',
@@ -66,7 +66,7 @@ interface DappList {
         categories: [DappType.Games, DappType.Collectibles]
     },
     {
-        name: "Tezos Domains",
+        name: 'Tezos Domains',
         dappUrl: 'https://tezos.domains',
         type: DappType.DeFi,
         logo: 'https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/tezosdomains/tezosdomains_logo.png',
@@ -74,7 +74,7 @@ interface DappList {
         categories: [DappType.Other]
     },
     {
-        name: "DNS.xyz",
+        name: 'DNS.xyz',
         dappUrl: 'https://dns.xyz/',
         type: DappType.DeFi,
         logo: 'https://pbs.twimg.com/profile_images/1586824458651590656/C-r5Veh3_200x200.png',
@@ -82,7 +82,7 @@ interface DappList {
         categories: [DappType.Marketplaces, DappType.Collectibles]
     },
     {
-        name: "Plenty",
+        name: 'Plenty',
         dappUrl: 'https://www.plentydefi.com',
         type: DappType.DeFi,
         logo: 'https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/plenty/plenty_logo.png',
@@ -90,7 +90,7 @@ interface DappList {
         categories: [DappType.DeFi, DappType.Exchanges]
     },
     {
-        name: "Kalamint",
+        name: 'Kalamint',
         dappUrl: 'https://kalamint.io',
         type: DappType.Marketplaces,
         logo: 'https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/kalamint/kalamint_logo.png',
@@ -98,7 +98,7 @@ interface DappList {
         categories: [DappType.Marketplaces]
     },
     {
-        name: "Smartlink",
+        name: 'Smartlink',
         dappUrl: 'https://www.smartlink.so',
         type: DappType.DeFi,
         logo: 'https://dashboard-assets.dappradar.com/document/7516/smartlink-dapp-marketplaces-tezos-logo-166x166_68ee1ea922aabc1934817dcdb49b07db.png',
@@ -106,7 +106,7 @@ interface DappList {
         categories: [DappType.DeFi, DappType.Exchanges]
     },
     {
-        name: "Youves",
+        name: 'Youves',
         dappUrl: 'https://app.youves.com/?ref=tz1UbRzhYjQKTtWYvGUWcRtVT4fN3NESDVYT',
         type: DappType.DeFi,
         logo: 'https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/youves/youves_logo.png',
@@ -114,7 +114,7 @@ interface DappList {
         categories: [DappType.DeFi, DappType.Exchanges]
     },
     {
-        name: "Crunchy",
+        name: 'Crunchy',
         dappUrl: 'https://app.crunchy.network',
         type: DappType.DeFi,
         logo: 'https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/crunchy/crunchy_logo.jpg',
@@ -122,7 +122,7 @@ interface DappList {
         categories: [DappType.DeFi]
     },
     {
-        name: "Kolibri",
+        name: 'Kolibri',
         dappUrl: 'https://kolibri.finance',
         type: DappType.DeFi,
         logo: 'https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/kolibri/kolibri_logo.png',
@@ -130,7 +130,7 @@ interface DappList {
         categories: [DappType.DeFi, DappType.Other]
     },
     {
-        name: "signum",
+        name: 'signum',
         dappUrl: 'https://signum.loans',
         type: DappType.DeFi,
         logo: 'https://pbs.twimg.com/profile_images/1578001954026016768/aYYGtOsL_200x200.jpg',
@@ -138,7 +138,7 @@ interface DappList {
         categories: [DappType.DeFi, DappType.Collectibles]
     },
     {
-      name: "Kord.Fi",
+      name: 'Kord.Fi',
       dappUrl: 'https://kord.fi/',
       type: DappType.DeFi,
       logo: 'https://pbs.twimg.com/profile_images/1538616711536156672/eRwz1uNE_400x400.jpg',

@@ -1,4 +1,4 @@
-import crossFetch from "cross-fetch";
+import crossFetch from 'cross-fetch';
 
 export class InvalidStatusError extends Error {
   constructor(message: string, public status: number) {
@@ -19,7 +19,7 @@ export default async function fetch<T>(
     throw new InvalidStatusError(body.message, res.status);
   }
   if (!res.ok) {
-    throw new NotOkFetchError("An error occurred while fetching");
+    throw new NotOkFetchError('An error occurred while fetching');
   }
   
 return body;

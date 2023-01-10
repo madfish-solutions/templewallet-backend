@@ -1,6 +1,6 @@
-import crypto from "crypto";
+import crypto from 'crypto';
 
-import {AliceBobPayload} from "../../interfaces/alice-bob/alice-bob.interfaces";
+import {AliceBobPayload} from '../../interfaces/alice-bob/alice-bob.interfaces';
 
 export const getAliceBobSignature = (payload?: AliceBobPayload) => {
   const now = Date.now();

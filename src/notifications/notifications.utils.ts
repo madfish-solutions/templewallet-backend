@@ -1,5 +1,5 @@
-import { PlatformType } from "./notification.interface";
-import { MANDATORY_NOTIFICATIONS_LIST, NOTIFICATIONS_LIST } from "./notifications-list.data";
+import { PlatformType } from './notification.interface';
+import { MANDATORY_NOTIFICATIONS_LIST, NOTIFICATIONS_LIST } from './notifications-list.data';
 
 export const getNotifications = (platform: PlatformType, startFromTime: number) =>
   [
