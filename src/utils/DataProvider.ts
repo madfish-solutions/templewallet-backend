@@ -3,17 +3,20 @@ import SingleQueryDataProvider, {
   SingleQueryDataProviderState
 } from "./SingleQueryDataProvider";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DataSubscriptionItem<T, A extends any[]> = {
   dataProvider: SingleQueryDataProvider<T>;
   args: A;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function argsAreEqual<A extends any[]>(a: A, b: A) {
   return (
     a.length === b.length && a.every((aValue, index) => b[index] === aValue)
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default class DataProvider<T, A extends any[]> {
   protected subscriptions: MutexProtectedData<DataSubscriptionItem<T, A>[]>;
 
@@ -59,8 +62,8 @@ export default class DataProvider<T, A extends any[]> {
     }
     try {
       const data = await this.fetchFn(...args);
-      
-return { data };
+
+      return { data };
     }
     // @ts-ignore
     catch (error: Error) {

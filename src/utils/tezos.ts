@@ -8,11 +8,12 @@ import { tzip12 } from "@taquito/tzip12";
 import { tzip16 } from "@taquito/tzip16";
 import memoizee from "memoizee";
 
+import { ITicker } from "../interfaces/tickers";
 import fetch from "./fetch";
 import SingleQueryDataProvider from "./SingleQueryDataProvider";
 import { BcdTokenData } from "./tzkt";
 
-const MAINNET_RPC_URL = process.env.RPC_URL || "https://mainnet-node.madfish.solutions";
+const MAINNET_RPC_URL = process.env.RPC_URL !== undefined ? process.env.RPC_URL : "https://mainnet-node.madfish.solutions";
 const TEMPLE_WALLET_LV_ACCOUNT_PKH = "tz1fVQangAfb9J1hRRMP2bSB6LvASD6KpY8A";
 const TEMPLE_WALLET_LV_ACCOUNT_PUBLIC_KEY =
   "edpkvWbk81uh1DEvdWKR4g1bjyTGhdu1mDvznPUFE2zDwNsLXrEb9K";
@@ -54,21 +55,22 @@ const getContract = memoizee(
 export const getStorage = memoizee(
   async (contractAddress: string) => {
     const contract = await getContract(contractAddress);
-    
-return contract.storage<any>();
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return contract.storage<any>();
   },
   { promise: true, maxAge: 30000 }
 );
 
 const getTezExchangeRate = async () => {
-  const marketTickers = await fetch<any>(
+  const marketTickers = await fetch<Array<ITicker>>(
     "https://api.tzstats.com/markets/tickers"
   );
   const usdTickers = marketTickers.filter((e) => e.quote === "USD");
   // price index: use all USD ticker last prices with equal weight
   const vol = usdTickers.reduce((s, t) => s + t.volume_base, 0) || null;
-  const price: number =
-    vol && usdTickers.reduce((s, t) => s + (t.last * t.volume_base) / vol, 0);
+  const price =
+    vol !== null && usdTickers.reduce((s, t) => s + (t.last * t.volume_base) / vol, 0);
 
   return price;
 };
@@ -88,6 +90,7 @@ export const getTokenMetadata = memoizee(
       compose(tzip12, tzip16)
     );
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let tokenData: any;
     let latestErrMessage;
 
@@ -107,7 +110,7 @@ export const getTokenMetadata = memoizee(
      * Try fetch token data with TZIP16
      * Get them from plain tzip16 structure/scheme
      */
-    if (!tokenData || Object.keys(tokenData).length === 0) {
+    if (tokenData === undefined || Object.keys(tokenData).length === 0) {
       try {
         // @ts-ignore
         const { metadata } = await contract.tzip16().getMetadata();
@@ -119,15 +122,16 @@ export const getTokenMetadata = memoizee(
       }
     }
 
-    if (!tokenData) {
+    if (tokenData === undefined) {
       throw new MetadataParseError(latestErrMessage ?? "Unknown error");
     }
 
     return {
-      decimals: tokenData.decimals ? +tokenData.decimals : 0,
-      symbol:
-        tokenData.symbol ||
-        (tokenData.name ? tokenData.name.substr(0, 8) : "???"),
+      decimals: Boolean(tokenData) ? +tokenData.decimals : 0,
+      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+      symbol: tokenData.symbol ||
+        (Boolean(tokenData.name) ? tokenData.name.substr(0, 8) : "???"),
+      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       name: tokenData.name || tokenData.symbol || "Unknown Token",
       contract: tokenAddress,
       token_id: tokenId ?? 0,

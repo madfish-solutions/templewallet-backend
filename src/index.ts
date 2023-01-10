@@ -1,21 +1,21 @@
-import {MIN_ANDROID_APP_VERSION, MIN_IOS_APP_VERSION} from "./config";
 require("./configure");
 
 import cors from "cors";
 import express, { Request, Response } from "express";
-import pino from "pino";
+import { stdSerializers } from "pino";
 import pinoHttp from "pino-http";
 
 import { getAdvertisingInfo } from "./advertising/advertising";
+import { MIN_ANDROID_APP_VERSION, MIN_IOS_APP_VERSION } from "./config";
 import getDAppsStats from "./getDAppsStats";
 import { PlatformType } from "./notifications/notification.interface";
 import { getNotifications } from "./notifications/notifications.utils";
 import { getABData } from "./utils/ab-test";
-import {cancelAliceBobOrder} from "./utils/alice-bob/cancel-alice-bob-order";
-import {createAliceBobOrder} from "./utils/alice-bob/create-alice-bob-order";
-import {estimateAliceBobOutput} from "./utils/alice-bob/estimate-alice-bob-output";
-import {getAliceBobOrderInfo} from "./utils/alice-bob/get-alice-bob-order-info";
-import {getAliceBobPairInfo} from "./utils/alice-bob/get-alice-bob-pair-info";
+import { cancelAliceBobOrder } from "./utils/alice-bob/cancel-alice-bob-order";
+import { createAliceBobOrder } from "./utils/alice-bob/create-alice-bob-order";
+import { estimateAliceBobOutput } from "./utils/alice-bob/estimate-alice-bob-output";
+import { getAliceBobOrderInfo } from "./utils/alice-bob/get-alice-bob-order-info";
+import { getAliceBobPairInfo } from "./utils/alice-bob/get-alice-bob-pair-info";
 import { coinGeckoTokens } from './utils/gecko-tokens';
 import logger from "./utils/logger";
 import { getSignedMoonPayUrl } from "./utils/moonpay/get-signed-moonpay-url";
@@ -35,8 +35,8 @@ const PINO_LOGGER = {
       id: req.id
     }),
     err: (err) => {
-      const { type, message } = pino.stdSerializers.err(err);
-      
+      const { type, message } = stdSerializers.err(err);
+
 return { type, message };
     },
     res: (res) => ({
@@ -54,13 +54,16 @@ const dAppsProvider = new SingleQueryDataProvider(
   getDAppsStats
 );
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const firebaseAdmin = require('firebase-admin');
 const androidApp = firebaseAdmin.initializeApp({
   projectId: 'templewallet-fa3b3',
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   appId: process.env.ANDROID_APP_ID!
 }, 'androidApp');
 const iosApp = firebaseAdmin.initializeApp({
   projectId: 'templewallet-fa3b3',
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   appId: process.env.IOS_APP_ID!
 }, 'iosApp');
 
@@ -84,6 +87,7 @@ const makeProviderDataRequestHandler = <T, U>(
     if (error) {
       res.status(500).send({ error: error.message });
     } else {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       res.json(transformFn ? transformFn(data!) : data);
     }
   };
@@ -121,11 +125,14 @@ app.get("/api/exchange-rates", async (_req, res) => {
   const { data: tezExchangeRate, error: tezExchangeRateError } = await getProviderStateWithTimeout(tezExchangeRateProvider);
   if (tokensExchangeRatesError || tezExchangeRateError) {
     res.status(500).send({
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       error: (tokensExchangeRatesError || tezExchangeRateError)!.message
     });
   } else {
     res.json([
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-non-null-assertion
       ...tokensExchangeRates!.map(({ metadata, ...restProps }) => restProps),
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       { exchangeRate: tezExchangeRate!.toString() }
     ]);
   }
@@ -136,10 +143,13 @@ app.get(
   async (_req, res) => {
     try {
       const url = _req.query.url;
+      console.log('url: ', url);
+      console.log('url: type', typeof(url));
 
       if (typeof(url) === 'string') {
         const signedUrl = getSignedMoonPayUrl(url);
-        res.status(200).send({ signedUrl });
+        
+return res.status(200).send({ signedUrl });
       }
 
       res.status(500).send({ error: 'Requested URL is not valid' });
@@ -302,7 +312,7 @@ app.get('/api/mobile-check', async (_req, res) => {
 
   console.log('A123', platform, appCheckToken);
 
-  if (!appCheckToken) {
+  if (!Boolean(appCheckToken)) {
     res.status(400).send({ error: 'App Check token is not defined' });
   }
 
@@ -341,4 +351,4 @@ app.get('/api/advertising-info', (_req, res) => {
 });
 
 // start the server listening for requests
-app.listen(process.env.PORT || 3000, () => console.log("Server is running..."));
+app.listen(Boolean(process.env.PORT) ? process.env.PORT : 3000, () => console.log("Server is running..."));

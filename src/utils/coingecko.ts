@@ -87,6 +87,7 @@ export const getMarketsBySymbols = async (symbols: string[]) => {
   if (coinsError) {
     throw coinsError;
   }
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const matchingCoins = coins!.filter(({ symbol }) =>
     symbols.some(
       (matchingSymbol) => matchingSymbol.toLowerCase() === symbol.toLowerCase()
@@ -102,6 +103,6 @@ export const getMarketsBySymbols = async (symbols: string[]) => {
       })
     )
   );
-  
+
 return chunks.flat();
 };

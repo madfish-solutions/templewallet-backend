@@ -1,3 +1,4 @@
+import { emptyFn } from "./helpers";
 import logger from "./logger";
 import MutexProtectedData from "./MutexProtectedData";
 import PromisifiedSemaphore from "./PromisifiedSemaphore";
@@ -71,9 +72,9 @@ export default class SingleQueryDataProvider<T> {
   }
 
   async getState() {
-    await this.readyMutex.exec(() => {});
-    
-return this.state.getData();
+    await this.readyMutex.exec(emptyFn);
+
+    return this.state.getData();
   }
 
   finalize() {

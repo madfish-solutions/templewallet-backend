@@ -1,7 +1,8 @@
 import { MichelsonMap } from "@taquito/michelson-encoder";
-import BigNumber from "bignumber.js";
+import { BigNumber } from "bignumber.js";
 import memoizee from "memoizee";
 
+import { IPriceHistory } from "../interfaces/price-history";
 import fetch from "./fetch";
 import { range } from "./helpers";
 import logger from "./logger";
@@ -13,7 +14,9 @@ import {
 } from "./tezos";
 import { BcdTokenData, contractTokensProvider, mapTzktTokenDataToBcdTokenData, tokensMetadataProvider, TZKT_NETWORKS } from "./tzkt";
 
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const fa12Factories = process.env.QUIPUSWAP_FA12_FACTORIES!.split(",");
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const fa2Factories = process.env.QUIPUSWAP_FA2_FACTORIES!.split(",");
 
 type QuipuswapExchanger = {
@@ -59,7 +62,7 @@ const getQuipuswapExchangers = async (): Promise<QuipuswapExchanger[]> => {
                 throw error;
               }
 
-return {
+              return {
                 tokenAddress,
                 exchangerAddress,
                 tokenMetadata: tokensMetadata ? tokensMetadata[0] : undefined
@@ -108,7 +111,7 @@ return {
             throw error;
           }
 
-return {
+          return {
             exchangerAddress,
             tokenAddress: address,
             tokenId: token_id,
@@ -174,6 +177,7 @@ const getPoolTokenExchangeRate = memoizee(
     const dexterExchangeRate = new BigNumber(0);
     const dexterWeight = new BigNumber(0);
     const tokenElementaryParts = new BigNumber(10).pow(decimals);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const matchingQuipuswapExchangers = quipuswapExchangers!.filter(
       ({ tokenAddress: swappableTokenAddress, tokenId: swappableTokenId }) =>
         tokenAddress === swappableTokenAddress &&
@@ -185,6 +189,7 @@ const getPoolTokenExchangeRate = memoizee(
           const {
             storage: { tez_pool, token_pool }
           } = await getStorage(exchangerAddress);
+          // eslint-disable-next-line  @typescript-eslint/strict-boolean-expressions
           if (!tez_pool.eq(0) && !token_pool.eq(0)) {
             return {
               weight: tez_pool,
@@ -194,7 +199,7 @@ const getPoolTokenExchangeRate = memoizee(
             };
           }
 
-return { weight: new BigNumber(0), exchangeRate: new BigNumber(0) };
+          return { weight: new BigNumber(0), exchangeRate: new BigNumber(0) };
         })
       );
       quipuswapWeight = exchangersCharacteristics.reduce(
@@ -215,12 +220,12 @@ return { weight: new BigNumber(0), exchangeRate: new BigNumber(0) };
       return new BigNumber(0);
     }
 
-return quipuswapExchangeRate
+    return quipuswapExchangeRate
       .times(quipuswapWeight)
       .plus(dexterExchangeRate.times(dexterWeight))
       .div(quipuswapWeight.plus(dexterWeight))
-      .times(tezExchangeRate!);
-  },
+      .times(tezExchangeRate as never as number);
+    },
   { promise: true, maxAge: LIQUIDITY_INTERVAL }
 );
 
@@ -242,6 +247,7 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
   }
   logger.info("Getting tokens exchange rates from Quipuswap pools");
   const exchangeRates = await Promise.all(
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     quipuswapExchangers!
       .reduce((onePerTokenExchangers, exchanger) => {
         if (
@@ -259,7 +265,7 @@ return onePerTokenExchangers;
       .map(async ({ tokenAddress, tokenId, tokenMetadata }) => {
         logger.info(tokenMetadata?.name ?? tokenAddress);
 
-return {
+          return {
           tokenAddress,
           tokenId,
           exchangeRate: await getPoolTokenExchangeRate({
@@ -267,6 +273,7 @@ return {
             decimals: tokenMetadata && tokenMetadata.decimals,
             token_id: tokenId
           }),
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           metadata: tokenMetadata!
         };
       })
@@ -284,7 +291,7 @@ return {
       if (aspencoinMetadataError) {
         throw aspencoinMetadataError;
       }
-      const priceHistory = await fetch<any>(
+      const priceHistory = await fetch<IPriceHistory>(
         "https://gateway-web-markets.tzero.com/mdt/public-pricehistory/ASPD?page=1"
       );
       const latestValidEntry = priceHistory.priceHistories.find(
@@ -298,6 +305,7 @@ return {
         tokenAddress: ASPENCOIN_ADDRESS,
         tokenId: undefined,
         exchangeRate: tokenPrice,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         metadata: mapTzktTokenDataToBcdTokenData(aspencoinMetadata![0])!
       });
     } catch (e) {}

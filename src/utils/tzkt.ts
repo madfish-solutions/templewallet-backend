@@ -11,7 +11,9 @@ export type BcdTokenData = {
   is_transferable?: boolean;
   is_boolean_amount?: boolean;
   should_prefer_symbol?: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   extras?: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   token_info?: Record<string, any>;
   supply?: string;
 };
@@ -24,7 +26,6 @@ export enum TZKT_NETWORKS {
 
 const TZKT_BASE_URL_MAINNET = 'https://api.tzkt.io/v1'
 const TZKT_BASE_URL_GHOSTNET = 'https://api.ghostnet.tzkt.io/v1'
-const TZKT_BASE_URL_JAKARTANET = 'https://api.jakartanet.tzkt.io/v1'
 
 type SeriesParams = {
   addresses: string[];
@@ -92,6 +93,7 @@ export type TzktTokenData = {
     isTransferable?: boolean;
     isBooleanAmount?: boolean;
     shouldPreferSymbol?: boolean;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     extras?: Record<string, any>;
   };
   totalSupply?: string;

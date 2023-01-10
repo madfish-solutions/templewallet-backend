@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig } from "axios";
-import qs from "qs";
+import { stringify } from "qs";
 
 import PromisifiedSemaphore from "./PromisifiedSemaphore";
 
@@ -10,7 +10,7 @@ function pick<T, U extends keyof T>(obj: T, keys: U[]) {
       newObj[key] = obj[key];
     }
   });
-  
+
 return newObj as Pick<T, U>;
 }
 
@@ -25,13 +25,14 @@ export default function makeBuildQueryFn<P, R>(
   baseUrl: string,
   maxConcurrentQueries?: number
 ) {
-  const semaphore = maxConcurrentQueries
+  const semaphore = maxConcurrentQueries !== undefined
     ? new PromisifiedSemaphore(maxConcurrentQueries)
     : undefined;
-  
+
 return function f1<P1 extends P, R1 extends R>(
     path: string | ((params: P1) => string),
-    toQueryParams?: (keyof P1)[] | ((params: P1) => Record<string, any>),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    toQueryParams?: (keyof P1)[] | ((params: P1) => Record<string,  any>),
     config?: Omit<AxiosRequestConfig, "url">
   ) {
     return async (params: P1) => {
@@ -42,7 +43,7 @@ return function f1<P1 extends P, R1 extends R>(
           : toQueryParams
           ? pick(params, toQueryParams)
           : {};
-      const queryStr = qs.stringify(queryParams);
+      const queryStr = stringify(queryParams);
       const noQueryParamsUrl = isAbsoluteURL(url)
         ? `${url}/`
         : `${baseUrl}${url}`;
@@ -65,8 +66,8 @@ return function f1<P1 extends P, R1 extends R>(
         });
       }
       const { data } = await axios.request<R1>({ url: fullUrl, ...config });
-      
-return data;
+
+      return data;
     };
   };
 }
