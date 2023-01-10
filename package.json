@@ -30,6 +30,7 @@
     "start-prod": "cross-env NODE_ENV=production node dist/index.js",
     "build": "tsc --skipLibCheck",
     "ts": "tsc --pretty",
+    "lint": "eslint ./src --ext .js,.ts",
     "clean": "rimraf dist/"
   },
   "devDependencies": {
