@@ -31,6 +31,7 @@
     "build": "tsc --skipLibCheck",
     "ts": "tsc --pretty",
     "lint": "eslint ./src --ext .js,.ts",
+    "lint:fix": "eslint ./src --ext .js,.ts --fix",
     "clean": "rimraf dist/"
   },
   "devDependencies": {
