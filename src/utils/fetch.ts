@@ -8,10 +8,7 @@ export class InvalidStatusError extends Error {
 
 export class NotOkFetchError extends Error {}
 
-export default async function fetch<T>(
-  url: string,
-  init?: RequestInit
-): Promise<T> {
+export default async function fetch<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await crossFetch(url, init);
 
   const body = await res.json();
@@ -21,6 +18,6 @@ export default async function fetch<T>(
   if (!res.ok) {
     throw new NotOkFetchError('An error occurred while fetching');
   }
-  
-return body;
+
+  return body;
 }

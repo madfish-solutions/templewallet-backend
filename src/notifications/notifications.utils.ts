@@ -8,8 +8,4 @@ export const getNotifications = (platform: PlatformType, startFromTime: number) 
       ...notification,
       createdAt: new Date(startFromTime).toString()
     }))
-  ]
-    .filter(
-      notification =>
-        notification.platforms.includes(platform)
-    );
+  ].filter(notification => notification.platforms.includes(platform));

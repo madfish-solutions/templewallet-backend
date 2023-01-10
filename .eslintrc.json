@@ -6,17 +6,19 @@
   },
   "extends": [
     "plugin:@typescript-eslint/recommended",
+    "prettier",
     "plugin:import/errors",
     "plugin:import/warnings",
     "plugin:import/typescript"
   ],
-  "plugins": ["@typescript-eslint", "import"],
+  "plugins": ["@typescript-eslint", "import", "prettier"],
   "settings": {
     "import/resolver": {
       "typescript": {}
     }
   },
   "rules": {
+    "prettier/prettier": "error",
     "newline-before-return": ["error"],
     "comma-dangle": ["error", "never"],
     "no-void": "off",

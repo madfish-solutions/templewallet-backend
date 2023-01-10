@@ -43,17 +43,14 @@ export default class SingleQueryDataProvider<T> {
     try {
       const result = await this.fetchFn();
       await this.state.setData({ data: result });
-    }
-    // @ts-ignore
-    catch (e: Error) {
+    } catch (e: Error) {
+      // @ts-ignore
       const timeSlot = 1000;
-      logger.error(
-        `Error in SingleQueryDataProvider: ${e.message}\n${e.stack}`
-      );
+      logger.error(`Error in SingleQueryDataProvider: ${e.message}\n${e.stack}`);
       if (this.shouldGiveUp(e, c)) {
         await this.state.setData({ error: e });
       } else {
-        await new Promise<void>((resolve) => {
+        await new Promise<void>(resolve => {
           this.refetchRetryTimeout = setTimeout(async () => {
             await this.makeFetchAttempt(c + 1);
             resolve();
@@ -65,10 +62,7 @@ export default class SingleQueryDataProvider<T> {
 
   async init() {
     await this.readyMutex.exec(() => this.refetch());
-    this.refetchInterval = setInterval(
-      () => this.refetch(),
-      this.refreshParams
-    );
+    this.refetchInterval = setInterval(() => this.refetch(), this.refreshParams);
   }
 
   async getState() {

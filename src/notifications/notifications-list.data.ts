@@ -7,13 +7,13 @@ const DEFAULT_BANNER_URLS = {
     news: `${BANNERS_BUCKET_URL}/extension/news.svg`,
     platformUpdate: `${BANNERS_BUCKET_URL}/extension/platform-update.svg`,
     securityNote: `${BANNERS_BUCKET_URL}/extension/security-note.svg`,
-    winNft:`${BANNERS_BUCKET_URL}/extension/extension-win-nft.svg`
+    winNft: `${BANNERS_BUCKET_URL}/extension/extension-win-nft.svg`
   },
   mobile: {
     news: `${BANNERS_BUCKET_URL}/mobile/news.svg`,
     platformUpdate: `${BANNERS_BUCKET_URL}/mobile/platform-update.svg`,
     securityNote: `${BANNERS_BUCKET_URL}/mobile/security-note.svg`,
-    winNft:`${BANNERS_BUCKET_URL}/mobile/mobile-win-nft.svg`
+    winNft: `${BANNERS_BUCKET_URL}/mobile/mobile-win-nft.svg`
   }
 };
 
@@ -25,7 +25,8 @@ export const NOTIFICATIONS_LIST: Notification[] = [
     platforms: [PlatformType.Mobile],
     language: 'en-US',
     title: 'Temple mobile update!',
-    description: 'Don’t forget to update your Mobile app to the latest version. Click “Details” to learn what’s in this patch.',
+    description:
+      'Don’t forget to update your Mobile app to the latest version. Click “Details” to learn what’s in this patch.',
     content: [
       'In this update:\n',
       ' • The new market feature was released. Track your favorite Tezos coins directly in your wallet. Add to favorites by clicking the star icon, or instantly buy tokens you like. To start using all features - choose a token and swipe it.\n',
@@ -74,7 +75,8 @@ export const MANDATORY_NOTIFICATIONS_LIST: Notification[] = [
     platforms: [PlatformType.Extension],
     language: 'en-US',
     title: 'A note on security',
-    description: 'Please read this short write-up to learn how we help you secure your wallet and what additional steps you may take on your part.',
+    description:
+      'Please read this short write-up to learn how we help you secure your wallet and what additional steps you may take on your part.',
     content: [
       'Attention!\n',
       '\n',
@@ -94,7 +96,7 @@ export const MANDATORY_NOTIFICATIONS_LIST: Notification[] = [
       '\n',
       'Take care of your safety in the crypto world!',
       'You can find even more security tips ',
-      {text: 'here', url: 'https://madfish.crunch.help/temple-wallet/a-note-on-security'},
+      { text: 'here', url: 'https://madfish.crunch.help/temple-wallet/a-note-on-security' },
       '.'
     ],
     extensionImageUrl: DEFAULT_BANNER_URLS.extension.securityNote,
@@ -107,7 +109,8 @@ export const MANDATORY_NOTIFICATIONS_LIST: Notification[] = [
     platforms: [PlatformType.Mobile],
     language: 'en-US',
     title: 'A note on security',
-    description: 'Please read this short write-up to learn how we help you secure your wallet and what additional steps you may take on your part.',
+    description:
+      'Please read this short write-up to learn how we help you secure your wallet and what additional steps you may take on your part.',
     content: [
       'Attention\n',
       '\n',
@@ -126,7 +129,7 @@ export const MANDATORY_NOTIFICATIONS_LIST: Notification[] = [
       '\n',
       'Take care of your safety in the crypto world!\n',
       'You can find even more security tips ',
-      {text: 'here', url: 'https://madfish.crunch.help/temple-wallet/a-note-on-security'},
+      { text: 'here', url: 'https://madfish.crunch.help/temple-wallet/a-note-on-security' },
       '.'
     ],
     extensionImageUrl: DEFAULT_BANNER_URLS.extension.securityNote,
@@ -157,7 +160,7 @@ export const MANDATORY_NOTIFICATIONS_LIST: Notification[] = [
       ' • And more!\n',
       '\n',
       'To quickly learn the ropes, check our ',
-      {text: 'knowledge base', url: 'https://madfish.crunch.help/temple-wallet'},
+      { text: 'knowledge base', url: 'https://madfish.crunch.help/temple-wallet' },
       ' and ',
       {
         text: 'YouTube video tutorials',
@@ -165,14 +168,14 @@ export const MANDATORY_NOTIFICATIONS_LIST: Notification[] = [
       },
       ' out.\n\n',
       'If you have any questions or suggestions, reach us at ',
-      {text: 'info@madfish.solutions', url: 'mailto:info@madfish.solutions'},
+      { text: 'info@madfish.solutions', url: 'mailto:info@madfish.solutions' },
       '. To talk to us directly, join our online communities in ',
-      {text: 'Telegram', url: 'https://t.me/MadFishCommunity'},
+      { text: 'Telegram', url: 'https://t.me/MadFishCommunity' },
       ' and ',
-      {text: 'Discord', url: 'https://discord.com/invite/qFRZ8kVzkv'},
+      { text: 'Discord', url: 'https://discord.com/invite/qFRZ8kVzkv' },
       '. We’re happy to have you!\n'
     ],
     extensionImageUrl: DEFAULT_BANNER_URLS.extension.news,
     mobileImageUrl: DEFAULT_BANNER_URLS.mobile.news
   }
-]
+];

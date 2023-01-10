@@ -50,24 +50,12 @@ type Market = {
 
 const COINGECKO_BASE_URL = 'https://api.coingecko.com/api/v3';
 
-const buildQuery =
-  makeBuildQueryFn<CoinsListParams | MarketsParams, CoinsListItem[] | Market[]>(
-    COINGECKO_BASE_URL
-  );
+const buildQuery = makeBuildQueryFn<CoinsListParams | MarketsParams, CoinsListItem[] | Market[]>(COINGECKO_BASE_URL);
 
-const getCoins = buildQuery<CoinsListParams, CoinsListItem[]>('/coins/list', [
-  'include_platform'
-]);
+const getCoins = buildQuery<CoinsListParams, CoinsListItem[]>('/coins/list', ['include_platform']);
 const getMarkets = buildQuery<MarketsParams, Market[]>(
   '/coins/markets',
-  ({
-    vs_currency = 'usd',
-    ids,
-    order = 'market_cap_desc',
-    per_page = 100,
-    page = 1,
-    sparkline = false
-  }) => ({
+  ({ vs_currency = 'usd', ids, order = 'market_cap_desc', per_page = 100, page = 1, sparkline = false }) => ({
     vs_currency,
     ids: ids.join(','),
     order,
@@ -77,10 +65,7 @@ const getMarkets = buildQuery<MarketsParams, Market[]>(
   })
 );
 
-export const coinsListProvider = new SingleQueryDataProvider(
-  24 * 3600 * 1000,
-  () => getCoins({})
-);
+export const coinsListProvider = new SingleQueryDataProvider(24 * 3600 * 1000, () => getCoins({}));
 
 export const getMarketsBySymbols = async (symbols: string[]) => {
   const { data: coins, error: coinsError } = await coinsListProvider.getState();
@@ -89,14 +74,12 @@ export const getMarketsBySymbols = async (symbols: string[]) => {
   }
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const matchingCoins = coins!.filter(({ symbol }) =>
-    symbols.some(
-      (matchingSymbol) => matchingSymbol.toLowerCase() === symbol.toLowerCase()
-    )
+    symbols.some(matchingSymbol => matchingSymbol.toLowerCase() === symbol.toLowerCase())
   );
   const pagesNumbers = range(1, matchingCoins.length + 1, 100);
   const ids = matchingCoins.map(({ id }) => id);
   const chunks = await Promise.all(
-    pagesNumbers.map((pageNumber) =>
+    pagesNumbers.map(pageNumber =>
       getMarkets({
         ids,
         page: pageNumber
@@ -104,5 +87,5 @@ export const getMarketsBySymbols = async (symbols: string[]) => {
     )
   );
 
-return chunks.flat();
+  return chunks.flat();
 };

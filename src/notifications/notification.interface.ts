@@ -1,12 +1,12 @@
 export enum NotificationType {
   News = 'News',
   PlatformUpdate = 'PlatformUpdate',
-  SecurityNote = 'SecurityNote',
+  SecurityNote = 'SecurityNote'
 }
 
 export enum PlatformType {
   Mobile = 'Mobile',
-  Extension = 'Extension',
+  Extension = 'Extension'
 }
 
 interface NotificationLink {
