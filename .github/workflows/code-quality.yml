@@ -11,6 +11,12 @@ jobs:
     name: Checks if ts and lint works
     runs-on: macos-latest
     steps:
+      - name: Clone repository
+        uses: actions/checkout@v2
+
+      - name: Repository setup
+        uses: ./.github/workflows/repository-setup
+
       - name: Check TypeScript
         run: yarn ts
 
