@@ -110,7 +110,7 @@ export const getTokenMetadata = memoizee(
       throw new MetadataParseError(latestErrMessage ?? 'Unknown error');
     }
 
-    let symbol: string,name: string;
+    let symbol: string, name: string;
 
     if (Boolean(tokenData.symbol)) {
       symbol = tokenData.symbol;
