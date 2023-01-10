@@ -86,7 +86,7 @@ export const getTokenMetadata = memoizee(
     try {
       // @ts-ignore
       tokenData = await contract.tzip12().getTokenMetadata(tokenId ?? 0);
-    } catch (err: Error) {
+    } catch (err) {
       // @ts-ignore
       latestErrMessage = err.message;
     }
@@ -100,7 +100,7 @@ export const getTokenMetadata = memoizee(
         // @ts-ignore
         const { metadata } = await contract.tzip16().getMetadata();
         tokenData = metadata;
-      } catch (err: Error) {
+      } catch (err) {
         // @ts-ignore
         latestErrMessage = err.message;
       }
@@ -110,12 +110,26 @@ export const getTokenMetadata = memoizee(
       throw new MetadataParseError(latestErrMessage ?? 'Unknown error');
     }
 
+    let symbol: string,name: string;
+
+    if (Boolean(tokenData.symbol)) {
+      symbol = tokenData.symbol;
+    } else {
+      symbol = Boolean(tokenData.name) ? tokenData.name.substr(0, 8) : '???';
+    }
+
+    if (Boolean(tokenData.name)) {
+      name = tokenData.name;
+    } else if (Boolean(tokenData.symbol)) {
+      name = tokenData.symbol;
+    } else {
+      name = 'Unknown Token';
+    }
+
     return {
+      name,
+      symbol,
       decimals: Boolean(tokenData) ? +tokenData.decimals : 0,
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-      symbol: tokenData.symbol || (Boolean(tokenData.name) ? tokenData.name.substr(0, 8) : '???'),
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-      name: tokenData.name || tokenData.symbol || 'Unknown Token',
       contract: tokenAddress,
       token_id: tokenId ?? 0,
       network: 'mainnet'

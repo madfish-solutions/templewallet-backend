@@ -48,7 +48,7 @@ export default class DataProvider<T, A extends any[]> {
       const data = await this.fetchFn(...args);
 
       return { data };
-    } catch (error: Error) {
+    } catch (error) {
       // @ts-ignore
       return { error };
     }
