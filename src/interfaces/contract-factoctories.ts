@@ -2,8 +2,8 @@ import { MichelsonMapKey } from '@taquito/michelson-encoder';
 import { MichelsonMap } from '@taquito/taquito';
 import { BigNumber } from 'bignumber.js';
 
-type TokenListValue = [string, BigNumber];
-type TokenToExchangeKey = [string, BigNumber];
+export type TokenListValue = [string, BigNumber];
+export type TokenToExchangeKey = [string, BigNumber];
 type UserRewardsValue = {
   reward: BigNumber;
   reward_paid: BigNumber;
