@@ -1,9 +1,9 @@
-import { MichelsonMap, MichelsonMapKey } from '@taquito/michelson-encoder';
+import { MichelsonMap } from '@taquito/michelson-encoder';
 import { BigNumber } from 'bignumber.js';
 import memoizee from 'memoizee';
 
 import { QUIPUSWAP_FA12_FACTORIES, QUIPUSWAP_FA2_FACTORIES } from '../config';
-import { IContractFactoryStorage, TokenListValue } from '../interfaces/contract-factoctories';
+import { BigMapKeyType, IContractFactoryStorage, TokenListValue } from '../interfaces/contract-factoctories';
 import { IPriceHistory } from '../interfaces/price-history';
 import fetch from './fetch';
 import { rangeBn } from './helpers';
@@ -47,11 +47,11 @@ const getQuipuswapExchangers = async (): Promise<QuipuswapExchanger[]> => {
       return storage.token_list.getMultipleValues(rangeBn(0, storage.counter.toNumber()));
     })
   );
-  const rawFa12FactoryTokensFiltered: Array<MichelsonMap<MichelsonMapKey, TokenListValue>> = [];
+  const rawFa12FactoryTokensFiltered: Array<MichelsonMap<BigMapKeyType, TokenListValue>> = [];
   rawFa12FactoryTokens.forEach((item, index) => {
     const value = item.get(new BigNumber(index));
     if (value !== undefined) {
-      rawFa12FactoryTokensFiltered.push(item as MichelsonMap<MichelsonMapKey, TokenListValue>);
+      rawFa12FactoryTokensFiltered.push(item as MichelsonMap<BigMapKeyType, TokenListValue>);
     }
   });
   const rawFa12Exchangers = await Promise.all(

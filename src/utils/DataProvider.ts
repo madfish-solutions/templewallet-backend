@@ -49,7 +49,6 @@ export default class DataProvider<T, A extends any[]> {
 
       return { data };
     } catch (error) {
-      // @ts-ignore
       return { error };
     }
   }

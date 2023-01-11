@@ -1,4 +1,3 @@
-import { MichelsonMapKey } from '@taquito/michelson-encoder';
 import { MichelsonMap } from '@taquito/taquito';
 import { BigNumber } from 'bignumber.js';
 
@@ -21,7 +20,7 @@ type LedgerValue = {
   frozen_balance: BigNumber;
 };
 
-type BigMapKeyType = string | number | object;
+export type BigMapKeyType = string | number | object;
 
 export interface BigMap<Key extends BigMapKeyType, Value> {
   get(keyToEncode: Key, block?: number): Promise<Value | undefined>;
@@ -29,7 +28,7 @@ export interface BigMap<Key extends BigMapKeyType, Value> {
     keysToEncode: Array<Key>,
     block?: number,
     batchSize?: number
-  ): Promise<MichelsonMap<MichelsonMapKey, Value | undefined>>;
+  ): Promise<MichelsonMap<BigMapKeyType, Value | undefined>>;
   toJSON(): string;
   toString(): string;
 }

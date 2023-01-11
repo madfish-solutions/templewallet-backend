@@ -69,11 +69,7 @@ export class MetadataParseError extends Error {}
 
 export const getTokenMetadata = memoizee(
   async (tokenAddress: string, tokenId?: number): Promise<BcdTokenData> => {
-    const contract = await mainnetToolkit.wallet.at(
-      tokenAddress,
-      // @ts-ignore
-      compose(tzip12, tzip16)
-    );
+    const contract = await mainnetToolkit.wallet.at(tokenAddress, compose(tzip12, tzip16));
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let tokenData: any;
@@ -83,10 +79,8 @@ export const getTokenMetadata = memoizee(
      * Try fetch token data with TZIP12
      */
     try {
-      // @ts-ignore
       tokenData = await contract.tzip12().getTokenMetadata(tokenId ?? 0);
     } catch (err) {
-      // @ts-ignore
       latestErrMessage = err.message;
     }
 
@@ -96,11 +90,9 @@ export const getTokenMetadata = memoizee(
      */
     if (tokenData === undefined || Object.keys(tokenData).length === 0) {
       try {
-        // @ts-ignore
         const { metadata } = await contract.tzip16().getMetadata();
         tokenData = metadata;
       } catch (err) {
-        // @ts-ignore
         latestErrMessage = err.message;
       }
     }
