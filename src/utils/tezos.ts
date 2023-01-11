@@ -45,11 +45,10 @@ mainnetToolkit.setPackerProvider(michelEncoder);
 const getContract = memoizee((address: string) => mainnetToolkit.contract.at(address), { promise: true });
 
 export const getStorage = memoizee(
-  async (contractAddress: string) => {
+  async <T>(contractAddress: string) => {
     const contract = await getContract(contractAddress);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return contract.storage<any>();
+    return contract.storage<T>();
   },
   { promise: true, maxAge: 30000 }
 );

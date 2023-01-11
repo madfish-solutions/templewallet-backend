@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 
+import { ALICE_BOB_PRIVATE_KEY } from '../../config';
 import { AliceBobPayload } from '../../interfaces/alice-bob/alice-bob.interfaces';
 
 export const getAliceBobSignature = (payload?: AliceBobPayload) => {
@@ -23,8 +24,7 @@ export const getAliceBobSignature = (payload?: AliceBobPayload) => {
   initString += 'timestamp' + now;
 
   return {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    signature: crypto.createHmac('SHA512', process.env.ALICE_BOB_PRIVATE_KEY!).update(initString).digest('hex'),
+    signature: crypto.createHmac('SHA512', ALICE_BOB_PRIVATE_KEY).update(initString).digest('hex'),
     now
   };
 };

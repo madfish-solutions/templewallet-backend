@@ -2,6 +2,7 @@ require('./configure');
 
 import cors from 'cors';
 import express, { Request, Response } from 'express';
+import firebaseAdmin from 'firebase-admin';
 import { stdSerializers } from 'pino';
 import pinoHttp from 'pino-http';
 
@@ -51,21 +52,15 @@ app.use(cors());
 
 const dAppsProvider = new SingleQueryDataProvider(15 * 60 * 1000, getDAppsStats);
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const firebaseAdmin = require('firebase-admin');
 const androidApp = firebaseAdmin.initializeApp(
   {
-    projectId: 'templewallet-fa3b3',
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    appId: process.env.ANDROID_APP_ID!
+    projectId: 'templewallet-fa3b3'
   },
   'androidApp'
 );
 const iosApp = firebaseAdmin.initializeApp(
   {
-    projectId: 'templewallet-fa3b3',
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    appId: process.env.IOS_APP_ID!
+    projectId: 'templewallet-fa3b3'
   },
   'iosApp'
 );
@@ -84,8 +79,9 @@ const makeProviderDataRequestHandler = <T, U>(provider: SingleQueryDataProvider<
     if (error) {
       res.status(500).send({ error: error.message });
     } else {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      res.json(transformFn ? transformFn(data!) : data);
+      if (data !== undefined) {
+        res.json(transformFn ? transformFn(data) : data);
+      }
     }
   };
 };
@@ -124,18 +120,21 @@ app.get('/api/exchange-rates', async (_req, res) => {
   const { data: tezExchangeRate, error: tezExchangeRateError } = await getProviderStateWithTimeout(
     tezExchangeRateProvider
   );
-  if (tokensExchangeRatesError || tezExchangeRateError) {
-    res.status(500).send({
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      error: (tokensExchangeRatesError || tezExchangeRateError)!.message
+  if (tokensExchangeRatesError !== undefined) {
+    return res.status(500).send({
+      error: tokensExchangeRatesError.message
+    });
+  } else if (tezExchangeRateError !== undefined) {
+    return res.status(500).send({
+      error: tezExchangeRateError.message
     });
   } else {
-    res.json([
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-non-null-assertion
-      ...tokensExchangeRates!.map(({ metadata, ...restProps }) => restProps),
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      { exchangeRate: tezExchangeRate!.toString() }
-    ]);
+    if (tokensExchangeRates !== undefined && tezExchangeRate !== undefined) {
+      return res.json([
+        ...tokensExchangeRates.map(({ ...restProps }) => restProps),
+        { exchangeRate: tezExchangeRate.toString() }
+      ]);
+    }
   }
 });
 
@@ -290,15 +289,15 @@ app.get('/api/mobile-check', async (_req, res) => {
 
   console.log('A123', platform, appCheckToken);
 
-  if (!Boolean(appCheckToken)) {
-    res.status(400).send({ error: 'App Check token is not defined' });
+  if (!Boolean(appCheckToken) || appCheckToken === undefined) {
+    return res.status(400).send({ error: 'App Check token is not defined' });
   }
 
   try {
     if (platform === 'ios') {
-      await iosApp.appCheck().verifyToken(appCheckToken);
+      await iosApp.appCheck().verifyToken(appCheckToken as unknown as string);
     } else {
-      await androidApp.appCheck().verifyToken(appCheckToken);
+      await androidApp.appCheck().verifyToken(appCheckToken as unknown as string);
       console.log('verification successful');
     }
 

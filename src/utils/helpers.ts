@@ -1,7 +1,15 @@
+import { BigNumber } from 'bignumber.js';
+
 export function range(start: number, end: number, step = 1) {
   return Array(Math.ceil((end - start) / step))
     .fill(0)
     .map((_x, index) => start + step * index);
+}
+
+export function rangeBn(start: number, end: number, step = 1): Array<BigNumber> {
+  return Array(Math.ceil((end - start) / step))
+    .fill(0)
+    .map((_x, index) => new BigNumber(start + step * index));
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function

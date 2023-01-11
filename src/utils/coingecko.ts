@@ -72,10 +72,10 @@ export const getMarketsBySymbols = async (symbols: string[]) => {
   if (coinsError) {
     throw coinsError;
   }
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const matchingCoins = coins!.filter(({ symbol }) =>
-    symbols.some(matchingSymbol => matchingSymbol.toLowerCase() === symbol.toLowerCase())
-  );
+  const matchingCoins =
+    coins?.filter(({ symbol }) =>
+      symbols.some(matchingSymbol => matchingSymbol.toLowerCase() === symbol.toLowerCase())
+    ) ?? [];
   const pagesNumbers = range(1, matchingCoins.length + 1, 100);
   const ids = matchingCoins.map(({ id }) => id);
   const chunks = await Promise.all(

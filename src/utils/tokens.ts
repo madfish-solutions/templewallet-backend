@@ -29,8 +29,10 @@ type QuipuswapExchanger = {
 };
 
 const getQuipuswapExchangers = async (): Promise<QuipuswapExchanger[]> => {
-  const fa12FactoryStorages = await Promise.all(fa12Factories.map(factoryAddress => getStorage(factoryAddress)));
-  const fa2FactoryStorages = await Promise.all(fa2Factories.map(factoryAddress => getStorage(factoryAddress)));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const fa12FactoryStorages = await Promise.all(fa12Factories.map(factoryAddress => getStorage<any>(factoryAddress)));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const fa2FactoryStorages = await Promise.all(fa2Factories.map(factoryAddress => getStorage<any>(factoryAddress)));
   logger.info('Getting FA1.2 Quipuswap exchangers...');
   const rawFa12FactoryTokens: MichelsonMap<string, string>[] = await Promise.all(
     fa12FactoryStorages.map(storage => {
