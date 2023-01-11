@@ -1,10 +1,12 @@
-import { MichelsonMap, MichelsonMapKey } from "@taquito/michelson-encoder";
+import { MichelsonMap, MichelsonMapKey } from '@taquito/michelson-encoder';
 import { BigNumber } from 'bignumber.js';
 import memoizee from 'memoizee';
 
+import { QUIPUSWAP_FA12_FACTORIES, QUIPUSWAP_FA2_FACTORIES } from '../config';
+import { IContractFactoryStorage, TokenListValue } from '../interfaces/contract-factoctories';
 import { IPriceHistory } from '../interfaces/price-history';
 import fetch from './fetch';
-import { rangeBn } from "./helpers";
+import { rangeBn } from './helpers';
 import logger from './logger';
 import SingleQueryDataProvider from './SingleQueryDataProvider';
 import { getTokenMetadata, getStorage, tezExchangeRateProvider } from './tezos';
@@ -13,10 +15,9 @@ import {
   contractTokensProvider,
   mapTzktTokenDataToBcdTokenData,
   tokensMetadataProvider,
-  TZKT_NETWORKS, TzktTokenData
-} from "./tzkt";
-import { QUIPUSWAP_FA12_FACTORIES, QUIPUSWAP_FA2_FACTORIES } from "../config";
-import { IContractFactoryStorage, TokenListValue } from "../interfaces/contract-factoctories";
+  TZKT_NETWORKS,
+  TzktTokenData
+} from './tzkt';
 
 const fa12Factories = QUIPUSWAP_FA12_FACTORIES.split(',');
 const fa2Factories = QUIPUSWAP_FA2_FACTORIES.split(',');
@@ -25,24 +26,28 @@ interface QuipuswapExchangerAbstract {
   exchangerAddress: string;
   tokenAddress: string;
   tokenId?: number;
-};
-interface  QuipuswapExchanger extends QuipuswapExchangerAbstract {
+}
+interface QuipuswapExchanger extends QuipuswapExchangerAbstract {
   tokenMetadata: BcdTokenData | undefined;
-};
+}
 interface QuipuswapExchangerRaw extends QuipuswapExchangerAbstract {
   tokenMetadata: TzktTokenData | undefined;
-};
+}
 
 const getQuipuswapExchangers = async (): Promise<QuipuswapExchanger[]> => {
-  const fa12FactoryStorages = await Promise.all(fa12Factories.map(factoryAddress => getStorage<IContractFactoryStorage>(factoryAddress)));
-  const fa2FactoryStorages = await Promise.all(fa2Factories.map(factoryAddress => getStorage<IContractFactoryStorage>(factoryAddress)));
+  const fa12FactoryStorages = await Promise.all(
+    fa12Factories.map(factoryAddress => getStorage<IContractFactoryStorage>(factoryAddress))
+  );
+  const fa2FactoryStorages = await Promise.all(
+    fa2Factories.map(factoryAddress => getStorage<IContractFactoryStorage>(factoryAddress))
+  );
   logger.info('Getting FA1.2 Quipuswap exchangers...');
   const rawFa12FactoryTokens = await Promise.all(
     fa12FactoryStorages.map(storage => {
       return storage.token_list.getMultipleValues(rangeBn(0, storage.counter.toNumber()));
     })
   );
-  const rawFa12FactoryTokensFiltered: Array<MichelsonMap<MichelsonMapKey, TokenListValue>> = []
+  const rawFa12FactoryTokensFiltered: Array<MichelsonMap<MichelsonMapKey, TokenListValue>> = [];
   rawFa12FactoryTokens.forEach((item, index) => {
     const value = item.get(new BigNumber(index));
     if (value !== undefined) {
@@ -87,27 +92,25 @@ const getQuipuswapExchangers = async (): Promise<QuipuswapExchanger[]> => {
   const rawFa2Exchangers = await Promise.all(
     rawFa2FactoryTokens.map((rawTokens, index) => {
       return Promise.all(
-        [...rawTokens.values()].map(
-          async (token): Promise<[[string, BigNumber], string] | undefined> => {
-            if (token !== undefined) {
-              const exchange = await fa2FactoryStorages[index].token_to_exchange.get(token);
-              if (exchange !== undefined) {
-                return [token, exchange];
-              }
+        [...rawTokens.values()].map(async (token): Promise<[[string, BigNumber], string] | undefined> => {
+          if (token !== undefined) {
+            const exchange = await fa2FactoryStorages[index].token_to_exchange.get(token);
+            if (exchange !== undefined) {
+              return [token, exchange];
             }
           }
-        )
+        })
       );
     })
   );
 
   const rawFa2ExchangersFiltered: [[string, BigNumber], string][][] = [];
-    rawFa2Exchangers.forEach(exchanger => {
-      exchanger.forEach(item => {
-        if (item !== undefined) {
-          rawFa2ExchangersFiltered.push([item]);
-        }
-      })
+  rawFa2Exchangers.forEach(exchanger => {
+    exchanger.forEach(item => {
+      if (item !== undefined) {
+        rawFa2ExchangersFiltered.push([item]);
+      }
+    });
   });
 
   const fa2Exchangers = (
@@ -143,7 +146,6 @@ const getQuipuswapExchangers = async (): Promise<QuipuswapExchanger[]> => {
       allExhangersFiltered.push(item as QuipuswapExchangerRaw);
     }
   });
-
 
   return allExhangersFiltered.map(exchanger => ({
     ...exchanger,
@@ -190,10 +192,11 @@ const getPoolTokenExchangeRate = memoizee(
     const dexterExchangeRate = new BigNumber(0);
     const dexterWeight = new BigNumber(0);
     const tokenElementaryParts = new BigNumber(10).pow(decimals);
-    const matchingQuipuswapExchangers = quipuswapExchangers?.filter(
-      ({ tokenAddress: swappableTokenAddress, tokenId: swappableTokenId }) =>
-        tokenAddress === swappableTokenAddress && (swappableTokenId === undefined || swappableTokenId === token_id)
-    ) ?? [];
+    const matchingQuipuswapExchangers =
+      quipuswapExchangers?.filter(
+        ({ tokenAddress: swappableTokenAddress, tokenId: swappableTokenId }) =>
+          tokenAddress === swappableTokenAddress && (swappableTokenId === undefined || swappableTokenId === token_id)
+      ) ?? [];
     if (matchingQuipuswapExchangers.length > 0) {
       const exchangersCharacteristics = await Promise.all(
         matchingQuipuswapExchangers.map(async ({ exchangerAddress }) => {
@@ -203,7 +206,7 @@ const getPoolTokenExchangeRate = memoizee(
             storage: {
               tez_pool: BigNumber;
               token_pool: BigNumber;
-            }
+            };
           }>(exchangerAddress);
 
           if (!tez_pool.eq(0) && !token_pool.eq(0)) {
@@ -258,7 +261,8 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
   }
   logger.info('Getting tokens exchange rates from Quipuswap pools');
   const exchangeRates = await Promise.all(
-    quipuswapExchangers?.reduce((onePerTokenExchangers, exchanger) => {
+    quipuswapExchangers
+      ?.reduce((onePerTokenExchangers, exchanger) => {
         if (
           !onePerTokenExchangers.some(
             ({ tokenAddress, tokenId }) => exchanger.tokenAddress === tokenAddress && exchanger.tokenId === tokenId
