@@ -15,11 +15,10 @@ import {
   tokensMetadataProvider,
   TZKT_NETWORKS
 } from './tzkt';
+import { QUIPUSWAP_FA12_FACTORIES, QUIPUSWAP_FA2_FACTORIES } from "../config";
 
-// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-const fa12Factories = process.env.QUIPUSWAP_FA12_FACTORIES!.split(',');
-// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-const fa2Factories = process.env.QUIPUSWAP_FA2_FACTORIES!.split(',');
+const fa12Factories = QUIPUSWAP_FA12_FACTORIES.split(',');
+const fa2Factories = QUIPUSWAP_FA2_FACTORIES.split(',');
 
 type QuipuswapExchanger = {
   exchangerAddress: string;
@@ -158,11 +157,10 @@ const getPoolTokenExchangeRate = memoizee(
     const dexterExchangeRate = new BigNumber(0);
     const dexterWeight = new BigNumber(0);
     const tokenElementaryParts = new BigNumber(10).pow(decimals);
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const matchingQuipuswapExchangers = quipuswapExchangers!.filter(
+    const matchingQuipuswapExchangers = quipuswapExchangers?.filter(
       ({ tokenAddress: swappableTokenAddress, tokenId: swappableTokenId }) =>
         tokenAddress === swappableTokenAddress && (swappableTokenId === undefined || swappableTokenId === token_id)
-    );
+    ) ?? [];
     if (matchingQuipuswapExchangers.length > 0) {
       const exchangersCharacteristics = await Promise.all(
         matchingQuipuswapExchangers.map(async ({ exchangerAddress }) => {
@@ -195,7 +193,7 @@ const getPoolTokenExchangeRate = memoizee(
       .times(quipuswapWeight)
       .plus(dexterExchangeRate.times(dexterWeight))
       .div(quipuswapWeight.plus(dexterWeight))
-      .times(tezExchangeRate as never as number);
+      .times(tezExchangeRate as unknown as number);
   },
   { promise: true, maxAge: LIQUIDITY_INTERVAL }
 );
@@ -204,7 +202,7 @@ export type TokenExchangeRateEntry = {
   tokenAddress: string;
   tokenId?: number;
   exchangeRate: BigNumber;
-  metadata: BcdTokenData;
+  metadata?: BcdTokenData;
 };
 
 export const ASPENCOIN_ADDRESS = 'KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM';
@@ -218,9 +216,7 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
   }
   logger.info('Getting tokens exchange rates from Quipuswap pools');
   const exchangeRates = await Promise.all(
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    quipuswapExchangers!
-      .reduce((onePerTokenExchangers, exchanger) => {
+    quipuswapExchangers?.reduce((onePerTokenExchangers, exchanger) => {
         if (
           !onePerTokenExchangers.some(
             ({ tokenAddress, tokenId }) => exchanger.tokenAddress === tokenAddress && exchanger.tokenId === tokenId
@@ -242,10 +238,9 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
             decimals: tokenMetadata && tokenMetadata.decimals,
             token_id: tokenId
           }),
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          metadata: tokenMetadata!
+          metadata: tokenMetadata
         };
-      })
+      }) ?? []
   );
 
   if (!exchangeRates.some(({ tokenAddress }) => tokenAddress === ASPENCOIN_ADDRESS)) {
@@ -268,8 +263,7 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
         tokenAddress: ASPENCOIN_ADDRESS,
         tokenId: undefined,
         exchangeRate: tokenPrice,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        metadata: mapTzktTokenDataToBcdTokenData(aspencoinMetadata![0])!
+        metadata: mapTzktTokenDataToBcdTokenData(aspencoinMetadata?.[0])
       });
     } catch (e) {}
   }
