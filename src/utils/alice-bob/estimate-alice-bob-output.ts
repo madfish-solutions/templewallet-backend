@@ -3,7 +3,7 @@ import {AliceBobEstimateAmountPayload} from "../../interfaces/alice-bob/alice-bo
 import { getAliceBobSignature } from "./get-alice-bob-signature";
 import {getAliceBobRequestHeaders} from "./get-alice-bob-request-headers";
 
-export const estimateAliceBobOutput = async (isWithdraw: boolean, payload: AliceBobEstimateAmountPayload) => {
+export const estimateAliceBobOutput = async (payload: AliceBobEstimateAmountPayload) => {
   const { signature, now } = getAliceBobSignature(payload);
 
   const response = await aliceBobApi.post<{ toAmount: number, fromRate: number, toRate: number }>(
