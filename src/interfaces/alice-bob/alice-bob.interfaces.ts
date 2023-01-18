@@ -32,8 +32,8 @@ export interface aliceBobOrder {
 }
 
 export interface AliceBobPairInfo {
-  minamount: number,
-  maxamount: number
+  minamount: number;
+  maxamount: number;
 }
 
 export interface AliceBobEstimateAmountPayload {

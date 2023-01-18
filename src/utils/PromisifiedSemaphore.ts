@@ -1,4 +1,4 @@
-import semaphore, { Semaphore } from "semaphore";
+import semaphore, { Semaphore } from 'semaphore';
 
 export default class PromisifiedSemaphore {
   private semaphore: Semaphore;
