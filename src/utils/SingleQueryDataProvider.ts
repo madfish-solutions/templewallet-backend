@@ -1,6 +1,7 @@
-import logger from "./logger";
-import MutexProtectedData from "./MutexProtectedData";
-import PromisifiedSemaphore from "./PromisifiedSemaphore";
+import { emptyFn } from './helpers';
+import logger from './logger';
+import MutexProtectedData from './MutexProtectedData';
+import PromisifiedSemaphore from './PromisifiedSemaphore';
 
 export type SingleQueryDataProviderState<T> = {
   data?: T;
@@ -42,17 +43,13 @@ export default class SingleQueryDataProvider<T> {
     try {
       const result = await this.fetchFn();
       await this.state.setData({ data: result });
-    }
-    // @ts-ignore
-    catch (e: Error) {
+    } catch (e) {
       const timeSlot = 1000;
-      logger.error(
-        `Error in SingleQueryDataProvider: ${e.message}\n${e.stack}`
-      );
+      logger.error(`Error in SingleQueryDataProvider: ${e.message}\n${e.stack}`);
       if (this.shouldGiveUp(e, c)) {
         await this.state.setData({ error: e });
       } else {
-        await new Promise<void>((resolve) => {
+        await new Promise<void>(resolve => {
           this.refetchRetryTimeout = setTimeout(async () => {
             await this.makeFetchAttempt(c + 1);
             resolve();
@@ -64,14 +61,12 @@ export default class SingleQueryDataProvider<T> {
 
   async init() {
     await this.readyMutex.exec(() => this.refetch());
-    this.refetchInterval = setInterval(
-      () => this.refetch(),
-      this.refreshParams
-    );
+    this.refetchInterval = setInterval(() => this.refetch(), this.refreshParams);
   }
 
   async getState() {
-    await this.readyMutex.exec(() => {});
+    await this.readyMutex.exec(emptyFn);
+
     return this.state.getData();
   }
 

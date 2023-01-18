@@ -26,6 +26,12 @@ jobs:
       contents: read
 
     steps:
+      - name: Check TypeScript
+        run: yarn ts
+
+      - name: Check ESLint
+        run: yarn lint
+
       - name: Checkout
         uses: actions/checkout@v2
 
