@@ -285,5 +285,5 @@ app.get('/api/advertising-info', (_req, res) => {
 });
 
 // start the server listening for requests
-const port = Boolean(process.env.PORT) || 3000;
+const port = Boolean(process.env.PORT) ? process.env.PORT : 3000;
 app.listen(port, () => console.info(`Server is running on port ${port}...`));
