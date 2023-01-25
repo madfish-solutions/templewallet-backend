@@ -1,5 +1,5 @@
-import { MANDATORY_NOTIFICATIONS_LIST, NOTIFICATIONS_LIST } from "./notifications-list.data";
-import { PlatformType } from "./notification.interface";
+import { PlatformType } from './notification.interface';
+import { MANDATORY_NOTIFICATIONS_LIST, NOTIFICATIONS_LIST } from './notifications-list.data';
 
 export const getNotifications = (platform: PlatformType, startFromTime: number) =>
   [
@@ -8,8 +8,4 @@ export const getNotifications = (platform: PlatformType, startFromTime: number) 
       ...notification,
       createdAt: new Date(startFromTime).toString()
     }))
-  ]
-    .filter(
-      notification =>
-        notification.platforms.includes(platform)
-    );
+  ].filter(notification => notification.platforms.includes(platform));

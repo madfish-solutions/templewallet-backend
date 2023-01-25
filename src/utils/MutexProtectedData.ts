@@ -1,4 +1,4 @@
-import PromisifiedSemaphore from "./PromisifiedSemaphore";
+import PromisifiedSemaphore from './PromisifiedSemaphore';
 
 export default class MutexProtectedData<T> {
   private mutex: PromisifiedSemaphore;
@@ -18,7 +18,7 @@ export default class MutexProtectedData<T> {
   }
 
   getData(): Promise<T> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       this.mutex.exec(() => resolve(this.data));
     });
   }
