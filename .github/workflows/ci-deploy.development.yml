@@ -26,14 +26,17 @@ jobs:
       contents: read
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: yarn install
+
       - name: Check TypeScript
         run: yarn ts
 
       - name: Check ESLint
         run: yarn lint
-
-      - name: Checkout
-        uses: actions/checkout@v2
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@13d241b293754004c80624b5567555c4a39ffbe3
