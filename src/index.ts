@@ -156,32 +156,6 @@ app.get('/api/moonpay-sign', async (_req, res) => {
   }
 });
 
-/** @deprecated
- * used in the production (extension)
- * delete after 1.14.14 release
- */
-app.get('/api/alice-bob-sign', async (_req, res) => {
-  const { isWithdraw, amount, userId, walletAddress, cardNumber } = _req.query;
-  const booleanIsWithdraw = isWithdraw === 'true';
-
-  try {
-    const exchangeInfo = {
-      from: booleanIsWithdraw ? 'TEZ' : 'CARDUAH',
-      to: booleanIsWithdraw ? 'CARDUAH' : 'TEZ',
-      fromAmount: Number(amount),
-      userId: String(userId),
-      toPaymentDetails: booleanIsWithdraw ? String(cardNumber) : String(walletAddress),
-      redirectUrl: 'https://templewallet.com/mobile'
-    };
-
-    const orderInfo = await createAliceBobOrder(booleanIsWithdraw, exchangeInfo);
-
-    res.status(200).send({ url: orderInfo.payUrl });
-  } catch (error) {
-    res.status(500).send({ error });
-  }
-});
-
 app.post('/api/alice-bob/create-order', async (_req, res) => {
   const { isWithdraw, amount, userId, walletAddress, cardNumber } = _req.query;
   const booleanIsWithdraw = isWithdraw === 'true';
@@ -213,22 +187,6 @@ app.post('/api/alice-bob/cancel-order', async (_req, res) => {
     res.status(200);
   } catch (error) {
     res.status(error.response.status).send(error.response.data);
-  }
-});
-
-/** @deprecated
- * used in the production (extension)
- * delete after 1.14.14 release
- */
-app.get('/api/alice-bob-pair-info', async (_req, res) => {
-  const isWithdraw = _req.query.isWithdraw;
-
-  try {
-    const { minAmount, maxAmount } = await getAliceBobPairInfo(isWithdraw === 'true');
-
-    res.status(200).send({ minAmount, maxAmount });
-  } catch (error) {
-    res.status(500).send({ error });
   }
 });
 
@@ -266,7 +224,7 @@ app.post('/api/alice-bob/estimate-amount', async (_req, res) => {
       to: booleanIsWithdraw ? 'CARDUAH' : 'TEZ',
       fromAmount: Number(amount)
     };
-    const outputAmount = await estimateAliceBobOutput(booleanIsWithdraw, exchangeInfo);
+    const outputAmount = await estimateAliceBobOutput(exchangeInfo);
 
     res.status(200).send({ outputAmount });
   } catch (error) {
@@ -327,4 +285,5 @@ app.get('/api/advertising-info', (_req, res) => {
 });
 
 // start the server listening for requests
-app.listen(Boolean(process.env.PORT) ? process.env.PORT : 3000, () => console.log('Server is running...'));
+const port = Boolean(process.env.PORT) ? process.env.PORT : 3000;
+app.listen(port, () => console.info(`Server is running on port ${port}...`));
