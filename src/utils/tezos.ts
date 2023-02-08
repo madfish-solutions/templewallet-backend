@@ -55,7 +55,7 @@ export const getStorage = memoizee(
 
 const getTezExchangeRate = async () => {
   const marketTickers = await fetch<Array<ITicker>>('https://api.tzstats.com/markets/tickers');
-  const usdTickers = marketTickers.filter(e => e.quote === 'USD');
+  const usdTickers = marketTickers.filter(e => e.quote === 'USD' && e.base === 'XTZ');
   // price index: use all USD ticker last prices with equal weight
   const vol = usdTickers.reduce((s, t) => s + t.volume_base, 0) || null;
   const price = vol !== null && usdTickers.reduce((s, t) => s + (t.last * t.volume_base) / vol, 0);
