@@ -38,6 +38,14 @@ export default class DataProvider<T, A extends any[]> {
     });
   }
 
+  async refetchInSubscription(...args: A) {
+    const subscriptions = await this.subscriptions.getData();
+    const subscription = subscriptions.find(({ args: subscribedArgs }) => argsAreEqual(args, subscribedArgs));
+    if (subscription) {
+      await subscription.dataProvider.refetch();
+    }
+  }
+
   async get(...args: A): Promise<SingleQueryDataProviderState<T>> {
     const subscriptions = await this.subscriptions.getData();
     const subscription = subscriptions.find(({ args: subscribedArgs }) => argsAreEqual(args, subscribedArgs));

@@ -61,7 +61,9 @@ export default class SingleQueryDataProvider<T> {
 
   async init() {
     await this.readyMutex.exec(() => this.refetch());
-    this.refetchInterval = setInterval(() => this.refetch(), this.refreshParams);
+    if (Number.isFinite(this.refreshParams)) {
+      this.refetchInterval = setInterval(() => this.refetch(), this.refreshParams);
+    }
   }
 
   async getState() {

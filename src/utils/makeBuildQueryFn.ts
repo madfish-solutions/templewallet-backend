@@ -1,6 +1,7 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import { stringify } from 'qs';
 
+import logger from './logger';
 import PromisifiedSemaphore from './PromisifiedSemaphore';
 
 function pick<T, U extends keyof T>(obj: T, keys: U[]) {
@@ -21,7 +22,11 @@ function isAbsoluteURL(url) {
   return /^([a-z][a-z\d\+\-\.]*:)?\/\//i.test(url);
 }
 
-export default function makeBuildQueryFn<P, R>(baseUrl: string, maxConcurrentQueries?: number) {
+export default function makeBuildQueryFn<P, R>(
+  baseUrl: string,
+  maxConcurrentQueries?: number,
+  defaultConfig: Omit<AxiosRequestConfig, 'url'> = {}
+) {
   const semaphore = maxConcurrentQueries !== undefined ? new PromisifiedSemaphore(maxConcurrentQueries) : undefined;
 
   return function f1<P1 extends P, R1 extends R>(
@@ -41,12 +46,19 @@ export default function makeBuildQueryFn<P, R>(baseUrl: string, maxConcurrentQue
         return new Promise<R1>((resolve, reject) => {
           semaphore.exec(async () => {
             try {
+              logger.debug({
+                url: fullUrl,
+                ...defaultConfig,
+                ...config
+              });
               const { data } = await axios.request<R1>({
                 url: fullUrl,
+                ...defaultConfig,
                 ...config
               });
               resolve(data);
             } catch (e) {
+              logger.error(fullUrl);
               reject(e);
             }
           });
