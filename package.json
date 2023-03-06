@@ -16,7 +16,7 @@
     "cors": "^2.8.5",
     "cross-fetch": "^3.1.5",
     "dotenv": "^9.0.2",
-    "express": "^4.17.3",
+    "express": "^4.18.2",
     "firebase-admin": "^10.0.2",
     "memoizee": "^0.4.15",
     "pino": "^6.11.2",
@@ -35,9 +35,11 @@
     "clean": "rimraf dist/"
   },
   "devDependencies": {
-    "@types/express": "^4.17.11",
+    "@types/express": "^4.17.17",
+    "@types/express-jwt": "^7.4.2",
+    "@types/express-unless": "^2.0.1",
     "@types/memoizee": "^0.4.5",
-    "@types/node": "^15.3.0",
+    "@types/node": "^18.14.6",
     "@types/pino": "^6.3.8",
     "@types/pino-http": "^5.4.1",
     "@types/semaphore": "^1.1.1",
