@@ -20,16 +20,16 @@ export const getRecentDestinations = (currentBlockLevel: number) =>
 
             return undefined;
           })
-          .filter((address): address is string => isDefined(address));
+          .filter(isDefined);
       }
 
       return [];
     })
-  )
-    .then(destinationsArray => destinationsArray.flat())
-    .catch((error): string[] => {
-      logger.error('getRecentDestinations error');
-      logger.error(error);
+  ).then(
+    destinationsArray => destinationsArray.flat(),
+    (error): string[] => {
+      logger.error('getRecentDestinations error:', error);
 
       return [];
-    });
+    }
+  );

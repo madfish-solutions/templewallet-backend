@@ -1,6 +1,5 @@
-import { assert } from 'console';
-
 import { getEnv } from './utils/env';
+import { isDefined } from './utils/helpers';
 
 export const MIN_IOS_APP_VERSION = '1.10.445';
 export const MIN_ANDROID_APP_VERSION = '1.10.445';
@@ -18,4 +17,8 @@ const variablesToAssert = [
   { name: 'THREE_ROUTE_API_URL', value: THREE_ROUTE_API_URL },
   { name: 'THREE_ROUTE_API_AUTH_TOKEN', value: THREE_ROUTE_API_AUTH_TOKEN }
 ];
-variablesToAssert.forEach(({ name, value }) => assert(value, `process.env.${name} not found.`));
+variablesToAssert.forEach(({ name, value }) => {
+  if (!isDefined(value)) {
+    throw new Error(`process.env.${name} not found.`);
+  }
+});

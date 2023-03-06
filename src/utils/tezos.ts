@@ -57,7 +57,7 @@ const getTezExchangeRate = async () => {
   const usdTickers = marketTickers.filter(e => e.quote === 'USD' && e.base === 'XTZ');
   // price index: use all USD ticker last prices with equal weight
   const vol = usdTickers.reduce((s, t) => s + t.volume_base, 0) || null;
-  const price = vol !== null && usdTickers.reduce((s, t) => s + (t.last * t.volume_base) / vol, 0);
+  const price = vol === null ? 1 : usdTickers.reduce((s, t) => s + (t.last * t.volume_base) / vol, 0);
 
   return price;
 };
@@ -80,7 +80,7 @@ export const getTokenMetadata = memoizee(
     try {
       tokenData = await contract.tzip12().getTokenMetadata(tokenId ?? 0);
     } catch (err) {
-      latestErrMessage = err.message;
+      latestErrMessage = (err as Error).message;
     }
 
     /**
@@ -92,7 +92,7 @@ export const getTokenMetadata = memoizee(
         const { metadata } = await contract.tzip16().getMetadata();
         tokenData = metadata;
       } catch (err) {
-        latestErrMessage = err.message;
+        latestErrMessage = (err as Error).message;
       }
     }
 

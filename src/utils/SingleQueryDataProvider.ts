@@ -3,10 +3,24 @@ import logger from './logger';
 import MutexProtectedData from './MutexProtectedData';
 import PromisifiedSemaphore from './PromisifiedSemaphore';
 
-export type SingleQueryDataProviderState<T> = {
+interface SingleQueryDataProviderStateCommon<T> {
   data?: T;
   error?: Error;
-};
+}
+
+interface SingleQueryDataProviderStateReady<T> extends SingleQueryDataProviderStateCommon<T> {
+  data: T;
+  error?: undefined;
+}
+
+interface SingleQueryDataProviderStateError<T> extends SingleQueryDataProviderStateCommon<T> {
+  data?: undefined;
+  error: Error;
+}
+
+export type SingleQueryDataProviderState<T> =
+  | SingleQueryDataProviderStateReady<T>
+  | SingleQueryDataProviderStateError<T>;
 
 const defaultShouldGiveUp = (_e: Error, c: number) => c > 9;
 
@@ -28,7 +42,7 @@ export default class SingleQueryDataProvider<T> {
   ) {
     this.fetchMutex = new PromisifiedSemaphore();
     this.readyMutex = new PromisifiedSemaphore();
-    this.state = new MutexProtectedData({});
+    this.state = new MutexProtectedData({ error: new Error('This error should not be displayed') });
     this.init();
   }
 
@@ -44,10 +58,11 @@ export default class SingleQueryDataProvider<T> {
       const result = await this.fetchFn();
       await this.state.setData({ data: result });
     } catch (e) {
+      const error = e as Error;
       const timeSlot = 1000;
-      logger.error(`Error in SingleQueryDataProvider: ${e.message}\n${e.stack}`);
-      if (this.shouldGiveUp(e, c)) {
-        await this.state.setData({ error: e });
+      logger.error(`Error in SingleQueryDataProvider: ${error.message}\n${error.stack}`);
+      if (this.shouldGiveUp(error, c)) {
+        await this.state.setData({ error });
       } else {
         await new Promise<void>(resolve => {
           this.refetchRetryTimeout = setTimeout(async () => {

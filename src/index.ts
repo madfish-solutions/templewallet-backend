@@ -173,7 +173,7 @@ app.post('/api/alice-bob/create-order', async (_req, res) => {
     const orderInfo = await createAliceBobOrder(booleanIsWithdraw, exchangeInfo);
 
     res.status(200).send({ orderInfo });
-  } catch (error) {
+  } catch (error: any) {
     res.status(error.response.status).send(error.response.data);
   }
 });
@@ -185,7 +185,7 @@ app.post('/api/alice-bob/cancel-order', async (_req, res) => {
     await cancelAliceBobOrder({ id: String(orderId) });
 
     res.status(200);
-  } catch (error) {
+  } catch (error: any) {
     res.status(error.response.status).send(error.response.data);
   }
 });
@@ -197,7 +197,7 @@ app.get('/api/alice-bob/get-pair-info', async (_req, res) => {
     const pairInfo = await getAliceBobPairInfo(isWithdraw === 'true');
 
     res.status(200).send({ pairInfo });
-  } catch (error) {
+  } catch (error: any) {
     res.status(error.response.status).send({ error: error.response.data });
   }
 });
@@ -209,7 +209,7 @@ app.get('/api/alice-bob/check-order', async (_req, res) => {
     const orderInfo = await getAliceBobOrderInfo(String(orderId));
 
     res.status(200).send({ orderInfo });
-  } catch (error) {
+  } catch (error: any) {
     res.status(error.response.status).send({ error: error.response.data });
   }
 });
@@ -227,7 +227,7 @@ app.post('/api/alice-bob/estimate-amount', async (_req, res) => {
     const outputAmount = await estimateAliceBobOutput(exchangeInfo);
 
     res.status(200).send({ outputAmount });
-  } catch (error) {
+  } catch (error: any) {
     res.status(error.response.status).send({ error: error.response.data });
   }
 });

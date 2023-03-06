@@ -4,7 +4,7 @@ import { stringify } from 'qs';
 import logger from './logger';
 import PromisifiedSemaphore from './PromisifiedSemaphore';
 
-function pick<T, U extends keyof T>(obj: T, keys: U[]) {
+function pick<T extends Record<string, unknown> | object, U extends keyof T>(obj: T, keys: U[]) {
   const newObj: Partial<T> = {};
   keys.forEach(key => {
     if (key in obj) {
@@ -22,7 +22,7 @@ function isAbsoluteURL(url) {
   return /^([a-z][a-z\d\+\-\.]*:)?\/\//i.test(url);
 }
 
-export default function makeBuildQueryFn<P, R>(
+export default function makeBuildQueryFn<P extends Record<string, unknown> | object, R>(
   baseUrl: string,
   maxConcurrentQueries?: number,
   defaultConfig: Omit<AxiosRequestConfig, 'url'> = {}
@@ -42,31 +42,37 @@ export default function makeBuildQueryFn<P, R>(
       const queryStr = stringify(queryParams);
       const noQueryParamsUrl = isAbsoluteURL(url) ? `${url}/` : `${baseUrl}${url}`;
       const fullUrl = `${noQueryParamsUrl}${queryStr.length === 0 ? '' : `?${queryStr}`}`;
+      const getData = async () => {
+        try {
+          const requestConfig = {
+            url: fullUrl,
+            ...defaultConfig,
+            ...config
+          };
+          logger.debug(requestConfig);
+          const { data } = await axios.request<R1>(requestConfig);
+
+          return data;
+        } catch (e) {
+          logger.error(`Error while making query to ${fullUrl}`);
+          throw e;
+        }
+      };
+
       if (semaphore) {
         return new Promise<R1>((resolve, reject) => {
           semaphore.exec(async () => {
             try {
-              logger.debug({
-                url: fullUrl,
-                ...defaultConfig,
-                ...config
-              });
-              const { data } = await axios.request<R1>({
-                url: fullUrl,
-                ...defaultConfig,
-                ...config
-              });
+              const data = await getData();
               resolve(data);
             } catch (e) {
-              logger.error(`Error while making query to ${fullUrl}`);
               reject(e);
             }
           });
         });
       }
-      const { data } = await axios.request<R1>({ url: fullUrl, ...config });
 
-      return data;
+      return getData();
     };
   };
 }

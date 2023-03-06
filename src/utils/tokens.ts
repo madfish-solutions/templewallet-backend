@@ -66,16 +66,14 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
   logger.info('Getting tokens exchange rates...');
   logger.info('Getting exchange rates of tokens which are known to 3route...');
   const { data: tokens, error: tokensError } = await tokensListProvider.getState();
-  const { data: rawTezExchangeRate, error: tezExchangeRateError } = await tezExchangeRateProvider.getState();
-  const error = tokensError ?? tezExchangeRateError;
+  const { data: tezExchangeRate, error: tezExchangeRateError } = await tezExchangeRateProvider.getState();
 
-  if (error) {
-    throw error;
+  if (tokensError ?? tezExchangeRateError) {
+    throw tokensError ?? tezExchangeRateError;
   }
 
-  const tezExchangeRate = rawTezExchangeRate === false ? 1 : rawTezExchangeRate!;
   const exchangeRates = await Promise.all(
-    tokens!
+    tokens
       .filter(
         (token): token is ThreeRouteFa12Token | ThreeRouteFa2Token => token.standard !== ThreeRouteStandardEnum.xtz
       )
@@ -93,7 +91,7 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
           throw swapError;
         }
 
-        const { directSwap, invertedSwap } = probeSwaps!;
+        const { directSwap, invertedSwap } = probeSwaps;
         const toTezExchangeRatesVersions: BigNumber[] = [];
         if (directSwap.output !== 0) {
           toTezExchangeRatesVersions.push(new BigNumber(PROBE_TEZ_AMOUNT).div(directSwap.output));
@@ -155,14 +153,13 @@ blockFinder(EMPTY_BLOCK, async block =>
     const recentDestinations = await getRecentDestinations(block.header.level);
     const { data: tokens, error: tokensError } = await tokensListProvider.getState();
     const { data: dexes, error: dexesError } = await dexesListProvider.getState();
-    const error = tokensError ?? dexesError;
 
-    if (error) {
-      throw error;
+    if (tokensError ?? dexesError) {
+      throw tokensError ?? dexesError;
     }
 
     const outputsUpdatesFlags = await Promise.all(
-      tokens!.map(async token => {
+      tokens.map(async token => {
         if (token.symbol === THREE_ROUTE_TEZ_SYMBOL) {
           return false;
         }
@@ -174,10 +171,10 @@ blockFinder(EMPTY_BLOCK, async block =>
           throw swapError;
         }
 
-        const { directSwap, invertedSwap } = probeSwaps!;
+        const { directSwap, invertedSwap } = probeSwaps;
         const dexesAddresses = directSwap.chains
           .concat(invertedSwap.chains)
-          .map(chain => chain.hops.map(hop => dexes!.find(dex => dex.id === hop.dex)?.contract).filter(isDefined))
+          .map(chain => chain.hops.map(hop => dexes.find(dex => dex.id === hop.dex)?.contract).filter(isDefined))
           .flat();
 
         const firstUpdatedDexAddress = dexesAddresses.find(dexAddress => recentDestinations.includes(dexAddress));

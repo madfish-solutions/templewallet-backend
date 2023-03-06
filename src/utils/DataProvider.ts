@@ -57,7 +57,7 @@ export default class DataProvider<T, A extends any[]> {
 
       return { data };
     } catch (error) {
-      return { error };
+      return { error: error as Error };
     }
   }
 }
