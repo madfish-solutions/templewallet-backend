@@ -1,22 +1,43 @@
+import { AxiosError } from 'axios';
 import { BigNumber } from 'bignumber.js';
 
-export function range(start: number, end: number, step = 1) {
-  return Array(Math.ceil((end - start) / step))
+export const range = (start: number, end: number, step = 1) =>
+  Array(Math.ceil((end - start) / step))
     .fill(0)
     .map((_x, index) => start + step * index);
-}
 
-export function rangeBn(start: number, end: number, step = 1): Array<BigNumber> {
-  return Array(Math.ceil((end - start) / step))
+export const rangeBn = (start: number, end: number, step = 1) =>
+  Array(Math.ceil((end - start) / step))
     .fill(0)
     .map((_x, index) => new BigNumber(start + step * index));
-}
+
+export const pick = <T extends object, U extends keyof T>(obj: T, keys: U[]) => {
+  const newObj: Partial<T> = {};
+  keys.forEach(key => {
+    if (key in obj) {
+      newObj[key] = obj[key];
+    }
+  });
+
+  return newObj as Pick<T, U>;
+};
+
+export const isAbsoluteURL = (url: string) => {
+  // A URL is considered absolute if it begins with "<scheme>://" or "//" (protocol-relative URL).
+  // RFC 3986 defines scheme name as a sequence of characters beginning with a letter and followed
+  // by any combination of letters, digits, plus, period, or hyphen.
+  return /^([a-z][a-z\d\+\-\.]*:)?\/\//i.test(url);
+};
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 export const emptyFn = () => {};
 
-export function isDefined<T>(value: T | undefined | null): value is T {
-  return value !== undefined && value !== null;
-}
+export const isDefined = <T>(value: T | undefined | null): value is T => value !== undefined && value !== null;
 
 export const sleep = (ms: number) => new Promise(resolve => setTimeout(() => resolve('wake'), ms));
+
+export const getExternalApiErrorPayload = (error: Error) => {
+  const response = error instanceof AxiosError ? error.response : undefined;
+
+  return { status: response?.status ?? 500, data: response?.data ?? { error: error.message } };
+};

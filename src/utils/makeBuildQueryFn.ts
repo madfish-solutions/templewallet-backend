@@ -1,28 +1,11 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import { stringify } from 'qs';
 
+import { isAbsoluteURL, pick } from './helpers';
 import logger from './logger';
 import PromisifiedSemaphore from './PromisifiedSemaphore';
 
-function pick<T extends Record<string, unknown> | object, U extends keyof T>(obj: T, keys: U[]) {
-  const newObj: Partial<T> = {};
-  keys.forEach(key => {
-    if (key in obj) {
-      newObj[key] = obj[key];
-    }
-  });
-
-  return newObj as Pick<T, U>;
-}
-
-function isAbsoluteURL(url) {
-  // A URL is considered absolute if it begins with "<scheme>://" or "//" (protocol-relative URL).
-  // RFC 3986 defines scheme name as a sequence of characters beginning with a letter and followed
-  // by any combination of letters, digits, plus, period, or hyphen.
-  return /^([a-z][a-z\d\+\-\.]*:)?\/\//i.test(url);
-}
-
-export default function makeBuildQueryFn<P extends Record<string, unknown> | object, R>(
+export default function makeBuildQueryFn<P extends object, R>(
   baseUrl: string,
   maxConcurrentQueries?: number,
   defaultConfig: Omit<AxiosRequestConfig, 'url'> = {}

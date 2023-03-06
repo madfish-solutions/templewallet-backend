@@ -18,6 +18,7 @@ import { estimateAliceBobOutput } from './utils/alice-bob/estimate-alice-bob-out
 import { getAliceBobOrderInfo } from './utils/alice-bob/get-alice-bob-order-info';
 import { getAliceBobPairInfo } from './utils/alice-bob/get-alice-bob-pair-info';
 import { coinGeckoTokens } from './utils/gecko-tokens';
+import { getExternalApiErrorPayload } from './utils/helpers';
 import logger from './utils/logger';
 import { getSignedMoonPayUrl } from './utils/moonpay/get-signed-moonpay-url';
 import SingleQueryDataProvider from './utils/SingleQueryDataProvider';
@@ -173,8 +174,9 @@ app.post('/api/alice-bob/create-order', async (_req, res) => {
     const orderInfo = await createAliceBobOrder(booleanIsWithdraw, exchangeInfo);
 
     res.status(200).send({ orderInfo });
-  } catch (error: any) {
-    res.status(error.response.status).send(error.response.data);
+  } catch (error) {
+    const { status, data } = getExternalApiErrorPayload(error as Error);
+    res.status(status).send(data);
   }
 });
 
@@ -185,8 +187,9 @@ app.post('/api/alice-bob/cancel-order', async (_req, res) => {
     await cancelAliceBobOrder({ id: String(orderId) });
 
     res.status(200);
-  } catch (error: any) {
-    res.status(error.response.status).send(error.response.data);
+  } catch (error) {
+    const { status, data } = getExternalApiErrorPayload(error as Error);
+    res.status(status).send(data);
   }
 });
 
@@ -197,8 +200,9 @@ app.get('/api/alice-bob/get-pair-info', async (_req, res) => {
     const pairInfo = await getAliceBobPairInfo(isWithdraw === 'true');
 
     res.status(200).send({ pairInfo });
-  } catch (error: any) {
-    res.status(error.response.status).send({ error: error.response.data });
+  } catch (error) {
+    const { status, data } = getExternalApiErrorPayload(error as Error);
+    res.status(status).send(data);
   }
 });
 
@@ -209,8 +213,9 @@ app.get('/api/alice-bob/check-order', async (_req, res) => {
     const orderInfo = await getAliceBobOrderInfo(String(orderId));
 
     res.status(200).send({ orderInfo });
-  } catch (error: any) {
-    res.status(error.response.status).send({ error: error.response.data });
+  } catch (error) {
+    const { status, data } = getExternalApiErrorPayload(error as Error);
+    res.status(status).send({ error: data });
   }
 });
 
@@ -227,8 +232,9 @@ app.post('/api/alice-bob/estimate-amount', async (_req, res) => {
     const outputAmount = await estimateAliceBobOutput(exchangeInfo);
 
     res.status(200).send({ outputAmount });
-  } catch (error: any) {
-    res.status(error.response.status).send({ error: error.response.data });
+  } catch (error) {
+    const { status, data } = getExternalApiErrorPayload(error as Error);
+    res.status(status).send({ error: data });
   }
 });
 
