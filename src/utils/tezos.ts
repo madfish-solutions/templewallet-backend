@@ -8,8 +8,7 @@ import fetch from './fetch';
 import SingleQueryDataProvider from './SingleQueryDataProvider';
 import { BcdTokenData } from './tzkt';
 
-const MAINNET_RPC_URL =
-  process.env.RPC_URL !== undefined ? process.env.RPC_URL : 'https://mainnet-node.madfish.solutions';
+const RPC_URL = process.env.RPC_URL ?? 'https://mainnet-node.madfish.solutions';
 const TEMPLE_WALLET_LV_ACCOUNT_PKH = 'tz1fVQangAfb9J1hRRMP2bSB6LvASD6KpY8A';
 const TEMPLE_WALLET_LV_ACCOUNT_PUBLIC_KEY = 'edpkvWbk81uh1DEvdWKR4g1bjyTGhdu1mDvznPUFE2zDwNsLXrEb9K';
 
@@ -38,11 +37,11 @@ class LambdaViewSigner implements Signer {
 
 const lambdaSigner = new LambdaViewSigner();
 const michelEncoder = new MichelCodecPacker();
-export const mainnetToolkit = new TezosToolkit(MAINNET_RPC_URL);
-mainnetToolkit.setSignerProvider(lambdaSigner);
-mainnetToolkit.setPackerProvider(michelEncoder);
+export const tezosToolkit = new TezosToolkit(RPC_URL);
+tezosToolkit.setSignerProvider(lambdaSigner);
+tezosToolkit.setPackerProvider(michelEncoder);
 
-const getContract = memoizee((address: string) => mainnetToolkit.contract.at(address), { promise: true });
+const getContract = memoizee((address: string) => tezosToolkit.contract.at(address), { promise: true });
 
 export const getStorage = memoizee(
   async <T>(contractAddress: string) => {
@@ -69,7 +68,7 @@ export class MetadataParseError extends Error {}
 
 export const getTokenMetadata = memoizee(
   async (tokenAddress: string, tokenId?: number): Promise<BcdTokenData> => {
-    const contract = await mainnetToolkit.wallet.at(tokenAddress, compose(tzip12, tzip16));
+    const contract = await tezosToolkit.wallet.at(tokenAddress, compose(tzip12, tzip16));
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let tokenData: any;

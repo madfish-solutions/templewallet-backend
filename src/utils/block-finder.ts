@@ -2,7 +2,7 @@ import { BlockResponse, BlockFullHeader } from '@taquito/rpc';
 
 import { sleep } from './helpers';
 import logger from './logger';
-import { mainnetToolkit } from './tezos';
+import { tezosToolkit } from './tezos';
 
 export interface BlockInterface extends Pick<BlockResponse, 'protocol' | 'chain_id' | 'hash'> {
   header: Pick<BlockFullHeader, 'level' | 'timestamp'>;
@@ -22,7 +22,7 @@ export const blockFinder = async (
   prevBlock: BlockInterface,
   onNewBlock: (block: BlockInterface) => Promise<unknown>
 ): Promise<unknown> => {
-  const block = await mainnetToolkit.rpc
+  const block = await tezosToolkit.rpc
     .getBlock()
     .then(
       (blockResponse): BlockInterface => ({

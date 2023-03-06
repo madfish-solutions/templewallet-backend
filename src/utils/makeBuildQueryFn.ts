@@ -58,7 +58,7 @@ export default function makeBuildQueryFn<P, R>(
               });
               resolve(data);
             } catch (e) {
-              logger.error(fullUrl);
+              logger.error(`Error while making query to ${fullUrl}`);
               reject(e);
             }
           });

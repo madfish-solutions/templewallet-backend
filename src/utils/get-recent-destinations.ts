@@ -1,5 +1,6 @@
 import { isDefined } from './helpers';
-import { blockQueryMainnet } from './tzkt';
+import logger from './logger';
+import { makeBlockQuery } from './tzkt';
 
 const PAST_BLOCKS_DEPTH = 4;
 
@@ -8,9 +9,9 @@ export const getRecentDestinations = (currentBlockLevel: number) =>
     new Array(PAST_BLOCKS_DEPTH).fill(0).map(async (_, index) => {
       const pastBlockLevel = currentBlockLevel - index;
 
-      const { transactions } = await blockQueryMainnet({ level: pastBlockLevel, operations: true });
+      const { transactions } = await makeBlockQuery({ level: pastBlockLevel, operations: true });
 
-      if (transactions) {
+      if (isDefined(transactions)) {
         return transactions
           .map(transaction => {
             if (transaction?.type === 'transaction') {
@@ -27,7 +28,8 @@ export const getRecentDestinations = (currentBlockLevel: number) =>
   )
     .then(destinationsArray => destinationsArray.flat())
     .catch((error): string[] => {
-      console.log('getRecentDestinations error', error);
+      logger.error('getRecentDestinations error');
+      logger.error(error);
 
       return [];
     });

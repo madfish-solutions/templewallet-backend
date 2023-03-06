@@ -18,7 +18,7 @@ export type BcdTokenData = {
   supply?: string;
 };
 
-const TZKT_BASE_URL_MAINNET = 'https://api.tzkt.io/v1';
+const TZKT_BASE_URL = 'https://api.tzkt.io/v1';
 
 type SeriesParams = {
   addresses: string[];
@@ -109,7 +109,7 @@ interface TzktBlockOperationsResponse {
     | null;
 }
 
-const buildQueryMainnet = makeBuildQueryFn<
+const buildTzktQuery = makeBuildQueryFn<
   SeriesParams | object | { slug: string } | AccountTokenBalancesParams | ContractTokensParams | TzktBlockQueryParams,
   | [number, number][]
   | DAppsListItem[]
@@ -117,20 +117,20 @@ const buildQueryMainnet = makeBuildQueryFn<
   | AccountTokenBalancesResponse
   | TzktTokenData[]
   | TzktBlockOperationsResponse
->(TZKT_BASE_URL_MAINNET, 5);
+>(TZKT_BASE_URL, 5);
 
-const tokensQueryMainnet = buildQueryMainnet<TokensMetadataParams, TzktTokenData[]>(
+const makeTokensQuery = buildTzktQuery<TokensMetadataParams, TzktTokenData[]>(
   () => '/tokens',
   ['limit', 'offset', 'contract', 'tokenId']
 );
 
-export const blockQueryMainnet = buildQueryMainnet<TzktBlockQueryParams, TzktBlockOperationsResponse>(
+export const makeBlockQuery = buildTzktQuery<TzktBlockQueryParams, TzktBlockOperationsResponse>(
   ({ level }) => `/blocks/${level}`,
   ['operations']
 );
 
 export const tokensMetadataProvider = new DataProvider(24 * 3600 * 1000, async (address?: string, token_id?: number) =>
-  tokensQueryMainnet({
+  makeTokensQuery({
     contract: address,
     tokenId: token_id
   })
@@ -139,7 +139,7 @@ export const tokensMetadataProvider = new DataProvider(24 * 3600 * 1000, async (
 export const contractTokensProvider = new DataProvider(
   24 * 3600 * 1000,
   async (address: string, token_id?: number, size?: number, offset?: number) =>
-    tokensQueryMainnet({
+    makeTokensQuery({
       contract: address,
       limit: size,
       offset,
