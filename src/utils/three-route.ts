@@ -1,5 +1,5 @@
 import { THREE_ROUTE_API_AUTH_TOKEN, THREE_ROUTE_API_URL } from '../config';
-import makeBuildQueryFn from './makeBuildQueryFn';
+import { makeBuildQueryFn } from './makeBuildQueryFn';
 
 interface SwapQueryParams {
   inputTokenSymbol: string;

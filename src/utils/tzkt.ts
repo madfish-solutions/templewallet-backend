@@ -1,5 +1,5 @@
 import DataProvider from './DataProvider';
-import makeBuildQueryFn from './makeBuildQueryFn';
+import { makeBuildQueryFn } from './makeBuildQueryFn';
 
 export type BcdTokenData = {
   network: string;

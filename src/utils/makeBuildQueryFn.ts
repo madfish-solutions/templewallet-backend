@@ -5,7 +5,7 @@ import { isAbsoluteURL, pick } from './helpers';
 import logger from './logger';
 import PromisifiedSemaphore from './PromisifiedSemaphore';
 
-export default function makeBuildQueryFn<P extends object, R>(
+export function makeBuildQueryFn<P extends object, R>(
   baseUrl: string,
   maxConcurrentQueries?: number,
   defaultConfig: Omit<AxiosRequestConfig, 'url'> = {}
