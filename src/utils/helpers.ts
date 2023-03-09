@@ -36,8 +36,10 @@ export const isDefined = <T>(value: T | undefined | null): value is T => value !
 
 export const sleep = (ms: number) => new Promise(resolve => setTimeout(() => resolve('wake'), ms));
 
-export const getExternalApiErrorPayload = (error: Error) => {
+export const getExternalApiErrorPayload = (error: unknown) => {
   const response = error instanceof AxiosError ? error.response : undefined;
+  const status = response?.status ?? 500;
+  const data = response?.data ?? { error: error instanceof Error ? error.message : error };
 
-  return { status: response?.status ?? 500, data: response?.data ?? { error: error.message } };
+  return { status, data };
 };

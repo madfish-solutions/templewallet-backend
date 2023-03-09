@@ -175,7 +175,7 @@ app.post('/api/alice-bob/create-order', async (_req, res) => {
 
     res.status(200).send({ orderInfo });
   } catch (error) {
-    const { status, data } = getExternalApiErrorPayload(error as Error);
+    const { status, data } = getExternalApiErrorPayload(error);
     res.status(status).send(data);
   }
 });
@@ -188,7 +188,7 @@ app.post('/api/alice-bob/cancel-order', async (_req, res) => {
 
     res.status(200);
   } catch (error) {
-    const { status, data } = getExternalApiErrorPayload(error as Error);
+    const { status, data } = getExternalApiErrorPayload(error);
     res.status(status).send(data);
   }
 });
@@ -201,7 +201,7 @@ app.get('/api/alice-bob/get-pair-info', async (_req, res) => {
 
     res.status(200).send({ pairInfo });
   } catch (error) {
-    const { status, data } = getExternalApiErrorPayload(error as Error);
+    const { status, data } = getExternalApiErrorPayload(error);
     res.status(status).send(data);
   }
 });
@@ -214,7 +214,7 @@ app.get('/api/alice-bob/check-order', async (_req, res) => {
 
     res.status(200).send({ orderInfo });
   } catch (error) {
-    const { status, data } = getExternalApiErrorPayload(error as Error);
+    const { status, data } = getExternalApiErrorPayload(error);
     res.status(status).send({ error: data });
   }
 });
@@ -233,7 +233,7 @@ app.post('/api/alice-bob/estimate-amount', async (_req, res) => {
 
     res.status(200).send({ outputAmount });
   } catch (error) {
-    const { status, data } = getExternalApiErrorPayload(error as Error);
+    const { status, data } = getExternalApiErrorPayload(error);
     res.status(status).send({ error: data });
   }
 });
