@@ -284,6 +284,42 @@ app.get('/api/advertising-info', (_req, res) => {
   }
 });
 
+app.post('/api/banxa/sandbox/webhooks/order-nft-buy/created', async (_req, res) => {
+  const payload = _req.body as {
+    orderId: string;
+    orderRef: string;
+    orderStatus: 'Complete';
+    nft: {
+      contract_address: string;
+      token_id?: string;
+      name?: string;
+      collection?: string;
+      media?: {
+        type: 'image';
+        link: string;
+      };
+    };
+  };
+
+  console.log('POST /api/banxa/sandbox/webhooks/order-nft-buy/created payload:', payload);
+
+  res.status(200).send({ success: 'true' });
+});
+
+app.get('/api/banxa/sandbox/webhooks/order-nft-buy/update', async (_req, res) => {
+  console.log('GET /api/banxa/sandbox/webhooks/order-nft-buy/update:', _req.path, JSON.stringify(_req.query));
+
+  type BanxaUpdateStatus =
+    | 'Pending' // NFT has not started fulfilment yet
+    | 'Failed' // NFT fulfilment failed
+    | 'Processing' // NFT fulfilment is processing
+    | 'Complete'; // NFT fulfilment is completed
+
+  const status: BanxaUpdateStatus = 'Failed';
+
+  return void res.status(200).send({ status });
+});
+
 // start the server listening for requests
 const port = Boolean(process.env.PORT) ? process.env.PORT : 3000;
 app.listen(port, () => console.info(`Server is running on port ${port}...`));
