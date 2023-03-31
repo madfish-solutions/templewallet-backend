@@ -83,9 +83,9 @@ export const dappList: DappList[] = [
   },
   {
     name: 'Plenty',
-    dappUrl: 'https://www.plentydefi.com',
+    dappUrl: 'https://plenty.network/',
     type: DappType.DeFi,
-    logo: 'https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/plenty/plenty_logo.png',
+    logo: 'https://pbs.twimg.com/profile_images/1571173076334772224/hZ-puodZ_400x400.jpg',
     slug: 'plenty',
     categories: [DappType.DeFi, DappType.Exchanges]
   },
