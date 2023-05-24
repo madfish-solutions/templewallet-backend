@@ -1,20 +1,28 @@
-import { getEnv } from './utils/env';
+import { isTruthy } from './utils/helpers';
 
 export const MIN_IOS_APP_VERSION = '1.10.445';
 export const MIN_ANDROID_APP_VERSION = '1.10.445';
 
-export const QUIPUSWAP_FA12_FACTORIES = getEnv('QUIPUSWAP_FA12_FACTORIES');
-export const QUIPUSWAP_FA2_FACTORIES = getEnv('QUIPUSWAP_FA2_FACTORIES');
-export const MOONPAY_SECRET_KEY = getEnv('MOONPAY_SECRET_KEY');
-export const ALICE_BOB_PRIVATE_KEY = getEnv('ALICE_BOB_PRIVATE_KEY');
-export const ALICE_BOB_PUBLIC_KEY = getEnv('ALICE_BOB_PUBLIC_KEY');
-export const BINANCE_CONNECT_PRIVATE_KEY = getEnv('BINANCE_CONNECT_PRIVATE_KEY');
-export const BINANCE_CONNECT_PUBLIC_KEY = getEnv('BINANCE_CONNECT_PUBLIC_KEY');
+const EnvVarsNames = [
+  'QUIPUSWAP_FA12_FACTORIES',
+  'QUIPUSWAP_FA2_FACTORIES',
+  'MOONPAY_SECRET_KEY',
+  'ALICE_BOB_PRIVATE_KEY',
+  'ALICE_BOB_PUBLIC_KEY',
+  'BINANCE_CONNECT_PRIVATE_KEY',
+  'BINANCE_CONNECT_PUBLIC_KEY'
+] as const;
 
-if (!Boolean(QUIPUSWAP_FA12_FACTORIES)) throw new Error('process.env.QUIPUSWAP_FA12_FACTORIES not found.');
-if (!Boolean(QUIPUSWAP_FA2_FACTORIES)) throw new Error('process.env.QUIPUSWAP_FA2_FACTORIES not found.');
-if (!Boolean(MOONPAY_SECRET_KEY)) throw new Error('process.env.MOONPAY_SECRET_KEY not found.');
-if (!Boolean(ALICE_BOB_PRIVATE_KEY)) throw new Error('process.env.ALICE_BOB_PRIVATE_KEY not found.');
-if (!Boolean(ALICE_BOB_PUBLIC_KEY)) throw new Error('process.env.ALICE_BOB_PUBLIC_KEY not found.');
-if (!Boolean(BINANCE_CONNECT_PRIVATE_KEY)) throw new Error('process.env.BINANCE_CONNECT_PRIVATE_KEY not found.');
-if (!Boolean(BINANCE_CONNECT_PUBLIC_KEY)) throw new Error('process.env.BINANCE_CONNECT_PUBLIC_KEY not found.');
+type EnvVarsType = {
+  [key in (typeof EnvVarsNames)[number]]: string;
+};
+
+export const EnvVars = Object.fromEntries(
+  EnvVarsNames.map(name => {
+    const value = process.env[name];
+
+    if (!isTruthy(value)) throw new Error(`process.env.${name} not found.`);
+
+    return [name, value];
+  })
+) as EnvVarsType;

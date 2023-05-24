@@ -2,7 +2,7 @@ import { MichelsonMap } from '@taquito/michelson-encoder';
 import { BigNumber } from 'bignumber.js';
 import memoizee from 'memoizee';
 
-import { QUIPUSWAP_FA12_FACTORIES, QUIPUSWAP_FA2_FACTORIES } from '../config';
+import { EnvVars } from '../config';
 import { BigMapKeyType, IContractFactoryStorage, TokenListValue } from '../interfaces/contract-factoctories';
 import { IPriceHistory } from '../interfaces/price-history';
 import fetch from './fetch';
@@ -19,8 +19,8 @@ import {
   TzktTokenData
 } from './tzkt';
 
-const fa12Factories = QUIPUSWAP_FA12_FACTORIES.split(',');
-const fa2Factories = QUIPUSWAP_FA2_FACTORIES.split(',');
+const fa12Factories = EnvVars.QUIPUSWAP_FA12_FACTORIES.split(',');
+const fa2Factories = EnvVars.QUIPUSWAP_FA2_FACTORIES.split(',');
 
 interface QuipuswapExchangerAbstract {
   exchangerAddress: string;

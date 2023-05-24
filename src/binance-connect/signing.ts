@@ -1,7 +1,9 @@
 import NodeRSA from 'node-rsa';
 
-import { BINANCE_CONNECT_PRIVATE_KEY, BINANCE_CONNECT_PUBLIC_KEY } from '../config';
+import { EnvVars } from '../config';
 import { MERCHANT_CODE } from './config';
+
+const { BINANCE_CONNECT_PRIVATE_KEY, BINANCE_CONNECT_PUBLIC_KEY } = EnvVars;
 
 export async function buildGetSignature(timestamp: number, merchant_code = MERCHANT_CODE) {
   return sign(`merchantCode=${merchant_code}&timestamp=${timestamp}`);
