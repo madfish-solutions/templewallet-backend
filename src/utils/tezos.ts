@@ -8,8 +8,7 @@ import fetch from './fetch';
 import SingleQueryDataProvider from './SingleQueryDataProvider';
 import { BcdTokenData } from './tzkt';
 
-const MAINNET_RPC_URL =
-  process.env.RPC_URL !== undefined ? process.env.RPC_URL : 'https://mainnet-node.madfish.solutions';
+const RPC_URL = process.env.RPC_URL ?? 'https://mainnet-node.madfish.solutions';
 const TEMPLE_WALLET_LV_ACCOUNT_PKH = 'tz1fVQangAfb9J1hRRMP2bSB6LvASD6KpY8A';
 const TEMPLE_WALLET_LV_ACCOUNT_PUBLIC_KEY = 'edpkvWbk81uh1DEvdWKR4g1bjyTGhdu1mDvznPUFE2zDwNsLXrEb9K';
 
@@ -38,11 +37,11 @@ class LambdaViewSigner implements Signer {
 
 const lambdaSigner = new LambdaViewSigner();
 const michelEncoder = new MichelCodecPacker();
-const mainnetToolkit = new TezosToolkit(MAINNET_RPC_URL);
-mainnetToolkit.setSignerProvider(lambdaSigner);
-mainnetToolkit.setPackerProvider(michelEncoder);
+export const tezosToolkit = new TezosToolkit(RPC_URL);
+tezosToolkit.setSignerProvider(lambdaSigner);
+tezosToolkit.setPackerProvider(michelEncoder);
 
-const getContract = memoizee((address: string) => mainnetToolkit.contract.at(address), { promise: true });
+const getContract = memoizee((address: string) => tezosToolkit.contract.at(address), { promise: true });
 
 export const getStorage = memoizee(
   async <T>(contractAddress: string) => {
@@ -58,7 +57,7 @@ const getTezExchangeRate = async () => {
   const usdTickers = marketTickers.filter(e => e.quote === 'USD' && e.base === 'XTZ');
   // price index: use all USD ticker last prices with equal weight
   const vol = usdTickers.reduce((s, t) => s + t.volume_base, 0) || null;
-  const price = vol !== null && usdTickers.reduce((s, t) => s + (t.last * t.volume_base) / vol, 0);
+  const price = vol === null ? 1 : usdTickers.reduce((s, t) => s + (t.last * t.volume_base) / vol, 0);
 
   return price;
 };
@@ -69,7 +68,7 @@ export class MetadataParseError extends Error {}
 
 export const getTokenMetadata = memoizee(
   async (tokenAddress: string, tokenId?: number): Promise<BcdTokenData> => {
-    const contract = await mainnetToolkit.wallet.at(tokenAddress, compose(tzip12, tzip16));
+    const contract = await tezosToolkit.wallet.at(tokenAddress, compose(tzip12, tzip16));
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let tokenData: any;
@@ -81,7 +80,7 @@ export const getTokenMetadata = memoizee(
     try {
       tokenData = await contract.tzip12().getTokenMetadata(tokenId ?? 0);
     } catch (err) {
-      latestErrMessage = err.message;
+      latestErrMessage = (err as Error).message;
     }
 
     /**
@@ -93,7 +92,7 @@ export const getTokenMetadata = memoizee(
         const { metadata } = await contract.tzip16().getMetadata();
         tokenData = metadata;
       } catch (err) {
-        latestErrMessage = err.message;
+        latestErrMessage = (err as Error).message;
       }
     }
 

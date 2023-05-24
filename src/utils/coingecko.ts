@@ -1,5 +1,5 @@
 import { range } from './helpers';
-import makeBuildQueryFn from './makeBuildQueryFn';
+import { makeBuildQueryFn } from './makeBuildQueryFn';
 import SingleQueryDataProvider from './SingleQueryDataProvider';
 
 type CoinsListParams = {

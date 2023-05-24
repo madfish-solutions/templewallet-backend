@@ -18,6 +18,7 @@ import { estimateAliceBobOutput } from './utils/alice-bob/estimate-alice-bob-out
 import { getAliceBobOrderInfo } from './utils/alice-bob/get-alice-bob-order-info';
 import { getAliceBobPairInfo } from './utils/alice-bob/get-alice-bob-pair-info';
 import { coinGeckoTokens } from './utils/gecko-tokens';
+import { getExternalApiErrorPayload } from './utils/helpers';
 import logger from './utils/logger';
 import { getSignedMoonPayUrl } from './utils/moonpay/get-signed-moonpay-url';
 import SingleQueryDataProvider from './utils/SingleQueryDataProvider';
@@ -174,7 +175,8 @@ app.post('/api/alice-bob/create-order', async (_req, res) => {
 
     res.status(200).send({ orderInfo });
   } catch (error) {
-    res.status(error.response.status).send(error.response.data);
+    const { status, data } = getExternalApiErrorPayload(error);
+    res.status(status).send(data);
   }
 });
 
@@ -186,7 +188,8 @@ app.post('/api/alice-bob/cancel-order', async (_req, res) => {
 
     res.status(200);
   } catch (error) {
-    res.status(error.response.status).send(error.response.data);
+    const { status, data } = getExternalApiErrorPayload(error);
+    res.status(status).send(data);
   }
 });
 
@@ -198,7 +201,8 @@ app.get('/api/alice-bob/get-pair-info', async (_req, res) => {
 
     res.status(200).send({ pairInfo });
   } catch (error) {
-    res.status(error.response.status).send({ error: error.response.data });
+    const { status, data } = getExternalApiErrorPayload(error);
+    res.status(status).send(data);
   }
 });
 
@@ -210,7 +214,8 @@ app.get('/api/alice-bob/check-order', async (_req, res) => {
 
     res.status(200).send({ orderInfo });
   } catch (error) {
-    res.status(error.response.status).send({ error: error.response.data });
+    const { status, data } = getExternalApiErrorPayload(error);
+    res.status(status).send({ error: data });
   }
 });
 
@@ -228,7 +233,8 @@ app.post('/api/alice-bob/estimate-amount', async (_req, res) => {
 
     res.status(200).send({ outputAmount });
   } catch (error) {
-    res.status(error.response.status).send({ error: error.response.data });
+    const { status, data } = getExternalApiErrorPayload(error);
+    res.status(status).send({ error: data });
   }
 });
 

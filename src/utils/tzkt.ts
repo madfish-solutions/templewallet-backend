@@ -1,5 +1,5 @@
 import DataProvider from './DataProvider';
-import makeBuildQueryFn from './makeBuildQueryFn';
+import { makeBuildQueryFn } from './makeBuildQueryFn';
 
 export type BcdTokenData = {
   network: string;
@@ -18,14 +18,7 @@ export type BcdTokenData = {
   supply?: string;
 };
 
-export enum TZKT_NETWORKS {
-  MAINNET = 'mainnet',
-  GHOSTNET = 'ghostnet',
-  JAKARTANET = 'jakartanet'
-}
-
-const TZKT_BASE_URL_MAINNET = 'https://api.tzkt.io/v1';
-const TZKT_BASE_URL_GHOSTNET = 'https://api.ghostnet.tzkt.io/v1';
+const TZKT_BASE_URL = 'https://api.tzkt.io/v1';
 
 type SeriesParams = {
   addresses: string[];
@@ -99,58 +92,59 @@ export type TzktTokenData = {
   totalSupply?: string;
 };
 
-const buildQueryMainnet = makeBuildQueryFn<
-  SeriesParams | object | { slug: string } | AccountTokenBalancesParams | ContractTokensParams,
-  [number, number][] | DAppsListItem[] | DAppDetails | AccountTokenBalancesResponse | TzktTokenData[]
->(TZKT_BASE_URL_MAINNET, 5);
+interface TzktBlockQueryParams {
+  level: number;
+  operations: boolean;
+}
 
-const buildQueryGhostnet = makeBuildQueryFn<
-  SeriesParams | object | { slug: string } | AccountTokenBalancesParams | ContractTokensParams,
-  [number, number][] | DAppsListItem[] | DAppDetails | AccountTokenBalancesResponse | TzktTokenData[]
->(TZKT_BASE_URL_GHOSTNET, 5);
+interface TzktBlockOperationsResponse {
+  transactions:
+    | {
+        type: string;
+        target: {
+          alias: string | null;
+          address: string | null;
+        } | null;
+      }[]
+    | null;
+}
 
-export const tokensMetadataProvider = new DataProvider(
-  24 * 3600 * 1000,
-  (network: TZKT_NETWORKS, address?: string, token_id?: number) => {
-    const getTokensMetadata =
-      network === TZKT_NETWORKS.MAINNET
-        ? buildQueryMainnet<TokensMetadataParams, TzktTokenData[]>(
-            () => '/tokens',
-            ['limit', 'offset', 'contract', 'tokenId']
-          )
-        : buildQueryGhostnet<TokensMetadataParams, TzktTokenData[]>(
-            () => '/tokens',
-            ['limit', 'offset', 'contract', 'tokenId']
-          );
+const buildTzktQuery = makeBuildQueryFn<
+  SeriesParams | object | { slug: string } | AccountTokenBalancesParams | ContractTokensParams | TzktBlockQueryParams,
+  | [number, number][]
+  | DAppsListItem[]
+  | DAppDetails
+  | AccountTokenBalancesResponse
+  | TzktTokenData[]
+  | TzktBlockOperationsResponse
+>(TZKT_BASE_URL, 5);
 
-    return getTokensMetadata({
-      contract: address,
-      tokenId: token_id
-    });
-  }
+const makeTokensQuery = buildTzktQuery<TokensMetadataParams, TzktTokenData[]>(
+  () => '/tokens',
+  ['limit', 'offset', 'contract', 'tokenId']
+);
+
+export const makeBlockQuery = buildTzktQuery<TzktBlockQueryParams, TzktBlockOperationsResponse>(
+  ({ level }) => `/blocks/${level}`,
+  ['operations']
+);
+
+export const tokensMetadataProvider = new DataProvider(24 * 3600 * 1000, async (address?: string, token_id?: number) =>
+  makeTokensQuery({
+    contract: address,
+    tokenId: token_id
+  })
 );
 
 export const contractTokensProvider = new DataProvider(
   24 * 3600 * 1000,
-  (network: TZKT_NETWORKS, address: string, token_id?: number, size?: number, offset?: number) => {
-    const getContractTokens =
-      network === TZKT_NETWORKS.MAINNET
-        ? buildQueryMainnet<ContractTokensParams, TzktTokenData[]>(
-            () => '/tokens',
-            ['limit', 'offset', 'tokenId', 'contract']
-          )
-        : buildQueryGhostnet<ContractTokensParams, TzktTokenData[]>(
-            () => '/tokens',
-            ['limit', 'offset', 'tokenId', 'contract']
-          );
-
-    return getContractTokens({
+  async (address: string, token_id?: number, size?: number, offset?: number) =>
+    makeTokensQuery({
       contract: address,
       limit: size,
       offset,
       tokenId: token_id
-    });
-  }
+    })
 );
 
 export const mapTzktTokenDataToBcdTokenData = (x?: TzktTokenData): BcdTokenData | undefined =>
