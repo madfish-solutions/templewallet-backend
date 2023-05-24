@@ -1,5 +1,6 @@
 require('./configure');
 
+import { AxiosError } from 'axios';
 import cors from 'cors';
 import express, { Request, Response } from 'express';
 import firebaseAdmin from 'firebase-admin';
@@ -7,6 +8,12 @@ import { stdSerializers } from 'pino';
 import pinoHttp from 'pino-http';
 
 import { getAdvertisingInfo } from './advertising/advertising';
+import {
+  createBinanceConnectTradeOrder,
+  estimateBinanceConnectOutput,
+  fetchBinanceConnectCurrencies
+} from './binance-connect';
+import { BinanceConnectError } from './binance-connect/requests';
 import { MIN_ANDROID_APP_VERSION, MIN_IOS_APP_VERSION } from './config';
 import getDAppsStats from './getDAppsStats';
 import { PlatformType } from './notifications/notification.interface';
@@ -18,6 +25,8 @@ import { estimateAliceBobOutput } from './utils/alice-bob/estimate-alice-bob-out
 import { getAliceBobOrderInfo } from './utils/alice-bob/get-alice-bob-order-info';
 import { getAliceBobPairInfo } from './utils/alice-bob/get-alice-bob-pair-info';
 import { coinGeckoTokens } from './utils/gecko-tokens';
+import { assertPickQuery, isTruthy } from './utils/helpers';
+import { getCountryCodeByIP } from './utils/ip-to-country';
 import logger from './utils/logger';
 import { getSignedMoonPayUrl } from './utils/moonpay/get-signed-moonpay-url';
 import SingleQueryDataProvider from './utils/SingleQueryDataProvider';
@@ -49,6 +58,8 @@ const PINO_LOGGER = {
 const app = express();
 app.use(pinoHttp(PINO_LOGGER));
 app.use(cors());
+/** For IP address forwarding */
+app.enable('trust proxy');
 
 const dAppsProvider = new SingleQueryDataProvider(15 * 60 * 1000, getDAppsStats);
 
@@ -174,7 +185,9 @@ app.post('/api/alice-bob/create-order', async (_req, res) => {
 
     res.status(200).send({ orderInfo });
   } catch (error) {
-    res.status(error.response.status).send(error.response.data);
+    if (error instanceof AxiosError && error.response)
+      res.status(error.response.status).send({ error: error.response.data });
+    else res.status(500).send;
   }
 });
 
@@ -186,7 +199,9 @@ app.post('/api/alice-bob/cancel-order', async (_req, res) => {
 
     res.status(200);
   } catch (error) {
-    res.status(error.response.status).send(error.response.data);
+    if (error instanceof AxiosError && error.response)
+      res.status(error.response.status).send({ error: error.response.data });
+    else res.status(500).send;
   }
 });
 
@@ -198,7 +213,9 @@ app.get('/api/alice-bob/get-pair-info', async (_req, res) => {
 
     res.status(200).send({ pairInfo });
   } catch (error) {
-    res.status(error.response.status).send({ error: error.response.data });
+    if (error instanceof AxiosError && error.response)
+      res.status(error.response.status).send({ error: error.response.data });
+    else res.status(500).send;
   }
 });
 
@@ -210,7 +227,9 @@ app.get('/api/alice-bob/check-order', async (_req, res) => {
 
     res.status(200).send({ orderInfo });
   } catch (error) {
-    res.status(error.response.status).send({ error: error.response.data });
+    if (error instanceof AxiosError && error.response)
+      res.status(error.response.status).send({ error: error.response.data });
+    else res.status(500).send;
   }
 });
 
@@ -228,24 +247,21 @@ app.post('/api/alice-bob/estimate-amount', async (_req, res) => {
 
     res.status(200).send({ outputAmount });
   } catch (error) {
-    res.status(error.response.status).send({ error: error.response.data });
+    if (error instanceof AxiosError && error.response)
+      res.status(error.response.status).send({ error: error.response.data });
+    else res.status(500).send;
   }
 });
 
 app.get('/api/mobile-check', async (_req, res) => {
-  console.log(1);
-  console.log('androidAppId', process.env.ANDROID_APP_ID);
-  console.log('iosAppId', process.env.IOS_APP_ID);
+  const { platform, appCheckToken } = _req.query;
+  console.info('GET /api/mobile-check query:', 'platform=', platform, 'appCheckToken=', appCheckToken);
+  console.info('\tplatform=', platform);
+  console.info('\tappCheckToken=', appCheckToken);
 
-  const platform = _req.query.platform;
-  const appCheckToken = _req.query.appCheckToken;
-  console.log('token', appCheckToken);
-
-  console.log(1);
-  console.log('androidAppId', process.env.ANDROID_APP_ID);
-  console.log('iosAppId', process.env.IOS_APP_ID);
-
-  console.log('A123', platform, appCheckToken);
+  console.info('process.env.');
+  console.info('\tANDROID_APP_ID=', process.env.ANDROID_APP_ID);
+  console.info('\tIOS_APP_ID=', process.env.IOS_APP_ID);
 
   if (!Boolean(appCheckToken) || appCheckToken === undefined) {
     return res.status(400).send({ error: 'App Check token is not defined' });
@@ -265,7 +281,7 @@ app.get('/api/mobile-check', async (_req, res) => {
       isAppCheckFailed: false
     });
   } catch (err) {
-    console.log('err', err);
+    console.error('err', err);
     res.status(200).send({
       minIosVersion: MIN_IOS_APP_VERSION,
       minAndroidVersion: MIN_ANDROID_APP_VERSION,
@@ -281,6 +297,58 @@ app.get('/api/advertising-info', (_req, res) => {
     res.status(200).send({ data });
   } catch (error) {
     res.status(500).send({ error });
+  }
+});
+
+app.get('/api/binance-connect/currencies', async (_req, res) => {
+  try {
+    const data = await fetchBinanceConnectCurrencies();
+
+    res.status(200).send(data);
+  } catch (error) {
+    const code = error instanceof BinanceConnectError ? 400 : 500;
+    res.status(code).send(error);
+  }
+});
+
+app.get('/api/binance-connect/output', async (_req, res) => {
+  try {
+    const params = assertPickQuery(_req.query, 'inputFiatCode', 'outputCryptoCode', 'inputAmount');
+    const { inputFiatCode, outputCryptoCode, inputAmount } = params;
+
+    const ip = (() => {
+      const [ip] = _req.ip.split(':');
+      if (ip.indexOf('.') > 0) return ip;
+    })();
+
+    console.info('Client IP = ', ip);
+
+    const countryCode = isTruthy(ip)
+      ? await getCountryCodeByIP(ip).catch(error => void console.error(error))
+      : undefined;
+
+    console.info('Client Country Code = ', countryCode);
+
+    const outputAmount = await estimateBinanceConnectOutput(inputFiatCode, outputCryptoCode, inputAmount, countryCode);
+
+    res.status(200).send({ outputAmount });
+  } catch (error) {
+    const code = error instanceof BinanceConnectError ? 400 : 500;
+    res.status(code).send(error);
+  }
+});
+
+app.post('/api/binance-connect/create-order', async (_req, res) => {
+  try {
+    const params = assertPickQuery(_req.query, 'inputFiatCode', 'outputCryptoCode', 'inputAmount', 'accountPkh');
+    const { inputFiatCode, outputCryptoCode, inputAmount, accountPkh } = params;
+
+    const checkoutUrl = await createBinanceConnectTradeOrder(inputFiatCode, outputCryptoCode, inputAmount, accountPkh);
+
+    res.status(200).send({ checkoutUrl });
+  } catch (error) {
+    const code = error instanceof BinanceConnectError ? 400 : 500;
+    res.status(code).send(error);
   }
 });
 

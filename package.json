@@ -19,6 +19,7 @@
     "express": "^4.17.3",
     "firebase-admin": "^10.0.2",
     "memoizee": "^0.4.15",
+    "node-rsa": "^1.1.1",
     "pino": "^6.11.2",
     "pino-http": "^5.5.0",
     "pino-pretty": "^4.7.1",
