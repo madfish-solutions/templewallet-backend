@@ -1,3 +1,5 @@
+import memoizee from 'memoizee';
+
 import { BinanceConnectError, makeGetRequest, makePostRequest } from './requests';
 import {
   GetBinanceConnectCurrenciesResponse,
@@ -8,6 +10,8 @@ import {
   PostTradeOrderRequestPayload,
   PostTradeResponse
 } from './types';
+
+const TWO_HOURS = 2 * 60 * 60_000;
 
 const fetchTezosAssetsInfo = async () => {
   const data = await makeGetRequest<GetCryptoNetworksResponseItem[]>('/get-crypto-network-list');
@@ -24,14 +28,18 @@ const fetchTezosTradePairsWithCardPaymentMethod = async (coins: string[]) => {
   return data.filter(item => item.paymentMethod === 'card' && coins.includes(item.cryptoCurrency));
 };
 
-export const fetchBinanceConnectCurrencies = async (): Promise<GetBinanceConnectCurrenciesResponse> => {
-  const assets = await fetchTezosAssetsInfo();
+/** Memoization is justified since we won't use `GetTradePairsResponseItem.quotation` */
+export const fetchBinanceConnectCurrencies = memoizee(
+  async (): Promise<GetBinanceConnectCurrenciesResponse> => {
+    const assets = await fetchTezosAssetsInfo();
 
-  const cryptocurrencyCodes = assets.map(item => item.cryptoCurrency);
-  const pairs = await fetchTezosTradePairsWithCardPaymentMethod(cryptocurrencyCodes);
+    const cryptocurrencyCodes = assets.map(item => item.cryptoCurrency);
+    const pairs = await fetchTezosTradePairsWithCardPaymentMethod(cryptocurrencyCodes);
 
-  return { assets, pairs };
-};
+    return { assets, pairs };
+  },
+  { promise: true, maxAge: TWO_HOURS }
+);
 
 export const estimateBinanceConnectOutput = async (
   inputFiatCode: string,

@@ -1,7 +1,13 @@
 import axios from 'axios';
+import memoizee from 'memoizee';
 
-export const getCountryCodeByIP = async (ip: string) => {
-  const { data } = await axios.get<{ country_code: string }>(`https://ipapi.co/${ip}/json`);
+const TWO_HOURS = 2 * 60 * 60_000;
 
-  return data.country_code;
-};
+export const getCountryCodeByIP = memoizee(
+  async (ip: string) => {
+    const { data } = await axios.get<{ country_code: string }>(`https://ipapi.co/${ip}/json`);
+
+    return data.country_code;
+  },
+  { promise: true, maxAge: TWO_HOURS }
+);
