@@ -52,6 +52,8 @@ const probeSwapsProvider = new DataProvider(Infinity, async (outputTokenSymbol: 
   return { directSwap, invertedSwap };
 });
 
+export class TimeoutError extends Error {}
+
 export type TokenExchangeRateEntry = {
   tokenAddress: string;
   tokenId?: number;
@@ -72,48 +74,63 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
     throw tokensError ?? tezExchangeRateError;
   }
 
-  const exchangeRates = await Promise.all(
+  const exchangeRatesWithHoles = await Promise.all(
     tokens
       .filter(
         (token): token is ThreeRouteFa12Token | ThreeRouteFa2Token => token.standard !== ThreeRouteStandardEnum.xtz
       )
-      .map(async (token): Promise<TokenExchangeRateEntry> => {
+      .map(async (token): Promise<TokenExchangeRateEntry | undefined> => {
         logger.info(`Getting exchange rate for ${token.symbol}`);
         const { contract, tokenId: rawTokenId } = token;
         const tokenId = isDefined(rawTokenId) ? Number(rawTokenId) : undefined;
         await probeSwapsProvider.subscribe(token.symbol);
-        const { data: probeSwaps, error: swapError } = await probeSwapsProvider.get(token.symbol);
-        await tokensMetadataProvider.subscribe(contract, tokenId);
-        const { data: metadata } = await tokensMetadataProvider.get(contract, tokenId);
+        try {
+          const { data: probeSwaps, error: swapError } = await Promise.race([
+            probeSwapsProvider.get(token.symbol),
+            new Promise<never>((_, rej) => setTimeout(() => rej(new TimeoutError()), 10000))
+          ]);
+          await tokensMetadataProvider.subscribe(contract, tokenId);
+          const { data: metadata } = await tokensMetadataProvider.get(contract, tokenId);
 
-        if (swapError) {
-          logger.error(`Failed to get exchange rate for token ${token.symbol}`);
-          throw swapError;
-        }
+          if (swapError) {
+            logger.error(`Failed to get exchange rate for token ${token.symbol}`);
+            throw swapError;
+          }
 
-        const { directSwap, invertedSwap } = probeSwaps;
-        const toTezExchangeRatesVersions: BigNumber[] = [];
-        if (directSwap.output !== 0) {
-          toTezExchangeRatesVersions.push(new BigNumber(PROBE_TEZ_AMOUNT).div(directSwap.output));
-        }
-        if (invertedSwap.output !== 0) {
-          toTezExchangeRatesVersions.push(new BigNumber(invertedSwap.output).div(invertedSwap.input));
-        }
-        const exchangeRate =
-          toTezExchangeRatesVersions.length === 0
-            ? new BigNumber(0)
-            : BigNumber.sum(...toTezExchangeRatesVersions)
-                .div(toTezExchangeRatesVersions.length)
-                .times(tezExchangeRate);
+          const { directSwap, invertedSwap } = probeSwaps;
+          const toTezExchangeRatesVersions: BigNumber[] = [];
+          if (directSwap.output !== 0) {
+            toTezExchangeRatesVersions.push(new BigNumber(PROBE_TEZ_AMOUNT).div(directSwap.output));
+          }
+          if (invertedSwap.output !== 0) {
+            toTezExchangeRatesVersions.push(new BigNumber(invertedSwap.output).div(invertedSwap.input));
+          }
+          const exchangeRate =
+            toTezExchangeRatesVersions.length === 0
+              ? new BigNumber(0)
+              : BigNumber.sum(...toTezExchangeRatesVersions)
+                  .div(toTezExchangeRatesVersions.length)
+                  .times(tezExchangeRate);
 
-        return {
-          tokenAddress: contract,
-          tokenId,
-          exchangeRate,
-          metadata: mapTzktTokenDataToBcdTokenData(metadata?.[0])
-        };
+          return {
+            tokenAddress: contract,
+            tokenId,
+            exchangeRate,
+            metadata: mapTzktTokenDataToBcdTokenData(metadata?.[0])
+          };
+        } catch (e) {
+          if (e instanceof TimeoutError) {
+            logger.error('Timeout error while getting exchange rate for token', token.symbol);
+
+            return undefined;
+          }
+
+          throw e;
+        }
       })
   );
+
+  const exchangeRates = exchangeRatesWithHoles.filter(isDefined);
 
   if (!exchangeRates.some(({ tokenAddress }) => tokenAddress === ASPENCOIN_ADDRESS)) {
     logger.info('Getting exchange rate for Aspencoin');
