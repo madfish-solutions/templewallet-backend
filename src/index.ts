@@ -3,12 +3,15 @@ require('./configure');
 import cors from 'cors';
 import express, { Request, Response } from 'express';
 import firebaseAdmin from 'firebase-admin';
+import low from 'lowdb';
+import FileSync from 'lowdb/adapters/FileSync';
 import { stdSerializers } from 'pino';
 import pinoHttp from 'pino-http';
 
 import { getAdvertisingInfo } from './advertising/advertising';
 import { MIN_ANDROID_APP_VERSION, MIN_IOS_APP_VERSION } from './config';
 import getDAppsStats from './getDAppsStats';
+import { DbData } from './interfaces/db-data.interface';
 import { PlatformType } from './notifications/notification.interface';
 import { getNotifications } from './notifications/notifications.utils';
 import { getABData } from './utils/ab-test';
@@ -50,6 +53,12 @@ const PINO_LOGGER = {
 const app = express();
 app.use(pinoHttp(PINO_LOGGER));
 app.use(cors());
+
+const adapter = new FileSync<DbData>('db.json');
+const db = low(adapter);
+
+const defaultData: DbData = { notifications: [] };
+db.defaults(defaultData).write();
 
 const dAppsProvider = new SingleQueryDataProvider(15 * 60 * 1000, getDAppsStats);
 
@@ -95,6 +104,7 @@ app.get('/api/notifications', (_req, res) => {
   try {
     const { platform, startFromTime } = _req.query;
     const data = getNotifications(
+      db,
       platform === PlatformType.Mobile ? PlatformType.Mobile : PlatformType.Extension,
       Number(startFromTime) ?? 0
     );

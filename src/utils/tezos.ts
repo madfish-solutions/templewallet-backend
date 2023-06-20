@@ -3,7 +3,7 @@ import { tzip12 } from '@taquito/tzip12';
 import { tzip16 } from '@taquito/tzip16';
 import memoizee from 'memoizee';
 
-import { ITicker } from '../interfaces/tickers';
+import { ITicker } from '../interfaces/ticker.interface';
 import fetch from './fetch';
 import SingleQueryDataProvider from './SingleQueryDataProvider';
 import { BcdTokenData } from './tzkt';

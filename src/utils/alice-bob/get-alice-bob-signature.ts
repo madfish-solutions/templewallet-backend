@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 
 import { ALICE_BOB_PRIVATE_KEY } from '../../config';
-import { AliceBobPayload } from '../../interfaces/alice-bob/alice-bob.interfaces';
+import { AliceBobPayload } from '../../interfaces/alice-bob.interfaces';
 
 export const getAliceBobSignature = (payload?: AliceBobPayload) => {
   const now = Date.now();
