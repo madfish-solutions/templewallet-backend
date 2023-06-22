@@ -34,6 +34,8 @@ export const emptyFn = () => {};
 
 export const isDefined = <T>(value: T | undefined | null): value is T => value !== undefined && value !== null;
 
+export const isString = (str: unknown): str is string => typeof str === 'string' && str.length !== 0;
+
 export const sleep = (ms: number) => new Promise(resolve => setTimeout(() => resolve('wake'), ms));
 
 export const getExternalApiErrorPayload = (error: unknown) => {

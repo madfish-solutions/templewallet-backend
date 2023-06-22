@@ -1,19 +1,5 @@
+import { DEFAULT_IMAGE_URLS } from './default-image-fallbacks';
 import { Notification, NotificationType, PlatformType } from './notification.interface';
-
-const BANNERS_BUCKET_URL = 'https://generic-objects.fra1.digitaloceanspaces.com/notification-icons';
-
-const DEFAULT_BANNER_URLS = {
-  extension: {
-    news: `${BANNERS_BUCKET_URL}/extension/news.svg`,
-    platformUpdate: `${BANNERS_BUCKET_URL}/extension/platform-update.svg`,
-    securityNote: `${BANNERS_BUCKET_URL}/extension/security-note.svg`
-  },
-  mobile: {
-    news: `${BANNERS_BUCKET_URL}/mobile/news.svg`,
-    platformUpdate: `${BANNERS_BUCKET_URL}/mobile/platform-update.svg`,
-    securityNote: `${BANNERS_BUCKET_URL}/mobile/security-note.svg`
-  }
-};
 
 export const MANDATORY_NOTIFICATIONS_LIST: Notification[] = [
   {
@@ -47,8 +33,8 @@ export const MANDATORY_NOTIFICATIONS_LIST: Notification[] = [
       { text: 'here', url: 'https://madfish.crunch.help/temple-wallet/a-note-on-security' },
       '.'
     ],
-    extensionImageUrl: DEFAULT_BANNER_URLS.extension.securityNote,
-    mobileImageUrl: DEFAULT_BANNER_URLS.mobile.securityNote
+    extensionImageUrl: DEFAULT_IMAGE_URLS.extension.securityNote,
+    mobileImageUrl: DEFAULT_IMAGE_URLS.mobile.securityNote
   },
   {
     id: 1,
@@ -80,8 +66,8 @@ export const MANDATORY_NOTIFICATIONS_LIST: Notification[] = [
       { text: 'here', url: 'https://madfish.crunch.help/temple-wallet/a-note-on-security' },
       '.'
     ],
-    extensionImageUrl: DEFAULT_BANNER_URLS.extension.securityNote,
-    mobileImageUrl: DEFAULT_BANNER_URLS.mobile.securityNote
+    extensionImageUrl: DEFAULT_IMAGE_URLS.extension.securityNote,
+    mobileImageUrl: DEFAULT_IMAGE_URLS.mobile.securityNote
   },
   {
     id: 0,
@@ -123,7 +109,7 @@ export const MANDATORY_NOTIFICATIONS_LIST: Notification[] = [
       { text: 'Discord', url: 'https://discord.com/invite/qFRZ8kVzkv' },
       '. We’re happy to have you!\n'
     ],
-    extensionImageUrl: DEFAULT_BANNER_URLS.extension.news,
-    mobileImageUrl: DEFAULT_BANNER_URLS.mobile.news
+    extensionImageUrl: DEFAULT_IMAGE_URLS.extension.news,
+    mobileImageUrl: DEFAULT_IMAGE_URLS.mobile.news
   }
 ];

@@ -1,5 +1,3 @@
-require('./configure');
-
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import express, { Request, Response } from 'express';
@@ -17,6 +15,7 @@ import { Notification, PlatformType } from './notifications/notification.interfa
 import { getNotifications } from './notifications/utils/get-notifications.util';
 import { getParsedContent } from './notifications/utils/get-parsed-content.util';
 import { getPlatforms } from './notifications/utils/get-platforms.util';
+import { getImageFallback } from './notifications/utils/getImageFallback.util';
 import { getABData } from './utils/ab-test';
 import { cancelAliceBobOrder } from './utils/alice-bob/cancel-alice-bob-order';
 import { createAliceBobOrder } from './utils/alice-bob/create-alice-bob-order';
@@ -24,12 +23,14 @@ import { estimateAliceBobOutput } from './utils/alice-bob/estimate-alice-bob-out
 import { getAliceBobOrderInfo } from './utils/alice-bob/get-alice-bob-order-info';
 import { getAliceBobPairInfo } from './utils/alice-bob/get-alice-bob-pair-info';
 import { coinGeckoTokens } from './utils/gecko-tokens';
-import { getExternalApiErrorPayload, isDefined } from './utils/helpers';
+import { getExternalApiErrorPayload, isString } from './utils/helpers';
 import logger from './utils/logger';
 import { getSignedMoonPayUrl } from './utils/moonpay/get-signed-moonpay-url';
 import SingleQueryDataProvider from './utils/SingleQueryDataProvider';
 import { tezExchangeRateProvider } from './utils/tezos';
 import { tokensExchangeRatesProvider } from './utils/tokens';
+
+require('./configure');
 
 const PINO_LOGGER = {
   logger: logger.child({ name: 'web' }),
@@ -136,7 +137,7 @@ app.post('/api/notifications', (req, res) => {
 
     const id = Date.now();
 
-    if (isDefined(expirationDate)) {
+    if (isString(expirationDate)) {
       db.get('notificationsExpirationDates').set(id, expirationDate).value();
     }
 
@@ -149,11 +150,13 @@ app.post('/api/notifications', (req, res) => {
       title,
       description,
       content: getParsedContent(content),
-      extensionImageUrl,
-      mobileImageUrl
+      extensionImageUrl: isString(extensionImageUrl)
+        ? extensionImageUrl
+        : getImageFallback(PlatformType.Extension, type),
+      mobileImageUrl: isString(mobileImageUrl) ? mobileImageUrl : getImageFallback(PlatformType.Mobile, type)
     };
 
-    db.get('notifications').push(newNotification).write();
+    db.get('notifications').unshift(newNotification).write();
 
     res.status(200).send({ message: 'Notification added successfully' });
   } catch (error: any) {

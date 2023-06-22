@@ -1,8 +1,8 @@
 import { LowdbSync } from 'lowdb';
 
 import { DbData } from '../../interfaces/db-data.interface';
+import { MANDATORY_NOTIFICATIONS_LIST } from '../mandatory-notifications-list.data';
 import { PlatformType } from '../notification.interface';
-import { MANDATORY_NOTIFICATIONS_LIST } from '../notifications-list.data';
 import { clearExpiredNotifications } from './clear-expired-notifications.util';
 
 export const getNotifications = (db: LowdbSync<DbData>, platform: PlatformType, startFromTime: number) => {
