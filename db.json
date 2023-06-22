@@ -48,5 +48,6 @@
       "extensionImageUrl": "https://generic-objects.fra1.digitaloceanspaces.com/notification-icons/extension/extension-win-nft.svg",
       "mobileImageUrl": "https://generic-objects.fra1.digitaloceanspaces.com/notification-icons/mobile/mobile-win-nft.svg"
     }
-  ]
+  ],
+  "notificationsExpirationDates": {}
 }

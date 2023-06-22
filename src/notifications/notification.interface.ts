@@ -9,7 +9,7 @@ export enum PlatformType {
   Extension = 'Extension'
 }
 
-interface NotificationLink {
+export interface NotificationLink {
   text: string;
   url: string;
 }

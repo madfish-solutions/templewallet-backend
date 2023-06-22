@@ -1,5 +1,6 @@
 require('./configure');
 
+import bodyParser from 'body-parser';
 import cors from 'cors';
 import express, { Request, Response } from 'express';
 import firebaseAdmin from 'firebase-admin';
@@ -12,8 +13,10 @@ import { getAdvertisingInfo } from './advertising/advertising';
 import { MIN_ANDROID_APP_VERSION, MIN_IOS_APP_VERSION } from './config';
 import getDAppsStats from './getDAppsStats';
 import { DbData } from './interfaces/db-data.interface';
-import { PlatformType } from './notifications/notification.interface';
-import { getNotifications } from './notifications/notifications.utils';
+import { Notification, PlatformType } from './notifications/notification.interface';
+import { getNotifications } from './notifications/utils/get-notifications.util';
+import { getParsedContent } from './notifications/utils/get-parsed-content.util';
+import { getPlatforms } from './notifications/utils/get-platforms.util';
 import { getABData } from './utils/ab-test';
 import { cancelAliceBobOrder } from './utils/alice-bob/cancel-alice-bob-order';
 import { createAliceBobOrder } from './utils/alice-bob/create-alice-bob-order';
@@ -21,7 +24,7 @@ import { estimateAliceBobOutput } from './utils/alice-bob/estimate-alice-bob-out
 import { getAliceBobOrderInfo } from './utils/alice-bob/get-alice-bob-order-info';
 import { getAliceBobPairInfo } from './utils/alice-bob/get-alice-bob-pair-info';
 import { coinGeckoTokens } from './utils/gecko-tokens';
-import { getExternalApiErrorPayload } from './utils/helpers';
+import { getExternalApiErrorPayload, isDefined } from './utils/helpers';
 import logger from './utils/logger';
 import { getSignedMoonPayUrl } from './utils/moonpay/get-signed-moonpay-url';
 import SingleQueryDataProvider from './utils/SingleQueryDataProvider';
@@ -53,11 +56,12 @@ const PINO_LOGGER = {
 const app = express();
 app.use(pinoHttp(PINO_LOGGER));
 app.use(cors());
+app.use(bodyParser.urlencoded());
 
 const adapter = new FileSync<DbData>('db.json');
 const db = low(adapter);
 
-const defaultData: DbData = { notifications: [] };
+const defaultData: DbData = { notifications: [], notificationsExpirationDates: {} };
 db.defaults(defaultData).write();
 
 const dAppsProvider = new SingleQueryDataProvider(15 * 60 * 1000, getDAppsStats);
@@ -112,6 +116,48 @@ app.get('/api/notifications', (_req, res) => {
     res.status(200).send(data);
   } catch (error) {
     res.status(500).send({ error });
+  }
+});
+
+app.post('/api/notifications', (req, res) => {
+  try {
+    const {
+      mobile,
+      extension,
+      type,
+      title,
+      description,
+      extensionImageUrl,
+      mobileImageUrl,
+      content,
+      date,
+      expirationDate
+    } = req.body;
+
+    const id = Date.now();
+
+    if (isDefined(expirationDate)) {
+      db.get('notificationsExpirationDates').set(id, expirationDate).value();
+    }
+
+    const newNotification: Notification = {
+      id,
+      createdAt: date,
+      type,
+      platforms: getPlatforms(mobile, extension),
+      language: 'en-US',
+      title,
+      description,
+      content: getParsedContent(content),
+      extensionImageUrl,
+      mobileImageUrl
+    };
+
+    db.get('notifications').push(newNotification).write();
+
+    res.status(200).send({ message: 'Notification added successfully' });
+  } catch (error: any) {
+    res.status(500).send({ error: error.message });
   }
 });
 
