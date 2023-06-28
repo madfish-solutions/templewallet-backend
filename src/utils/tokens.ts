@@ -120,7 +120,7 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
           };
         } catch (e) {
           if (e instanceof TimeoutError) {
-            logger.error('Timeout error while getting exchange rate for token', token.symbol);
+            logger.error(`Timeout error while getting exchange rate for token ${token.symbol}`);
 
             return undefined;
           }
