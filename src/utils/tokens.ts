@@ -153,7 +153,10 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
         exchangeRate: tokenPrice,
         metadata: mapTzktTokenDataToBcdTokenData(aspencoinMetadata?.[0])
       });
-    } catch (e) {}
+    } catch (e) {
+      logger.error('Failed to get exchange rate for Aspencoin');
+      logger.error(e as Error);
+    }
   }
 
   logger.info('Successfully got tokens exchange rates');
@@ -181,28 +184,37 @@ blockFinder(EMPTY_BLOCK, async block =>
           return false;
         }
 
-        await probeSwapsProvider.subscribe(token.symbol);
-        const { data: probeSwaps, error: swapError } = await probeSwapsProvider.get(token.symbol);
+        try {
+          await probeSwapsProvider.subscribe(token.symbol);
+          const { data: probeSwaps, error: swapError } = await Promise.race([
+            probeSwapsProvider.get(token.symbol),
+            new Promise<never>((_, rej) => setTimeout(() => rej(new TimeoutError()), 10000))
+          ]);
 
-        if (swapError) {
-          throw swapError;
+          if (swapError) {
+            throw swapError;
+          }
+
+          const { directSwap, invertedSwap } = probeSwaps;
+          const dexesAddresses = directSwap.chains
+            .concat(invertedSwap.chains)
+            .map(chain => chain.hops.map(hop => dexes.find(dex => dex.id === hop.dex)?.contract).filter(isDefined))
+            .flat();
+
+          const firstUpdatedDexAddress = dexesAddresses.find(dexAddress => recentDestinations.includes(dexAddress));
+          if (isDefined(firstUpdatedDexAddress)) {
+            logger.info(`updating swap output for token ${token.symbol} because of dex ${firstUpdatedDexAddress}`);
+            await probeSwapsProvider.refetchInSubscription(token.symbol);
+
+            return true;
+          }
+
+          return false;
+        } catch (e) {
+          logger.error(e as Error);
+
+          return false;
         }
-
-        const { directSwap, invertedSwap } = probeSwaps;
-        const dexesAddresses = directSwap.chains
-          .concat(invertedSwap.chains)
-          .map(chain => chain.hops.map(hop => dexes.find(dex => dex.id === hop.dex)?.contract).filter(isDefined))
-          .flat();
-
-        const firstUpdatedDexAddress = dexesAddresses.find(dexAddress => recentDestinations.includes(dexAddress));
-        if (isDefined(firstUpdatedDexAddress)) {
-          logger.info(`updating swap output for token ${token.symbol} because of dex ${firstUpdatedDexAddress}`);
-          await probeSwapsProvider.refetchInSubscription(token.symbol);
-
-          return true;
-        }
-
-        return false;
       })
     );
     if (outputsUpdatesFlags.some(flag => flag)) {
