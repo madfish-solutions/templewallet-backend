@@ -1,16 +1,16 @@
+require('./configure');
+
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import express, { Request, Response } from 'express';
 import firebaseAdmin from 'firebase-admin';
-import low from 'lowdb';
-import FileSync from 'lowdb/adapters/FileSync';
+import { Redis } from 'ioredis';
 import { stdSerializers } from 'pino';
 import pinoHttp from 'pino-http';
 
 import { getAdvertisingInfo } from './advertising/advertising';
-import { MIN_ANDROID_APP_VERSION, MIN_IOS_APP_VERSION } from './config';
+import { MIN_ANDROID_APP_VERSION, MIN_IOS_APP_VERSION, REDIS_URL } from './config';
 import getDAppsStats from './getDAppsStats';
-import { DbData } from './interfaces/db-data.interface';
 import { Notification, PlatformType } from './notifications/notification.interface';
 import { getNotifications } from './notifications/utils/get-notifications.util';
 import { getParsedContent } from './notifications/utils/get-parsed-content.util';
@@ -29,8 +29,6 @@ import { getSignedMoonPayUrl } from './utils/moonpay/get-signed-moonpay-url';
 import SingleQueryDataProvider from './utils/SingleQueryDataProvider';
 import { tezExchangeRateProvider } from './utils/tezos';
 import { tokensExchangeRatesProvider } from './utils/tokens';
-
-require('./configure');
 
 const PINO_LOGGER = {
   logger: logger.child({ name: 'web' }),
@@ -59,11 +57,8 @@ app.use(pinoHttp(PINO_LOGGER));
 app.use(cors());
 app.use(bodyParser.urlencoded());
 
-const adapter = new FileSync<DbData>('db.json');
-const db = low(adapter);
-
-const defaultData: DbData = { notifications: [], notificationsExpirationDates: {} };
-db.defaults(defaultData).write();
+const redisClient = new Redis(REDIS_URL);
+redisClient.on('error', err => console.log('Redis Client Error', err));
 
 const dAppsProvider = new SingleQueryDataProvider(15 * 60 * 1000, getDAppsStats);
 
@@ -105,11 +100,11 @@ app.get('/api/top-coins', (_req, res) => {
   res.status(200).send(coinGeckoTokens);
 });
 
-app.get('/api/notifications', (_req, res) => {
+app.get('/api/notifications', async (_req, res) => {
   try {
     const { platform, startFromTime } = _req.query;
-    const data = getNotifications(
-      db,
+    const data = await getNotifications(
+      redisClient,
       platform === PlatformType.Mobile ? PlatformType.Mobile : PlatformType.Extension,
       Number(startFromTime) ?? 0
     );
@@ -120,7 +115,7 @@ app.get('/api/notifications', (_req, res) => {
   }
 });
 
-app.post('/api/notifications', (req, res) => {
+app.post('/api/notifications', async (req, res) => {
   try {
     const {
       mobile,
@@ -135,14 +130,8 @@ app.post('/api/notifications', (req, res) => {
       expirationDate
     } = req.body;
 
-    const id = Date.now();
-
-    if (isString(expirationDate)) {
-      db.get('notificationsExpirationDates').set(id, expirationDate).value();
-    }
-
     const newNotification: Notification = {
-      id,
+      id: Date.now(),
       createdAt: date,
       type,
       platforms: getPlatforms(mobile, extension),
@@ -153,10 +142,11 @@ app.post('/api/notifications', (req, res) => {
       extensionImageUrl: isString(extensionImageUrl)
         ? extensionImageUrl
         : getImageFallback(PlatformType.Extension, type),
-      mobileImageUrl: isString(mobileImageUrl) ? mobileImageUrl : getImageFallback(PlatformType.Mobile, type)
+      mobileImageUrl: isString(mobileImageUrl) ? mobileImageUrl : getImageFallback(PlatformType.Mobile, type),
+      expirationDate
     };
 
-    db.get('notifications').unshift(newNotification).write();
+    await redisClient.lpush('notifications', JSON.stringify(newNotification));
 
     res.status(200).send({ message: 'Notification added successfully' });
   } catch (error: any) {

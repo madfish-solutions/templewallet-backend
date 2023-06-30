@@ -9,6 +9,7 @@ export const ALICE_BOB_PRIVATE_KEY = getEnv('ALICE_BOB_PRIVATE_KEY');
 export const ALICE_BOB_PUBLIC_KEY = getEnv('ALICE_BOB_PUBLIC_KEY');
 export const THREE_ROUTE_API_URL = getEnv('THREE_ROUTE_API_URL');
 export const THREE_ROUTE_API_AUTH_TOKEN = getEnv('THREE_ROUTE_API_AUTH_TOKEN');
+export const REDIS_URL = getEnv('REDIS_URL');
 
 const variablesToAssert = [
   { name: 'MOONPAY_SECRET_KEY', value: MOONPAY_SECRET_KEY },

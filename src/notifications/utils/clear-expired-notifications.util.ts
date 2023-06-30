@@ -1,22 +1,17 @@
-import { LowdbSync } from 'lowdb';
+import { Redis } from 'ioredis';
 
-import { DbData } from '../../interfaces/db-data.interface';
+import { isDefined } from '../../utils/helpers';
+import { Notification } from '../notification.interface';
 
-export const clearExpiredNotifications = (db: LowdbSync<DbData>) => {
-  const { notificationsExpirationDates } = db.getState();
-
-  const expiredNotificationsIds = Object.keys(notificationsExpirationDates).filter(
-    key => new Date(notificationsExpirationDates[key]).getTime() < Date.now()
+export const clearExpiredNotifications = async (client: Redis, notifications: Notification[]) => {
+  const now = Date.now();
+  const expiredNotifications = notifications.filter(
+    ({ expirationDate }) => isDefined(expirationDate) && new Date(expirationDate).getTime() < now
   );
 
-  if (expiredNotificationsIds.length > 0) {
-    const notifications = db.get('notifications');
-    const expirationDates = db.get('notificationsExpirationDates');
-
-    expiredNotificationsIds.forEach(expiredId => {
-      notifications.remove({ id: Number(expiredId) }).value();
-      expirationDates.unset(expiredId).value();
-    });
-    db.write();
+  if (expiredNotifications.length > 0) {
+    for (let i = 0; i < expiredNotifications.length; i++) {
+      await client.lrem('notifications', 1, JSON.stringify(expiredNotifications[i]));
+    }
   }
 };

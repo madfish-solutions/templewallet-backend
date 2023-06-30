@@ -26,4 +26,5 @@ export interface Notification {
   extensionImageUrl: string;
   mobileImageUrl: string;
   sourceUrl?: string;
+  expirationDate?: string;
 }
