@@ -1,5 +1,4 @@
 import { Redis } from 'ioredis';
-import memoizee from 'memoizee';
 
 import { MANDATORY_NOTIFICATIONS_LIST } from '../mandatory-notifications-list.data';
 import { Notification, PlatformType } from '../notification.interface';
