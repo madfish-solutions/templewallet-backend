@@ -16,6 +16,7 @@ import { getNotifications } from './notifications/utils/get-notifications.util';
 import { getParsedContent } from './notifications/utils/get-parsed-content.util';
 import { getPlatforms } from './notifications/utils/get-platforms.util';
 import { getImageFallback } from './notifications/utils/getImageFallback.util';
+import { sortNotifications } from './notifications/utils/sort-notifications';
 import { getABData } from './utils/ab-test';
 import { cancelAliceBobOrder } from './utils/alice-bob/cancel-alice-bob-order';
 import { createAliceBobOrder } from './utils/alice-bob/create-alice-bob-order';
@@ -23,7 +24,7 @@ import { estimateAliceBobOutput } from './utils/alice-bob/estimate-alice-bob-out
 import { getAliceBobOrderInfo } from './utils/alice-bob/get-alice-bob-order-info';
 import { getAliceBobPairInfo } from './utils/alice-bob/get-alice-bob-pair-info';
 import { coinGeckoTokens } from './utils/gecko-tokens';
-import { getExternalApiErrorPayload, isString } from './utils/helpers';
+import { getExternalApiErrorPayload, isDefined, isString } from './utils/helpers';
 import logger from './utils/logger';
 import { getSignedMoonPayUrl } from './utils/moonpay/get-signed-moonpay-url';
 import SingleQueryDataProvider from './utils/SingleQueryDataProvider';
@@ -127,7 +128,8 @@ app.post('/api/notifications', async (req, res) => {
       mobileImageUrl,
       content,
       date,
-      expirationDate
+      expirationDate,
+      isMandatory
     } = req.body;
 
     const newNotification: Notification = {
@@ -143,10 +145,12 @@ app.post('/api/notifications', async (req, res) => {
         ? extensionImageUrl
         : getImageFallback(PlatformType.Extension, type),
       mobileImageUrl: isString(mobileImageUrl) ? mobileImageUrl : getImageFallback(PlatformType.Mobile, type),
-      expirationDate
+      expirationDate,
+      isMandatory: isDefined(isMandatory)
     };
 
     await redisClient.lpush('notifications', JSON.stringify(newNotification));
+    await sortNotifications(redisClient);
 
     res.status(200).send({ message: 'Notification added successfully' });
   } catch (error: any) {

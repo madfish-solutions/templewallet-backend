@@ -1,27 +1,34 @@
 import { Redis } from 'ioredis';
 
-import { MANDATORY_NOTIFICATIONS_LIST } from '../mandatory-notifications-list.data';
+import { isString } from '../../utils/helpers';
 import { Notification, PlatformType } from '../notification.interface';
-import { addDefaultNotifications } from './addDefaultNotifications';
-import { clearExpiredNotifications } from './clear-expired-notifications.util';
+import { addExistingNotificationsToDb } from './add-existing-notifications-to-db';
 
 export const getNotifications = async (client: Redis, platform: PlatformType, startFromTime: number) => {
-  await addDefaultNotifications(client);
+  await addExistingNotificationsToDb(client);
 
   const data = await client.lrange('notifications', 0, -1);
-  const notifications: Notification[] = data.map(item => JSON.parse(item));
 
-  await clearExpiredNotifications(client, notifications);
+  const now = Date.now();
+  const result: Notification[] = [];
 
-  return [
-    ...notifications.filter(notification => {
-      const createdAtTimestamp = new Date(notification.createdAt).getTime();
+  for (let i = 0; i < data.length; i++) {
+    const notification: Notification = JSON.parse(data[i]);
+    const { isMandatory, createdAt, platforms, expirationDate } = notification;
+    const createdAtTimestamp = new Date(createdAt).getTime();
 
-      return createdAtTimestamp > startFromTime && createdAtTimestamp < Date.now();
-    }),
-    ...MANDATORY_NOTIFICATIONS_LIST.map(notification => ({
-      ...notification,
-      createdAt: new Date(startFromTime).toString()
-    }))
-  ].filter(notification => notification.platforms.includes(platform));
+    if (isString(expirationDate) && new Date(expirationDate).getTime() < now) {
+      await client.lrem('notifications', 1, JSON.stringify(notification));
+      continue;
+    }
+
+    if (
+      platforms.includes(platform) &&
+      (isMandatory === true || (createdAtTimestamp > startFromTime && createdAtTimestamp < now))
+    ) {
+      result.push(notification);
+    }
+  }
+
+  return result;
 };

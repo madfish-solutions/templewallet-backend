@@ -27,4 +27,5 @@ export interface Notification {
   mobileImageUrl: string;
   sourceUrl?: string;
   expirationDate?: string;
+  isMandatory?: boolean;
 }
