@@ -31,6 +31,13 @@ export interface ThreeRouteSwapResponse {
   chains: ThreeRouteChain[];
 }
 
+export interface ThreeRouteSirsSwapResponse {
+  input: number;
+  output: number;
+  tzbtcChain: ThreeRouteSwapResponse;
+  xtzChain: ThreeRouteSwapResponse;
+}
+
 interface ThreeRouteTokenCommon {
   id: number;
   symbol: string;
@@ -90,7 +97,13 @@ export interface ThreeRouteDex {
 }
 
 type ThreeRouteQueryParams = object | SwapQueryParams;
-type ThreeRouteQueryResponse = ThreeRouteSwapResponse | ThreeRouteDex[] | ThreeRouteToken[];
+type ThreeRouteQueryResponse =
+  | ThreeRouteSwapResponse
+  | ThreeRouteSirsSwapResponse
+  | ThreeRouteDex[]
+  | ThreeRouteToken[];
+
+export const THREE_ROUTE_SIRS_SYMBOL = 'SIRS';
 
 const threeRouteBuildQueryFn = makeBuildQueryFn<ThreeRouteQueryParams, ThreeRouteQueryResponse>(
   THREE_ROUTE_API_URL,
@@ -98,11 +111,18 @@ const threeRouteBuildQueryFn = makeBuildQueryFn<ThreeRouteQueryParams, ThreeRout
   { headers: { Authorization: `Basic ${THREE_ROUTE_API_AUTH_TOKEN}` } }
 );
 
-export const getThreeRouteSwap = threeRouteBuildQueryFn<SwapQueryParams, ThreeRouteSwapResponse>(
-  ({ inputTokenSymbol, outputTokenSymbol, realAmount }) =>
-    `/swap/${inputTokenSymbol}/${outputTokenSymbol}/${realAmount}`
-);
+export const getThreeRouteSwap = threeRouteBuildQueryFn<
+  SwapQueryParams,
+  ThreeRouteSwapResponse | ThreeRouteSirsSwapResponse
+>(({ inputTokenSymbol, outputTokenSymbol, realAmount }) => {
+  const isSirsSwap = inputTokenSymbol === THREE_ROUTE_SIRS_SYMBOL || outputTokenSymbol === THREE_ROUTE_SIRS_SYMBOL;
+
+  return `/${isSirsSwap ? 'swap-sirs' : 'swap'}/${inputTokenSymbol}/${outputTokenSymbol}/${realAmount}`;
+});
 
 export const getThreeRouteDexes = threeRouteBuildQueryFn<object, ThreeRouteDex[]>('/dexes', []);
 
 export const getThreeRouteTokens = threeRouteBuildQueryFn<object, ThreeRouteToken[]>('/tokens', []);
+
+export const getChains = (response: ThreeRouteSwapResponse | ThreeRouteSirsSwapResponse) =>
+  'chains' in response ? response.chains : [...response.xtzChain.chains, ...response.tzbtcChain.chains];
