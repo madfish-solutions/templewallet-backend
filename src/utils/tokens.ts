@@ -82,7 +82,7 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
         (token): token is ThreeRouteFa12Token | ThreeRouteFa2Token => token.standard !== ThreeRouteStandardEnum.xtz
       )
       .map(async (token): Promise<TokenExchangeRateEntry | undefined> => {
-        logger.info(token.symbol);
+        logger.info(`Getting exchange rate for ${token.symbol}`);
         const { contract, tokenId: rawTokenId } = token;
         const tokenId = isDefined(rawTokenId) ? Number(rawTokenId) : undefined;
         await probeSwapsProvider.subscribe(token.symbol);
@@ -187,8 +187,7 @@ blockFinder(EMPTY_BLOCK, async block =>
         }
 
         if (token.symbol === THREE_ROUTE_SIRS_SYMBOL) {
-          logger.info('swap output for SIRS should be updated each block because of baking subsidy');
-
+          // Swap output for SIRS should be updated each block because of baking subsidy
           return true;
         }
 
