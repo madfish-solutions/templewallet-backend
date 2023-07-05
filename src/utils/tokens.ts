@@ -16,7 +16,9 @@ import {
   getThreeRouteTokens,
   ThreeRouteStandardEnum,
   ThreeRouteFa12Token,
-  ThreeRouteFa2Token
+  ThreeRouteFa2Token,
+  getChains,
+  THREE_ROUTE_SIRS_SYMBOL
 } from './three-route';
 import { BcdTokenData, mapTzktTokenDataToBcdTokenData, tokensMetadataProvider } from './tzkt';
 
@@ -184,6 +186,11 @@ blockFinder(EMPTY_BLOCK, async block =>
           return false;
         }
 
+        if (token.symbol === THREE_ROUTE_SIRS_SYMBOL) {
+          // Swap output for SIRS should be updated each block because of baking subsidy
+          return true;
+        }
+
         try {
           await probeSwapsProvider.subscribe(token.symbol);
           const { data: probeSwaps, error: swapError } = await Promise.race([
@@ -196,8 +203,10 @@ blockFinder(EMPTY_BLOCK, async block =>
           }
 
           const { directSwap, invertedSwap } = probeSwaps;
-          const dexesAddresses = directSwap.chains
-            .concat(invertedSwap.chains)
+          const directSwapChains = getChains(directSwap);
+          const invertedSwapChains = getChains(invertedSwap);
+          const dexesAddresses = directSwapChains
+            .concat(invertedSwapChains)
             .map(chain => chain.hops.map(hop => dexes.find(dex => dex.id === hop.dex)?.contract).filter(isDefined))
             .flat();
 
