@@ -1,6 +1,8 @@
 import { NotificationLink } from '../notification.interface';
 
-export const getParsedContent = (content: string) =>
+// Parses text input string (that could contain links, list and indents) to a proper data structure
+
+export const getParsedContent = (content: string): Array<string | NotificationLink> =>
   content
     .split('\r\n')
     .map((item: string, index: number, array: string[]) => {
@@ -40,3 +42,26 @@ export const getParsedContent = (content: string) =>
       return item;
     })
     .flat();
+
+// Example:
+
+// in:
+// "It boasts all the features you would expect from a modern crypto wallet:
+//  • Top up balance with crypto or credit card.
+//  • Sync your wallet between mobile and desktop devices.
+//
+// To quickly learn the ropes, check our { text: 'knowledge base', url: 'https://madfish.crunch.help' } and { text: 'YouTube video tutorials', url: 'https://www.youtube.com' } out."
+
+// out:
+//  [ 'It boasts all the features you would expect from a modern crypto wallet:\n',
+//     ' • Top up balance with crypto or credit card.\n',
+//     ' • Sync your wallet between mobile and desktop devices.\n',
+//     '\n',
+//     'To quickly learn the ropes, check our ',
+//     { text: 'knowledge base', url: 'https://madfish.crunch.help' },
+//     ' and ',
+//     {
+//       text: 'YouTube video tutorials',
+//       url: 'https://www.youtube.com'
+//     },
+//     ' out.\n' ]

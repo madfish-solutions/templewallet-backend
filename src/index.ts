@@ -2,6 +2,7 @@ require('./configure');
 
 import bodyParser from 'body-parser';
 import cors from 'cors';
+import { randomUUID } from 'crypto';
 import express, { Request, Response } from 'express';
 import firebaseAdmin from 'firebase-admin';
 import { Redis } from 'ioredis';
@@ -11,11 +12,12 @@ import pinoHttp from 'pino-http';
 import { getAdvertisingInfo } from './advertising/advertising';
 import { MIN_ANDROID_APP_VERSION, MIN_IOS_APP_VERSION, REDIS_URL } from './config';
 import getDAppsStats from './getDAppsStats';
+import { basicAuth } from './middlewares/basic-auth.middleware';
 import { Notification, PlatformType } from './notifications/notification.interface';
+import { getImageFallback } from './notifications/utils/get-image-fallback.util';
 import { getNotifications } from './notifications/utils/get-notifications.util';
 import { getParsedContent } from './notifications/utils/get-parsed-content.util';
 import { getPlatforms } from './notifications/utils/get-platforms.util';
-import { getImageFallback } from './notifications/utils/getImageFallback.util';
 import { sortNotifications } from './notifications/utils/sort-notifications';
 import { getABData } from './utils/ab-test';
 import { cancelAliceBobOrder } from './utils/alice-bob/cancel-alice-bob-order';
@@ -24,7 +26,7 @@ import { estimateAliceBobOutput } from './utils/alice-bob/estimate-alice-bob-out
 import { getAliceBobOrderInfo } from './utils/alice-bob/get-alice-bob-order-info';
 import { getAliceBobPairInfo } from './utils/alice-bob/get-alice-bob-pair-info';
 import { coinGeckoTokens } from './utils/gecko-tokens';
-import { getExternalApiErrorPayload, isDefined, isString } from './utils/helpers';
+import { getExternalApiErrorPayload, isDefined, isNonEmptyString } from './utils/helpers';
 import logger from './utils/logger';
 import { getSignedMoonPayUrl } from './utils/moonpay/get-signed-moonpay-url';
 import SingleQueryDataProvider from './utils/SingleQueryDataProvider';
@@ -56,10 +58,10 @@ const PINO_LOGGER = {
 const app = express();
 app.use(pinoHttp(PINO_LOGGER));
 app.use(cors());
-app.use(bodyParser.urlencoded());
+app.use(bodyParser.json());
 
 const redisClient = new Redis(REDIS_URL);
-redisClient.on('error', err => console.log('Redis Client Error', err));
+redisClient.on('error', err => logger.error(err));
 
 const dAppsProvider = new SingleQueryDataProvider(15 * 60 * 1000, getDAppsStats);
 
@@ -116,7 +118,7 @@ app.get('/api/notifications', async (_req, res) => {
   }
 });
 
-app.post('/api/notifications', async (req, res) => {
+app.post('/api/notifications', basicAuth, async (req, res) => {
   try {
     const {
       mobile,
@@ -133,7 +135,7 @@ app.post('/api/notifications', async (req, res) => {
     } = req.body;
 
     const newNotification: Notification = {
-      id: Date.now(),
+      id: randomUUID(),
       createdAt: date,
       type,
       platforms: getPlatforms(mobile, extension),
@@ -141,10 +143,10 @@ app.post('/api/notifications', async (req, res) => {
       title,
       description,
       content: getParsedContent(content),
-      extensionImageUrl: isString(extensionImageUrl)
+      extensionImageUrl: isNonEmptyString(extensionImageUrl)
         ? extensionImageUrl
         : getImageFallback(PlatformType.Extension, type),
-      mobileImageUrl: isString(mobileImageUrl) ? mobileImageUrl : getImageFallback(PlatformType.Mobile, type),
+      mobileImageUrl: isNonEmptyString(mobileImageUrl) ? mobileImageUrl : getImageFallback(PlatformType.Mobile, type),
       expirationDate,
       isMandatory: isDefined(isMandatory)
     };

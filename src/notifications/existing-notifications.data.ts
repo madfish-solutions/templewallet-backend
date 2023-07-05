@@ -4,7 +4,7 @@ import { Notification, NotificationType, PlatformType } from './notification.int
 //TODO: delete after deploy
 export const DEFAULT_NOTIFICATIONS_LIST: Notification[] = [
   {
-    id: 4,
+    id: '4',
     createdAt: '2022-12-29T16:00:00.000Z',
     type: NotificationType.News,
     platforms: [PlatformType.Mobile],
@@ -24,7 +24,7 @@ export const DEFAULT_NOTIFICATIONS_LIST: Notification[] = [
     mobileImageUrl: DEFAULT_IMAGE_URLS.mobile.news
   },
   {
-    id: 3,
+    id: '3',
     createdAt: '2022-12-19T15:00:00.000Z',
     type: NotificationType.News,
     platforms: [PlatformType.Extension, PlatformType.Mobile],
@@ -54,7 +54,7 @@ export const DEFAULT_NOTIFICATIONS_LIST: Notification[] = [
 
 export const MANDATORY_NOTIFICATIONS_LIST: Notification[] = [
   {
-    id: 2,
+    id: '2',
     createdAt: '2022-11-29T13:00:00.000Z',
     type: NotificationType.SecurityNote,
     platforms: [PlatformType.Extension],
@@ -89,7 +89,7 @@ export const MANDATORY_NOTIFICATIONS_LIST: Notification[] = [
     isMandatory: true
   },
   {
-    id: 1,
+    id: '1',
     createdAt: '2022-11-29T13:00:00.000Z',
     type: NotificationType.SecurityNote,
     platforms: [PlatformType.Mobile],
@@ -123,7 +123,7 @@ export const MANDATORY_NOTIFICATIONS_LIST: Notification[] = [
     isMandatory: true
   },
   {
-    id: 0,
+    id: '0',
     createdAt: '2022-11-29T13:00:00.000Z',
     type: NotificationType.News,
     platforms: [PlatformType.Mobile, PlatformType.Extension],

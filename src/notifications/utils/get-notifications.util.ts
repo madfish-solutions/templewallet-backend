@@ -1,6 +1,6 @@
 import { Redis } from 'ioredis';
 
-import { isString } from '../../utils/helpers';
+import { isNonEmptyString } from '../../utils/helpers';
 import { Notification, PlatformType } from '../notification.interface';
 import { addExistingNotificationsToDb } from './add-existing-notifications-to-db';
 
@@ -17,7 +17,7 @@ export const getNotifications = async (client: Redis, platform: PlatformType, st
     const { isMandatory, createdAt, platforms, expirationDate } = notification;
     const createdAtTimestamp = new Date(createdAt).getTime();
 
-    if (isString(expirationDate) && new Date(expirationDate).getTime() < now) {
+    if (isNonEmptyString(expirationDate) && new Date(expirationDate).getTime() < now) {
       await client.lrem('notifications', 1, JSON.stringify(notification));
       continue;
     }
