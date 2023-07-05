@@ -1,7 +1,6 @@
-import { DEFAULT_IMAGE_URLS } from './default-image-fallbacks';
-import { Notification, NotificationType, PlatformType } from './notification.interface';
+import { DEFAULT_IMAGE_URLS } from '../../../src/notifications/default-image-fallbacks';
+import { Notification, NotificationType, PlatformType } from '../../../src/notifications/notification.interface';
 
-//TODO: delete after deploy
 export const DEFAULT_NOTIFICATIONS_LIST: Notification[] = [
   {
     id: '4',

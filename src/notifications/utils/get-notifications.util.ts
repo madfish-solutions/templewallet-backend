@@ -2,11 +2,8 @@ import { Redis } from 'ioredis';
 
 import { isNonEmptyString } from '../../utils/helpers';
 import { Notification, PlatformType } from '../notification.interface';
-import { addExistingNotificationsToDb } from './add-existing-notifications-to-db';
 
 export const getNotifications = async (client: Redis, platform: PlatformType, startFromTime: number) => {
-  await addExistingNotificationsToDb(client);
-
   const data = await client.lrange('notifications', 0, -1);
 
   const now = Date.now();
