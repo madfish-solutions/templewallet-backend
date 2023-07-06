@@ -34,7 +34,8 @@
     "ts": "tsc --pretty",
     "lint": "eslint ./src --ext .js,.ts",
     "lint:fix": "eslint ./src --ext .js,.ts --fix",
-    "clean": "rimraf dist/"
+    "clean": "rimraf dist/",
+    "db-migration": "cd migrations/notifications && npx ts-node index.ts"
   },
   "devDependencies": {
     "@types/body-parser": "^1.19.2",
