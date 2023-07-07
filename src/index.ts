@@ -18,7 +18,6 @@ import { getImageFallback } from './notifications/utils/get-image-fallback.util'
 import { getNotifications } from './notifications/utils/get-notifications.util';
 import { getParsedContent } from './notifications/utils/get-parsed-content.util';
 import { getPlatforms } from './notifications/utils/get-platforms.util';
-import { sortNotifications } from './notifications/utils/sort-notifications';
 import { getABData } from './utils/ab-test';
 import { cancelAliceBobOrder } from './utils/alice-bob/cancel-alice-bob-order';
 import { createAliceBobOrder } from './utils/alice-bob/create-alice-bob-order';
@@ -152,7 +151,6 @@ app.post('/api/notifications', basicAuth, async (req, res) => {
     };
 
     await redisClient.lpush('notifications', JSON.stringify(newNotification));
-    await sortNotifications(redisClient);
 
     res.status(200).send({ message: 'Notification added successfully' });
   } catch (error: any) {

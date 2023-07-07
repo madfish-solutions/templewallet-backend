@@ -4,9 +4,9 @@ import { ADD_NOTIFICATION_PASSWORD, ADD_NOTIFICATION_USERNAME } from '../config'
 import { isDefined } from '../utils/helpers';
 
 export const basicAuth = (req: Request, res: Response, next: NextFunction) => {
-  if (isDefined(req.get('Authorization'))) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const base64EncodedCredentials = req.get('Authorization')!;
+  const base64EncodedCredentials = req.get('Authorization');
+
+  if (isDefined(base64EncodedCredentials)) {
     const [username, password] = Buffer.from(base64EncodedCredentials.split(' ')[1], 'base64').toString().split(':');
 
     if (!(username === ADD_NOTIFICATION_USERNAME && password === ADD_NOTIFICATION_PASSWORD)) {

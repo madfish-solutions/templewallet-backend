@@ -5,17 +5,19 @@ import { Notification, PlatformType } from '../notification.interface';
 
 export const getNotifications = async (client: Redis, platform: PlatformType, startFromTime: number) => {
   const data = await client.lrange('notifications', 0, -1);
+  const notifications: Notification[] = data
+    .map(item => JSON.parse(item))
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   const now = Date.now();
   const result: Notification[] = [];
 
-  for (let i = 0; i < data.length; i++) {
-    const notification: Notification = JSON.parse(data[i]);
-    const { isMandatory, createdAt, platforms, expirationDate } = notification;
+  for (let i = 0; i < notifications.length; i++) {
+    const { isMandatory, createdAt, platforms, expirationDate } = notifications[i];
     const createdAtTimestamp = new Date(createdAt).getTime();
 
     if (isNonEmptyString(expirationDate) && new Date(expirationDate).getTime() < now) {
-      await client.lrem('notifications', 1, JSON.stringify(notification));
+      await client.lrem('notifications', 1, JSON.stringify(notifications[i]));
       continue;
     }
 
@@ -23,7 +25,7 @@ export const getNotifications = async (client: Redis, platform: PlatformType, st
       platforms.includes(platform) &&
       (isMandatory === true || (createdAtTimestamp > startFromTime && createdAtTimestamp < now))
     ) {
-      result.push(notification);
+      result.push(notifications[i]);
     }
   }
 
