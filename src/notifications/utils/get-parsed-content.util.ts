@@ -1,7 +1,6 @@
 import { NotificationLink } from '../notification.interface';
 
 // Parses text input string (that could contain links, list and indents) to a proper data structure
-
 export const getParsedContent = (content: string): Array<string | NotificationLink> =>
   content
     .split('\r\n')
