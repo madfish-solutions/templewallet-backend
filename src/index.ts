@@ -5,12 +5,11 @@ import cors from 'cors';
 import { randomUUID } from 'crypto';
 import express, { Request, Response } from 'express';
 import firebaseAdmin from 'firebase-admin';
-import { Redis } from 'ioredis';
 import { stdSerializers } from 'pino';
 import pinoHttp from 'pino-http';
 
 import { getAdvertisingInfo } from './advertising/advertising';
-import { MIN_ANDROID_APP_VERSION, MIN_IOS_APP_VERSION, REDIS_URL } from './config';
+import { MIN_ANDROID_APP_VERSION, MIN_IOS_APP_VERSION } from './config';
 import getDAppsStats from './getDAppsStats';
 import { basicAuth } from './middlewares/basic-auth.middleware';
 import { Notification, PlatformType } from './notifications/notification.interface';
@@ -18,6 +17,7 @@ import { getImageFallback } from './notifications/utils/get-image-fallback.util'
 import { getNotifications } from './notifications/utils/get-notifications.util';
 import { getParsedContent } from './notifications/utils/get-parsed-content.util';
 import { getPlatforms } from './notifications/utils/get-platforms.util';
+import { redisClient } from './redis';
 import { getABData } from './utils/ab-test';
 import { cancelAliceBobOrder } from './utils/alice-bob/cancel-alice-bob-order';
 import { createAliceBobOrder } from './utils/alice-bob/create-alice-bob-order';
@@ -58,9 +58,6 @@ const app = express();
 app.use(pinoHttp(PINO_LOGGER));
 app.use(cors());
 app.use(bodyParser.json());
-
-const redisClient = new Redis(REDIS_URL);
-redisClient.on('error', err => logger.error(err));
 
 const dAppsProvider = new SingleQueryDataProvider(15 * 60 * 1000, getDAppsStats);
 
