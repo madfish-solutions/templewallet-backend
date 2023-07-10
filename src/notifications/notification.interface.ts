@@ -15,7 +15,7 @@ export interface NotificationLink {
 }
 
 export interface Notification {
-  id: string;
+  id: number;
   createdAt: string;
   type: NotificationType;
   platforms: PlatformType[];

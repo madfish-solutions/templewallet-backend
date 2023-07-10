@@ -2,7 +2,6 @@ require('./configure');
 
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import { randomUUID } from 'crypto';
 import express, { Request, Response } from 'express';
 import firebaseAdmin from 'firebase-admin';
 import { stdSerializers } from 'pino';
@@ -131,7 +130,7 @@ app.post('/api/notifications', basicAuth, async (req, res) => {
     } = req.body;
 
     const newNotification: Notification = {
-      id: randomUUID(),
+      id: Date.now(),
       createdAt: date,
       type,
       platforms: getPlatforms(mobile, extension),
