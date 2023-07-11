@@ -1,4 +1,4 @@
-import { aliceBobOrder } from '../../interfaces/alice-bob/alice-bob.interfaces';
+import { aliceBobOrder } from '../../interfaces/alice-bob.interfaces';
 import { aliceBobApi } from '../api.sevice';
 import { getAliceBobRequestHeaders } from './get-alice-bob-request-headers';
 import { getAliceBobSignature } from './get-alice-bob-signature';

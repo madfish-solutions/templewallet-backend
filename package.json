@@ -13,11 +13,13 @@
     "@taquito/utils": "14.0.0",
     "axios": "^0.27.2",
     "bignumber.js": "^9.1.0",
+    "body-parser": "^1.20.2",
     "cors": "^2.8.5",
     "cross-fetch": "^3.1.5",
     "dotenv": "^9.0.2",
     "express": "^4.18.2",
     "firebase-admin": "^10.0.2",
+    "ioredis": "^5.3.2",
     "memoizee": "^0.4.15",
     "pino": "^6.11.2",
     "pino-http": "^5.5.0",
@@ -32,9 +34,11 @@
     "ts": "tsc --pretty",
     "lint": "eslint ./src --ext .js,.ts",
     "lint:fix": "eslint ./src --ext .js,.ts --fix",
-    "clean": "rimraf dist/"
+    "clean": "rimraf dist/",
+    "db-migration": "cd migrations/notifications && npx ts-node index.ts"
   },
   "devDependencies": {
+    "@types/body-parser": "^1.19.2",
     "@types/express": "^4.17.17",
     "@types/express-jwt": "^7.4.2",
     "@types/express-unless": "^2.0.1",

@@ -1,6 +1,6 @@
 import { AxiosError } from 'axios';
 
-import { AliceBobPairInfo } from '../../interfaces/alice-bob/alice-bob.interfaces';
+import { AliceBobPairInfo } from '../../interfaces/alice-bob.interfaces';
 import { aliceBobApi } from '../api.sevice';
 import { estimateAliceBobOutput } from './estimate-alice-bob-output';
 import { getAliceBobRequestHeaders } from './get-alice-bob-request-headers';

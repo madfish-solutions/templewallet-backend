@@ -1,23 +1,7 @@
-import { Notification, NotificationType, PlatformType } from './notification.interface';
+import { DEFAULT_IMAGE_URLS } from '../../../src/notifications/default-image-fallbacks';
+import { Notification, NotificationType, PlatformType } from '../../../src/notifications/notification.interface';
 
-const BANNERS_BUCKET_URL = 'https://generic-objects.fra1.digitaloceanspaces.com/notification-icons';
-
-const DEFAULT_BANNER_URLS = {
-  extension: {
-    news: `${BANNERS_BUCKET_URL}/extension/news.svg`,
-    platformUpdate: `${BANNERS_BUCKET_URL}/extension/platform-update.svg`,
-    securityNote: `${BANNERS_BUCKET_URL}/extension/security-note.svg`,
-    winNft: `${BANNERS_BUCKET_URL}/extension/extension-win-nft.svg`
-  },
-  mobile: {
-    news: `${BANNERS_BUCKET_URL}/mobile/news.svg`,
-    platformUpdate: `${BANNERS_BUCKET_URL}/mobile/platform-update.svg`,
-    securityNote: `${BANNERS_BUCKET_URL}/mobile/security-note.svg`,
-    winNft: `${BANNERS_BUCKET_URL}/mobile/mobile-win-nft.svg`
-  }
-};
-
-export const NOTIFICATIONS_LIST: Notification[] = [
+export const DEFAULT_NOTIFICATIONS_LIST: Notification[] = [
   {
     id: 4,
     createdAt: '2022-12-29T16:00:00.000Z',
@@ -35,8 +19,8 @@ export const NOTIFICATIONS_LIST: Notification[] = [
       '\n',
       'Check whether your mobile app has the latest version.'
     ],
-    extensionImageUrl: DEFAULT_BANNER_URLS.extension.news,
-    mobileImageUrl: DEFAULT_BANNER_URLS.mobile.news
+    extensionImageUrl: DEFAULT_IMAGE_URLS.extension.news,
+    mobileImageUrl: DEFAULT_IMAGE_URLS.mobile.news
   },
   {
     id: 3,
@@ -62,8 +46,8 @@ export const NOTIFICATIONS_LIST: Notification[] = [
         url: 'https://story.madfish.solutions/discover-the-tezos-nft-world-and-stand-a-chance-to-win-an-nft-artwork-by-the-famous-artist-mario-klingemann/'
       }
     ],
-    extensionImageUrl: DEFAULT_BANNER_URLS.extension.winNft,
-    mobileImageUrl: DEFAULT_BANNER_URLS.mobile.winNft
+    extensionImageUrl: DEFAULT_IMAGE_URLS.extension.winNft,
+    mobileImageUrl: DEFAULT_IMAGE_URLS.mobile.winNft
   }
 ];
 
@@ -99,8 +83,9 @@ export const MANDATORY_NOTIFICATIONS_LIST: Notification[] = [
       { text: 'here', url: 'https://madfish.crunch.help/temple-wallet/a-note-on-security' },
       '.'
     ],
-    extensionImageUrl: DEFAULT_BANNER_URLS.extension.securityNote,
-    mobileImageUrl: DEFAULT_BANNER_URLS.mobile.securityNote
+    extensionImageUrl: DEFAULT_IMAGE_URLS.extension.securityNote,
+    mobileImageUrl: DEFAULT_IMAGE_URLS.mobile.securityNote,
+    isMandatory: true
   },
   {
     id: 1,
@@ -132,8 +117,9 @@ export const MANDATORY_NOTIFICATIONS_LIST: Notification[] = [
       { text: 'here', url: 'https://madfish.crunch.help/temple-wallet/a-note-on-security' },
       '.'
     ],
-    extensionImageUrl: DEFAULT_BANNER_URLS.extension.securityNote,
-    mobileImageUrl: DEFAULT_BANNER_URLS.mobile.securityNote
+    extensionImageUrl: DEFAULT_IMAGE_URLS.extension.securityNote,
+    mobileImageUrl: DEFAULT_IMAGE_URLS.mobile.securityNote,
+    isMandatory: true
   },
   {
     id: 0,
@@ -175,7 +161,8 @@ export const MANDATORY_NOTIFICATIONS_LIST: Notification[] = [
       { text: 'Discord', url: 'https://discord.com/invite/qFRZ8kVzkv' },
       '. We’re happy to have you!\n'
     ],
-    extensionImageUrl: DEFAULT_BANNER_URLS.extension.news,
-    mobileImageUrl: DEFAULT_BANNER_URLS.mobile.news
+    extensionImageUrl: DEFAULT_IMAGE_URLS.extension.news,
+    mobileImageUrl: DEFAULT_IMAGE_URLS.mobile.news,
+    isMandatory: true
   }
 ];

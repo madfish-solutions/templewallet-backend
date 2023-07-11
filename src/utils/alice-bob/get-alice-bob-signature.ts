@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 
-import { ALICE_BOB_PRIVATE_KEY } from '../../config';
-import { AliceBobPayload } from '../../interfaces/alice-bob/alice-bob.interfaces';
+import { EnvVars } from '../../config';
+import { AliceBobPayload } from '../../interfaces/alice-bob.interfaces';
 
 export const getAliceBobSignature = (payload?: AliceBobPayload) => {
   const now = Date.now();
@@ -24,7 +24,7 @@ export const getAliceBobSignature = (payload?: AliceBobPayload) => {
   initString += 'timestamp' + now;
 
   return {
-    signature: crypto.createHmac('SHA512', ALICE_BOB_PRIVATE_KEY).update(initString).digest('hex'),
+    signature: crypto.createHmac('SHA512', EnvVars.ALICE_BOB_PRIVATE_KEY).update(initString).digest('hex'),
     now
   };
 };
