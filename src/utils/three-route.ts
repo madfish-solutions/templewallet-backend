@@ -1,4 +1,4 @@
-import { THREE_ROUTE_API_AUTH_TOKEN, THREE_ROUTE_API_URL } from '../config';
+import { EnvVars } from '../config';
 import { makeBuildQueryFn } from './makeBuildQueryFn';
 
 interface SwapQueryParams {
@@ -106,9 +106,9 @@ type ThreeRouteQueryResponse =
 export const THREE_ROUTE_SIRS_SYMBOL = 'SIRS';
 
 const threeRouteBuildQueryFn = makeBuildQueryFn<ThreeRouteQueryParams, ThreeRouteQueryResponse>(
-  THREE_ROUTE_API_URL,
+  EnvVars.THREE_ROUTE_API_URL,
   5,
-  { headers: { Authorization: `Basic ${THREE_ROUTE_API_AUTH_TOKEN}` } }
+  { headers: { Authorization: `Basic ${EnvVars.THREE_ROUTE_API_AUTH_TOKEN}` } }
 );
 
 export const getThreeRouteSwap = threeRouteBuildQueryFn<

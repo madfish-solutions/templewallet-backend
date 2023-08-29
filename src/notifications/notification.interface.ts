@@ -9,7 +9,7 @@ export enum PlatformType {
   Extension = 'Extension'
 }
 
-interface NotificationLink {
+export interface NotificationLink {
   text: string;
   url: string;
 }
@@ -26,4 +26,6 @@ export interface Notification {
   extensionImageUrl: string;
   mobileImageUrl: string;
   sourceUrl?: string;
+  expirationDate?: string;
+  isMandatory?: boolean;
 }

@@ -144,13 +144,5 @@ export const dappList: DappList[] = [
     logo: 'https://pbs.twimg.com/profile_images/1538616711536156672/eRwz1uNE_400x400.jpg',
     slug: 'kordfi',
     categories: [DappType.DeFi]
-  },
-  {
-    name: 'picky.fi',
-    dappUrl: 'https://www.picky.fi/',
-    type: DappType.DeFi,
-    logo: 'https://pbs.twimg.com/profile_images/1560967275515187203/50uGAS2F_400x400.png',
-    slug: 'pickyfi',
-    categories: [DappType.DeFi]
   }
 ];

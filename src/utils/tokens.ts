@@ -1,6 +1,6 @@
 import { BigNumber } from 'bignumber.js';
 
-import { IPriceHistory } from '../interfaces/price-history';
+import { IPriceHistory } from '../interfaces/price-history.interfaces';
 import { blockFinder, EMPTY_BLOCK } from './block-finder';
 import DataProvider from './DataProvider';
 import fetch from './fetch';
