@@ -24,5 +24,8 @@ export const coinGeckoTokens = {
   'unobtanium-tezos': 'KT1ErKVqEhG9jxXgUG2KGLW3bNM7zXHX8SDF_0',
   'wrap-governance-token': 'KT1LRboPna9yQY9BrjtQYDS1DVxhKESK4VVd_0',
   'youves-you-governance': 'KT1Xobej4mc6XgEjDoJoHtTKgbD1ELMvcQuL_0',
-  'quipuswap-governance-token': 'KT193D4vozYnhGJQVtw7CoxxqphqUEEwK6Vb_0'
+  'quipuswap-governance-token': 'KT193D4vozYnhGJQVtw7CoxxqphqUEEwK6Vb_0',
+  'wbtc-plenty-bridge': 'KT1UsSfaXyqcjSVPeiD7U1bWgKy3taYN7NWY_1',
+  'weth-plenty-bridge': 'KT1CNyTPmBJ5hcqDPbPkFtoe76LifXyHUvqc_1',
+  'temple-key': 'KT1VaEsVNiBoA56eToEK6n6BcPgh1tdx9eXi_0'
 };
