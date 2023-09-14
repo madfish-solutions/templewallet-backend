@@ -8,7 +8,7 @@ import fetch from './fetch';
 import SingleQueryDataProvider from './SingleQueryDataProvider';
 import { BcdTokenData } from './tzkt';
 
-const RPC_URL = process.env.RPC_URL ?? 'https://mainnet-node.madfish.solutions';
+const RPC_URL = process.env.RPC_URL ?? 'https://prod.tcinfra.net/rpc/mainnet';
 const TEMPLE_WALLET_LV_ACCOUNT_PKH = 'tz1fVQangAfb9J1hRRMP2bSB6LvASD6KpY8A';
 const TEMPLE_WALLET_LV_ACCOUNT_PUBLIC_KEY = 'edpkvWbk81uh1DEvdWKR4g1bjyTGhdu1mDvznPUFE2zDwNsLXrEb9K';
 
