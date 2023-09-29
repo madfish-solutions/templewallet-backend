@@ -32,8 +32,18 @@ export interface aliceBobOrder {
 }
 
 export interface AliceBobPairInfo {
-  minamount: number;
-  maxamount: number;
+  from: string;
+  to: string;
+  fromnetwork: string | null;
+  tonetwork: string | null;
+  in: string;
+  out: string;
+  ratetype: string;
+  amount: string;
+  tofee: string;
+  fromfee: string;
+  minamount: string;
+  maxamount: string;
 }
 
 export interface AliceBobEstimateAmountPayload {

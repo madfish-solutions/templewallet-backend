@@ -22,7 +22,7 @@ import { cancelAliceBobOrder } from './utils/alice-bob/cancel-alice-bob-order';
 import { createAliceBobOrder } from './utils/alice-bob/create-alice-bob-order';
 import { estimateAliceBobOutput } from './utils/alice-bob/estimate-alice-bob-output';
 import { getAliceBobOrderInfo } from './utils/alice-bob/get-alice-bob-order-info';
-import { getAliceBobPairInfo } from './utils/alice-bob/get-alice-bob-pair-info';
+import { getAliceBobPairsInfo } from './utils/alice-bob/get-alice-bob-pairs-info';
 import { coinGeckoTokens } from './utils/gecko-tokens';
 import { getExternalApiErrorPayload, isDefined, isNonEmptyString } from './utils/helpers';
 import logger from './utils/logger';
@@ -191,8 +191,6 @@ app.get('/api/exchange-rates', async (_req, res) => {
 app.get('/api/moonpay-sign', async (_req, res) => {
   try {
     const url = _req.query.url;
-    console.log('url: ', url);
-    console.log('url: type', typeof url);
 
     if (typeof url === 'string') {
       const signedUrl = getSignedMoonPayUrl(url);
@@ -207,20 +205,19 @@ app.get('/api/moonpay-sign', async (_req, res) => {
 });
 
 app.post('/api/alice-bob/create-order', async (_req, res) => {
-  const { isWithdraw, amount, userId, walletAddress, cardNumber } = _req.query;
-  const booleanIsWithdraw = isWithdraw === 'true';
+  const { amount, from, to, userId, walletAddress, cardNumber } = _req.query;
 
   try {
     const exchangeInfo = {
-      from: booleanIsWithdraw ? 'TEZ' : 'CARDUAH',
-      to: booleanIsWithdraw ? 'CARDUAH' : 'TEZ',
+      from: String(from),
+      to: String(to),
       fromAmount: Number(amount),
       userId: String(userId),
-      toPaymentDetails: booleanIsWithdraw ? String(cardNumber) : String(walletAddress),
+      toPaymentDetails: isDefined(cardNumber) ? String(cardNumber) : String(walletAddress),
       redirectUrl: 'https://templewallet.com/mobile'
     };
 
-    const orderInfo = await createAliceBobOrder(booleanIsWithdraw, exchangeInfo);
+    const orderInfo = await createAliceBobOrder(exchangeInfo);
 
     res.status(200).send({ orderInfo });
   } catch (error) {
@@ -242,13 +239,13 @@ app.post('/api/alice-bob/cancel-order', async (_req, res) => {
   }
 });
 
-app.get('/api/alice-bob/get-pair-info', async (_req, res) => {
+app.get('/api/alice-bob/get-pairs-info', async (_req, res) => {
   const { isWithdraw } = _req.query;
 
   try {
-    const pairInfo = await getAliceBobPairInfo(isWithdraw === 'true');
+    const pairsInfo = await getAliceBobPairsInfo(isWithdraw === 'true');
 
-    res.status(200).send({ pairInfo });
+    res.status(200).send({ pairsInfo });
   } catch (error) {
     const { status, data } = getExternalApiErrorPayload(error);
     res.status(status).send(data);
@@ -269,16 +266,16 @@ app.get('/api/alice-bob/check-order', async (_req, res) => {
 });
 
 app.post('/api/alice-bob/estimate-amount', async (_req, res) => {
-  const { isWithdraw, amount } = _req.query;
-  const booleanIsWithdraw = isWithdraw === 'true';
+  const { amount, from, to } = _req.query;
 
   try {
     const exchangeInfo = {
-      from: booleanIsWithdraw ? 'TEZ' : 'CARDUAH',
-      to: booleanIsWithdraw ? 'CARDUAH' : 'TEZ',
+      from: String(from),
+      to: String(to),
       fromAmount: Number(amount)
     };
     const outputAmount = await estimateAliceBobOutput(exchangeInfo);
+    console.log(outputAmount, 'amount');
 
     res.status(200).send({ outputAmount });
   } catch (error) {
@@ -288,19 +285,8 @@ app.post('/api/alice-bob/estimate-amount', async (_req, res) => {
 });
 
 app.get('/api/mobile-check', async (_req, res) => {
-  console.log(1);
-  console.log('androidAppId', process.env.ANDROID_APP_ID);
-  console.log('iosAppId', process.env.IOS_APP_ID);
-
   const platform = _req.query.platform;
   const appCheckToken = _req.query.appCheckToken;
-  console.log('token', appCheckToken);
-
-  console.log(1);
-  console.log('androidAppId', process.env.ANDROID_APP_ID);
-  console.log('iosAppId', process.env.IOS_APP_ID);
-
-  console.log('A123', platform, appCheckToken);
 
   if (!Boolean(appCheckToken) || appCheckToken === undefined) {
     return res.status(400).send({ error: 'App Check token is not defined' });
@@ -311,7 +297,6 @@ app.get('/api/mobile-check', async (_req, res) => {
       await iosApp.appCheck().verifyToken(appCheckToken as unknown as string);
     } else {
       await androidApp.appCheck().verifyToken(appCheckToken as unknown as string);
-      console.log('verification successful');
     }
 
     res.status(200).send({
@@ -320,7 +305,6 @@ app.get('/api/mobile-check', async (_req, res) => {
       isAppCheckFailed: false
     });
   } catch (err) {
-    console.log('err', err);
     res.status(200).send({
       minIosVersion: MIN_IOS_APP_VERSION,
       minAndroidVersion: MIN_ANDROID_APP_VERSION,
