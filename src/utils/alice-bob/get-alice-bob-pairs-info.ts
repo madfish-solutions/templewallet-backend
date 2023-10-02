@@ -6,26 +6,34 @@ import { estimateAliceBobOutput } from './estimate-alice-bob-output';
 import { getAliceBobRequestHeaders } from './get-alice-bob-request-headers';
 import { getAliceBobSignature } from './get-alice-bob-signature';
 
-export const getAliceBobPairInfo = async (isWithdraw = false) => {
-  const pair = isWithdraw ? 'TEZ/CARDUAH' : 'CARDUAH/TEZ';
-
+export const getAliceBobPairsInfo = async (isWithdraw = false) => {
   const { signature, now } = getAliceBobSignature();
 
-  const response = await aliceBobApi.get<AliceBobPairInfo>('/get-pair-info/' + pair, {
+  const { data } = await aliceBobApi.get<AliceBobPairInfo[]>('/get-pairs-info', {
     headers: getAliceBobRequestHeaders(signature, now)
   });
+
+  const pairsInfo = data.filter(pair => (isWithdraw ? pair.from === 'TEZ' : pair.from !== 'TEZ'));
+
+  if (isWithdraw) {
+    return pairsInfo;
+  }
 
   /*
     Output estimation at AliceBob errors later with `maxAmount` used as input amount.
     Double-checking here, to have a valid `maxAmount` value.
   */
+  const finalPairsInfo: AliceBobPairInfo[] = [];
 
-  let maxAmount = response.data.maxamount;
+  for (let i = 0; i < pairsInfo.length; i++) {
+    const currentPair = pairsInfo[i];
 
-  if (isWithdraw === false)
+    const [maxAmountString, currencyCode] = currentPair.maxamount.split(' ');
+    let maxAmount = Number(maxAmountString);
+
     try {
       await estimateAliceBobOutput({
-        from: 'CARDUAH',
+        from: currentPair.from,
         to: 'TEZ',
         fromAmount: maxAmount
       });
@@ -40,5 +48,11 @@ export const getAliceBobPairInfo = async (isWithdraw = false) => {
       }
     }
 
-  return { minAmount: response.data.minamount, maxAmount };
+    finalPairsInfo.push({
+      ...currentPair,
+      maxamount: `${maxAmount} ${currencyCode}`
+    });
+  }
+
+  return finalPairsInfo;
 };
