@@ -275,7 +275,6 @@ app.post('/api/alice-bob/estimate-amount', async (_req, res) => {
       fromAmount: Number(amount)
     };
     const outputAmount = await estimateAliceBobOutput(exchangeInfo);
-    console.log(outputAmount, 'amount');
 
     res.status(200).send({ outputAmount });
   } catch (error) {
