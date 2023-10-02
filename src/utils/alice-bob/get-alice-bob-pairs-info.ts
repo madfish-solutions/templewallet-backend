@@ -15,44 +15,44 @@ export const getAliceBobPairsInfo = async (isWithdraw = false) => {
 
   const pairsInfo = data.filter(pair => (isWithdraw ? pair.from === 'TEZ' : pair.from !== 'TEZ'));
 
+  if (isWithdraw) {
+    return pairsInfo;
+  }
+
   /*
     Output estimation at AliceBob errors later with `maxAmount` used as input amount.
     Double-checking here, to have a valid `maxAmount` value.
   */
-  if (!isWithdraw) {
-    const finalPairsInfo: AliceBobPairInfo[] = [];
+  const finalPairsInfo: AliceBobPairInfo[] = [];
 
-    for (let i = 0; i < pairsInfo.length; i++) {
-      const currentPair = pairsInfo[i];
+  for (let i = 0; i < pairsInfo.length; i++) {
+    const currentPair = pairsInfo[i];
 
-      const [maxAmountString, currencyCode] = currentPair.maxamount.split(' ');
-      let maxAmount = Number(maxAmountString);
+    const [maxAmountString, currencyCode] = currentPair.maxamount.split(' ');
+    let maxAmount = Number(maxAmountString);
 
-      try {
-        await estimateAliceBobOutput({
-          from: currentPair.from,
-          to: 'TEZ',
-          fromAmount: maxAmount
-        });
-      } catch (error) {
-        if (
-          error instanceof AxiosError &&
-          error.response?.status === 400 &&
-          error.response.data.errorCode === 'EXCEEDING_LIMITS'
-        ) {
-          const altMaxAmount = Number(error.response.data.maxAmount);
-          if (Number.isFinite(altMaxAmount)) maxAmount = altMaxAmount;
-        }
-      }
-
-      finalPairsInfo.push({
-        ...currentPair,
-        maxamount: `${maxAmount} ${currencyCode}`
+    try {
+      await estimateAliceBobOutput({
+        from: currentPair.from,
+        to: 'TEZ',
+        fromAmount: maxAmount
       });
+    } catch (error) {
+      if (
+        error instanceof AxiosError &&
+        error.response?.status === 400 &&
+        error.response.data.errorCode === 'EXCEEDING_LIMITS'
+      ) {
+        const altMaxAmount = Number(error.response.data.maxAmount);
+        if (Number.isFinite(altMaxAmount)) maxAmount = altMaxAmount;
+      }
     }
 
-    return finalPairsInfo;
+    finalPairsInfo.push({
+      ...currentPair,
+      maxamount: `${maxAmount} ${currencyCode}`
+    });
   }
 
-  return pairsInfo;
+  return finalPairsInfo;
 };
