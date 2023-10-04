@@ -22,6 +22,7 @@ import { cancelAliceBobOrder } from './utils/alice-bob/cancel-alice-bob-order';
 import { createAliceBobOrder } from './utils/alice-bob/create-alice-bob-order';
 import { estimateAliceBobOutput } from './utils/alice-bob/estimate-alice-bob-output';
 import { getAliceBobOrderInfo } from './utils/alice-bob/get-alice-bob-order-info';
+import { getAliceBobPairInfo } from './utils/alice-bob/get-alice-bob-pair-info';
 import { getAliceBobPairsInfo } from './utils/alice-bob/get-alice-bob-pairs-info';
 import { coinGeckoTokens } from './utils/gecko-tokens';
 import { getExternalApiErrorPayload, isDefined, isNonEmptyString } from './utils/helpers';
@@ -205,12 +206,13 @@ app.get('/api/moonpay-sign', async (_req, res) => {
 });
 
 app.post('/api/alice-bob/create-order', async (_req, res) => {
-  const { amount, from, to, userId, walletAddress, cardNumber } = _req.query;
+  const { isWithdraw, amount, from, to, userId, walletAddress, cardNumber } = _req.query;
+  const booleanIsWithdraw = isWithdraw === 'true';
 
   try {
     const exchangeInfo = {
-      from: String(from),
-      to: String(to),
+      from: isDefined(isWithdraw) ? (booleanIsWithdraw ? 'TEZ' : 'CARDUAH') : String(from),
+      to: isDefined(isWithdraw) ? (booleanIsWithdraw ? 'CARDUAH' : 'TEZ') : String(to),
       fromAmount: Number(amount),
       userId: String(userId),
       toPaymentDetails: isDefined(cardNumber) ? String(cardNumber) : String(walletAddress),
@@ -233,6 +235,19 @@ app.post('/api/alice-bob/cancel-order', async (_req, res) => {
     await cancelAliceBobOrder({ id: String(orderId) });
 
     res.status(200);
+  } catch (error) {
+    const { status, data } = getExternalApiErrorPayload(error);
+    res.status(status).send(data);
+  }
+});
+
+app.get('/api/alice-bob/get-pair-info', async (_req, res) => {
+  const { isWithdraw } = _req.query;
+
+  try {
+    const pairInfo = await getAliceBobPairInfo(isWithdraw === 'true');
+
+    res.status(200).send({ pairInfo });
   } catch (error) {
     const { status, data } = getExternalApiErrorPayload(error);
     res.status(status).send(data);
@@ -266,14 +281,16 @@ app.get('/api/alice-bob/check-order', async (_req, res) => {
 });
 
 app.post('/api/alice-bob/estimate-amount', async (_req, res) => {
-  const { amount, from, to } = _req.query;
+  const { isWithdraw, amount, from, to } = _req.query;
+  const booleanIsWithdraw = isWithdraw === 'true';
 
   try {
     const exchangeInfo = {
-      from: String(from),
-      to: String(to),
+      from: isDefined(isWithdraw) ? (booleanIsWithdraw ? 'TEZ' : 'CARDUAH') : String(from),
+      to: isDefined(isWithdraw) ? (booleanIsWithdraw ? 'CARDUAH' : 'TEZ') : String(to),
       fromAmount: Number(amount)
     };
+
     const outputAmount = await estimateAliceBobOutput(exchangeInfo);
 
     res.status(200).send({ outputAmount });
