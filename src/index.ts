@@ -21,7 +21,9 @@ import { getABData } from './utils/ab-test';
 import { cancelAliceBobOrder } from './utils/alice-bob/cancel-alice-bob-order';
 import { createAliceBobOrder } from './utils/alice-bob/create-alice-bob-order';
 import { estimateAliceBobOutput } from './utils/alice-bob/estimate-alice-bob-output';
+import { getAliceBobEstimationPayload } from './utils/alice-bob/get-alice-bob-estimation-payload';
 import { getAliceBobOrderInfo } from './utils/alice-bob/get-alice-bob-order-info';
+import { getAliceBobPairInfo } from './utils/alice-bob/get-alice-bob-pair-info';
 import { getAliceBobPairsInfo } from './utils/alice-bob/get-alice-bob-pairs-info';
 import { coinGeckoTokens } from './utils/gecko-tokens';
 import { getExternalApiErrorPayload, isDefined, isNonEmptyString } from './utils/helpers';
@@ -205,19 +207,17 @@ app.get('/api/moonpay-sign', async (_req, res) => {
 });
 
 app.post('/api/alice-bob/create-order', async (_req, res) => {
-  const { amount, from, to, userId, walletAddress, cardNumber } = _req.query;
+  const { isWithdraw, amount, from, to, userId, walletAddress, cardNumber } = _req.query;
 
   try {
-    const exchangeInfo = {
-      from: String(from),
-      to: String(to),
-      fromAmount: Number(amount),
+    const payload = {
+      ...getAliceBobEstimationPayload(isWithdraw, from, to, amount),
       userId: String(userId),
       toPaymentDetails: isDefined(cardNumber) ? String(cardNumber) : String(walletAddress),
       redirectUrl: 'https://templewallet.com/mobile'
     };
 
-    const orderInfo = await createAliceBobOrder(exchangeInfo);
+    const orderInfo = await createAliceBobOrder(payload);
 
     res.status(200).send({ orderInfo });
   } catch (error) {
@@ -233,6 +233,19 @@ app.post('/api/alice-bob/cancel-order', async (_req, res) => {
     await cancelAliceBobOrder({ id: String(orderId) });
 
     res.status(200);
+  } catch (error) {
+    const { status, data } = getExternalApiErrorPayload(error);
+    res.status(status).send(data);
+  }
+});
+
+app.get('/api/alice-bob/get-pair-info', async (_req, res) => {
+  const { isWithdraw } = _req.query;
+
+  try {
+    const pairInfo = await getAliceBobPairInfo(isWithdraw === 'true');
+
+    res.status(200).send({ pairInfo });
   } catch (error) {
     const { status, data } = getExternalApiErrorPayload(error);
     res.status(status).send(data);
@@ -266,15 +279,12 @@ app.get('/api/alice-bob/check-order', async (_req, res) => {
 });
 
 app.post('/api/alice-bob/estimate-amount', async (_req, res) => {
-  const { amount, from, to } = _req.query;
+  const { isWithdraw, amount, from, to } = _req.query;
 
   try {
-    const exchangeInfo = {
-      from: String(from),
-      to: String(to),
-      fromAmount: Number(amount)
-    };
-    const outputAmount = await estimateAliceBobOutput(exchangeInfo);
+    const payload = getAliceBobEstimationPayload(isWithdraw, from, to, amount);
+
+    const outputAmount = await estimateAliceBobOutput(payload);
 
     res.status(200).send({ outputAmount });
   } catch (error) {
