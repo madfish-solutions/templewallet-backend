@@ -21,6 +21,7 @@ import { getABData } from './utils/ab-test';
 import { cancelAliceBobOrder } from './utils/alice-bob/cancel-alice-bob-order';
 import { createAliceBobOrder } from './utils/alice-bob/create-alice-bob-order';
 import { estimateAliceBobOutput } from './utils/alice-bob/estimate-alice-bob-output';
+import { getAliceBobEstimationPayload } from './utils/alice-bob/get-alice-bob-estimation-payload';
 import { getAliceBobOrderInfo } from './utils/alice-bob/get-alice-bob-order-info';
 import { getAliceBobPairInfo } from './utils/alice-bob/get-alice-bob-pair-info';
 import { getAliceBobPairsInfo } from './utils/alice-bob/get-alice-bob-pairs-info';
@@ -207,19 +208,16 @@ app.get('/api/moonpay-sign', async (_req, res) => {
 
 app.post('/api/alice-bob/create-order', async (_req, res) => {
   const { isWithdraw, amount, from, to, userId, walletAddress, cardNumber } = _req.query;
-  const booleanIsWithdraw = isWithdraw === 'true';
 
   try {
-    const exchangeInfo = {
-      from: isDefined(isWithdraw) ? (booleanIsWithdraw ? 'TEZ' : 'CARDUAH') : String(from),
-      to: isDefined(isWithdraw) ? (booleanIsWithdraw ? 'CARDUAH' : 'TEZ') : String(to),
-      fromAmount: Number(amount),
+    const payload = {
+      ...getAliceBobEstimationPayload(isWithdraw, from, to, amount),
       userId: String(userId),
       toPaymentDetails: isDefined(cardNumber) ? String(cardNumber) : String(walletAddress),
       redirectUrl: 'https://templewallet.com/mobile'
     };
 
-    const orderInfo = await createAliceBobOrder(exchangeInfo);
+    const orderInfo = await createAliceBobOrder(payload);
 
     res.status(200).send({ orderInfo });
   } catch (error) {
@@ -282,16 +280,11 @@ app.get('/api/alice-bob/check-order', async (_req, res) => {
 
 app.post('/api/alice-bob/estimate-amount', async (_req, res) => {
   const { isWithdraw, amount, from, to } = _req.query;
-  const booleanIsWithdraw = isWithdraw === 'true';
 
   try {
-    const exchangeInfo = {
-      from: isDefined(isWithdraw) ? (booleanIsWithdraw ? 'TEZ' : 'CARDUAH') : String(from),
-      to: isDefined(isWithdraw) ? (booleanIsWithdraw ? 'CARDUAH' : 'TEZ') : String(to),
-      fromAmount: Number(amount)
-    };
+    const payload = getAliceBobEstimationPayload(isWithdraw, from, to, amount);
 
-    const outputAmount = await estimateAliceBobOutput(exchangeInfo);
+    const outputAmount = await estimateAliceBobOutput(payload);
 
     res.status(200).send({ outputAmount });
   } catch (error) {
