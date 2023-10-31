@@ -144,5 +144,13 @@ export const dappList: DappList[] = [
     logo: 'https://pbs.twimg.com/profile_images/1538616711536156672/eRwz1uNE_400x400.jpg',
     slug: 'kordfi',
     categories: [DappType.DeFi]
+  },
+  {
+    name: 'Lyzi',
+    dappUrl: 'https://dapp.lyzi.fr/',
+    type: DappType.DeFi,
+    logo: 'https://assets-global.website-files.com/6475ceee719579d9e88c6c2f/6475d6f27dd17b6b206bf848_Design%20sans%20titre%20(20).png',
+    slug: 'lyzi',
+    categories: [DappType.DeFi]
   }
 ];
