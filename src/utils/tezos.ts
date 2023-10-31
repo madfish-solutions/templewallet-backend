@@ -3,6 +3,7 @@ import { tzip12 } from '@taquito/tzip12';
 import { tzip16 } from '@taquito/tzip16';
 import memoizee from 'memoizee';
 
+import { EnvVars } from '../config';
 import { ITicker } from '../interfaces/ticker.interface';
 import fetch from './fetch';
 import SingleQueryDataProvider from './SingleQueryDataProvider';
@@ -53,7 +54,9 @@ export const getStorage = memoizee(
 );
 
 const getTezExchangeRate = async () => {
-  const marketTickers = await fetch<Array<ITicker>>('https://api.tzstats.com/markets/tickers');
+  const marketTickers = await fetch<Array<ITicker>>(
+    `https://api.tzpro.io/markets/tickers?api_key=${EnvVars.TZPRO_API_KEY}`
+  );
   const usdTickers = marketTickers.filter(e => e.quote === 'USD' && e.base === 'XTZ');
   // price index: use all USD ticker last prices with equal weight
   const vol = usdTickers.reduce((s, t) => s + t.volume_base, 0) || null;
