@@ -171,7 +171,7 @@ app.get('/api/exchange-rates', async (_req, res) => {
     tezExchangeRateProvider
   );
 
-  if (tezExchangeRateError !== undefined) {
+  if (isDefined(tezExchangeRateError)) {
     return res.status(500).send({
       error: tezExchangeRateError.message
     });
