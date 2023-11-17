@@ -1,11 +1,9 @@
 import { BigNumber } from 'bignumber.js';
 import { differenceBy, isEqual } from 'lodash';
 
-import { IPriceHistory } from '../interfaces/price-history.interfaces';
 import { redisClient } from '../redis';
 import { blockFinder, EMPTY_BLOCK } from './block-finder';
 import DataProvider from './DataProvider';
-import fetch from './fetch';
 import { getRecentDestinations } from './get-recent-destinations';
 import { isDefined } from './helpers';
 import logger from './logger';
@@ -206,33 +204,6 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
   );
 
   const exchangeRates = exchangeRatesWithHoles.filter(isDefined);
-
-  if (!exchangeRates.some(({ tokenAddress }) => tokenAddress === ASPENCOIN_ADDRESS)) {
-    logger.info('Getting exchange rate for Aspencoin');
-    try {
-      const { data: aspencoinMetadata, error: aspencoinMetadataError } = await tokensMetadataProvider.get(
-        ASPENCOIN_ADDRESS
-      );
-      if (aspencoinMetadataError) {
-        throw aspencoinMetadataError;
-      }
-      const priceHistory = await fetch<IPriceHistory>(
-        'https://gateway-web-markets.tzero.com/mdt/public-pricehistory/ASPD?page=1'
-      );
-      const latestValidEntry = priceHistory.priceHistories.find(({ close }) => close !== null);
-      const tokenPrice = latestValidEntry ? new BigNumber(latestValidEntry.close ?? 0) : new BigNumber(0);
-
-      exchangeRates.push({
-        tokenAddress: ASPENCOIN_ADDRESS,
-        tokenId: undefined,
-        exchangeRate: tokenPrice,
-        metadata: mapTzktTokenDataToBcdTokenData(aspencoinMetadata?.[0])
-      });
-    } catch (e) {
-      logger.error('Failed to get exchange rate for Aspencoin');
-      logger.error(e as Error);
-    }
-  }
 
   logger.info('Successfully got tokens exchange rates');
 
