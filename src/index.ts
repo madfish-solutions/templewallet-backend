@@ -31,7 +31,7 @@ import logger from './utils/logger';
 import { getSignedMoonPayUrl } from './utils/moonpay/get-signed-moonpay-url';
 import SingleQueryDataProvider from './utils/SingleQueryDataProvider';
 import { tezExchangeRateProvider } from './utils/tezos';
-import { tokensExchangeRatesProvider } from './utils/tokens';
+import { getExchangeRatesFromDB } from './utils/tokens';
 
 const PINO_LOGGER = {
   logger: logger.child({ name: 'web' }),
@@ -166,28 +166,18 @@ app.get('/api/abtest', (_, res) => {
 app.get('/api/exchange-rates/tez', makeProviderDataRequestHandler(tezExchangeRateProvider));
 
 app.get('/api/exchange-rates', async (_req, res) => {
-  const { data: tokensExchangeRates, error: tokensExchangeRatesError } = await getProviderStateWithTimeout(
-    tokensExchangeRatesProvider
-  );
+  const tokensExchangeRates = await getExchangeRatesFromDB();
   const { data: tezExchangeRate, error: tezExchangeRateError } = await getProviderStateWithTimeout(
     tezExchangeRateProvider
   );
-  if (tokensExchangeRatesError !== undefined) {
-    return res.status(500).send({
-      error: tokensExchangeRatesError.message
-    });
-  } else if (tezExchangeRateError !== undefined) {
+
+  if (tezExchangeRateError !== undefined) {
     return res.status(500).send({
       error: tezExchangeRateError.message
     });
-  } else {
-    if (tokensExchangeRates !== undefined && tezExchangeRate !== undefined) {
-      return res.json([
-        ...tokensExchangeRates.map(({ ...restProps }) => restProps),
-        { exchangeRate: tezExchangeRate.toString() }
-      ]);
-    }
   }
+
+  res.json([...tokensExchangeRates, { exchangeRate: tezExchangeRate.toString() }]);
 });
 
 app.get('/api/moonpay-sign', async (_req, res) => {
