@@ -1,10 +1,10 @@
 import { compose, MichelCodecPacker, Signer, TezosToolkit } from '@taquito/taquito';
 import { tzip12 } from '@taquito/tzip12';
 import { tzip16 } from '@taquito/tzip16';
-import axios, { AxiosError } from 'axios';
+import { AxiosError } from 'axios';
 import memoizee from 'memoizee';
 
-import { ITicker } from '../interfaces/ticker.interface';
+import { getMarketsBySymbols } from './coingecko';
 import { isDefined } from './helpers';
 import logger from './logger';
 import SingleQueryDataProvider from './SingleQueryDataProvider';
@@ -56,9 +56,9 @@ export const getStorage = memoizee(
 
 const getTezExchangeRate = async () => {
   try {
-    const { data } = await axios.get<ITicker>('https://api.binance.com/api/v3/ticker/price?symbol=XTZUSDT');
+    const [xtzMarket] = await getMarketsBySymbols(['xtz']);
 
-    return Number(data.price);
+    return xtzMarket.current_price;
   } catch (e) {
     if (!(e instanceof AxiosError)) {
       logger.error('Request for TEZ exchange rate failed with unknown error');
