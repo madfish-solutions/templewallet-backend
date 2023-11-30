@@ -150,7 +150,7 @@ app.post('/api/notifications', basicAuth, async (req, res) => {
 
     await redisClient.lpush('notifications', JSON.stringify(newNotification));
 
-    res.status(200).send({ message: 'Notification added successfully' });
+    res.status(200).send({ message: 'Notification added successfully', notification: newNotification });
   } catch (error: any) {
     res.status(500).send({ error: error.message });
   }
