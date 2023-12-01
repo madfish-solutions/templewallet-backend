@@ -4,6 +4,7 @@ import { EvmChain } from '@moralisweb3/common-evm-utils';
 import axios from 'axios';
 import bodyParser from 'body-parser';
 import cors from 'cors';
+import { ethers } from 'ethers';
 import express, { Request, Response } from 'express';
 import firebaseAdmin from 'firebase-admin';
 import Moralis from 'moralis';
@@ -369,8 +370,8 @@ app.get('/api/bitcoin', async (_req, res) => {
       token_address: 'btc',
       symbol: 'BTC',
       name: 'Bitcoin',
-      logo: 'https://cdn.moralis.io/eth/0x2260fac5e5542a773aa44fbcfedf7c193bc2c599.png',
-      thumbnail: 'https://cdn.moralis.io/eth/0x2260fac5e5542a773aa44fbcfedf7c193bc2c599_thumb.png',
+      logo: 'https://s3.coinmarketcap.com/static-gravity/image/6fbea0356edd48a4a68a4b877195443c.png',
+      thumbnail: 'https://s3.coinmarketcap.com/static-gravity/image/6fbea0356edd48a4a68a4b877195443c.png',
       decimals: 8,
       balance: totalAmountAvailable.toFixed(),
       chainName: 'Bitcoin Testnet',
@@ -449,79 +450,134 @@ app.post('/api/bitcoin-broadcast-tx', async (_req, res) => {
 });
 
 app.get('/api/evm-tokens', async (_req, res) => {
-  const { address } = _req.query;
-
-  const tokens = [
-    {
-      token_address: 'eth',
-      symbol: 'ETH',
-      name: 'Ether',
-      logo: 'https://cdn.moralis.io/eth/0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee.png',
-      thumbnail: 'https://cdn.moralis.io/eth/0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee_thumb.png',
-      decimals: 18,
-      balance: '0',
-      chainName: 'Ethereum Sepolia',
-      nativeToken: true,
-      possible_spam: false
-    },
-    {
-      token_address: 'matic',
-      symbol: 'MATIC',
-      name: 'Matic',
-      logo: 'https://cdn.moralis.io/eth/0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0.png',
-      thumbnail: 'https://cdn.moralis.io/eth/0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0_thumb.png',
-      decimals: 18,
-      balance: '0',
-      chainName: 'Polygon Mumbai',
-      nativeToken: true,
-      possible_spam: false
-    },
-    {
-      token_address: 'bnb',
-      symbol: 'BNB',
-      name: 'BNB',
-      logo: 'https://cdn.moralis.io/eth/0x4fabb145d64652a948d72533023f6e7a623c7c53.png',
-      thumbnail: 'https://cdn.moralis.io/eth/0x4fabb145d64652a948d72533023f6e7a623c7c53_thumb.png',
-      decimals: 18,
-      balance: '0',
-      chainName: 'BSC Testnet',
-      nativeToken: true,
-      possible_spam: false
-    }
-  ];
-
   try {
-    const ethBalanceResponse = await Moralis.EvmApi.balance.getNativeBalance({
+    const { address } = _req.query;
+
+    const avaxTestProvider = new ethers.JsonRpcProvider('https://avalanche-fuji-c-chain.publicnode.com');
+    const ftmTestProvider = new ethers.JsonRpcProvider('https://fantom-testnet.publicnode.com');
+
+    const avaxNativeBalance = await avaxTestProvider.getBalance(address as string);
+    const ftmNativeBalance = await ftmTestProvider.getBalance(address as string);
+
+    const tokens = [
+      {
+        token_address: 'eth',
+        symbol: 'ETH',
+        name: 'Ether',
+        logo: 'https://cdn.moralis.io/eth/0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee.png',
+        thumbnail: 'https://cdn.moralis.io/eth/0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee_thumb.png',
+        decimals: 18,
+        balance: '0',
+        chainName: 'Ethereum Sepolia',
+        nativeToken: true,
+        possible_spam: false
+      },
+      {
+        token_address: 'eth',
+        symbol: 'ETH',
+        name: 'Ether',
+        logo: 'https://cdn.moralis.io/eth/0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee.png',
+        thumbnail: 'https://cdn.moralis.io/eth/0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee_thumb.png',
+        decimals: 18,
+        balance: '0',
+        chainName: 'Ethereum Goerli',
+        nativeToken: true,
+        possible_spam: false
+      },
+      {
+        token_address: 'matic',
+        symbol: 'MATIC',
+        name: 'Matic',
+        logo: 'https://cdn.moralis.io/eth/0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0.png',
+        thumbnail: 'https://cdn.moralis.io/eth/0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0_thumb.png',
+        decimals: 18,
+        balance: '0',
+        chainName: 'Polygon Mumbai',
+        nativeToken: true,
+        possible_spam: false
+      },
+      {
+        token_address: 'bnb',
+        symbol: 'BNB',
+        name: 'BNB',
+        logo: 'https://cdn.moralis.io/eth/0x4fabb145d64652a948d72533023f6e7a623c7c53.png',
+        thumbnail: 'https://cdn.moralis.io/eth/0x4fabb145d64652a948d72533023f6e7a623c7c53_thumb.png',
+        decimals: 18,
+        balance: '0',
+        chainName: 'BSC Testnet',
+        nativeToken: true,
+        possible_spam: false
+      },
+      {
+        token_address: 'avax',
+        symbol: 'AVAX',
+        name: 'Avalanche',
+        logo: 'https://s3.coinmarketcap.com/static-gravity/image/dcbda7884cf04dbeb498ba96cd7180a2.jpeg',
+        thumbnail: 'https://s3.coinmarketcap.com/static-gravity/image/dcbda7884cf04dbeb498ba96cd7180a2.jpeg',
+        decimals: 18,
+        balance: avaxNativeBalance.toString(),
+        chainName: 'Avalanche Testnet',
+        nativeToken: true,
+        possible_spam: false
+      },
+      {
+        token_address: 'ftm',
+        symbol: 'FTM',
+        name: 'Fantom',
+        logo: 'https://s3.coinmarketcap.com/static/img/portraits/62d51d9af192d82df8ff3a83.png',
+        thumbnail: 'https://s3.coinmarketcap.com/static/img/portraits/62d51d9af192d82df8ff3a83.png',
+        decimals: 18,
+        balance: ftmNativeBalance.toString(),
+        chainName: 'Fantom Testnet',
+        nativeToken: true,
+        possible_spam: false
+      }
+    ];
+
+    const ethSepoliaBalanceResponse = await Moralis.EvmApi.balance.getNativeBalance({
       address: address as string,
       chain: EvmChain.SEPOLIA
     });
-
+    const ethGoerliBalanceResponse = await Moralis.EvmApi.balance.getNativeBalance({
+      address: address as string,
+      chain: EvmChain.GOERLI
+    });
     const maticBalanceResponse = await Moralis.EvmApi.balance.getNativeBalance({
       address: address as string,
       chain: EvmChain.MUMBAI
     });
-
     const bnbBalanceResponse = await Moralis.EvmApi.balance.getNativeBalance({
       address: address as string,
       chain: EvmChain.BSC_TESTNET
     });
 
-    tokens[0].balance = ethBalanceResponse.raw.balance;
-    tokens[1].balance = maticBalanceResponse.raw.balance;
-    tokens[2].balance = bnbBalanceResponse.raw.balance;
+    tokens[0].balance = ethSepoliaBalanceResponse.raw.balance;
+    tokens[1].balance = ethGoerliBalanceResponse.raw.balance;
+    tokens[2].balance = maticBalanceResponse.raw.balance;
+    tokens[3].balance = bnbBalanceResponse.raw.balance;
 
-    const tokensWithBalances1 = await Moralis.EvmApi.token.getWalletTokenBalances({
+    const tokensWithBalancesSepolia = await Moralis.EvmApi.token.getWalletTokenBalances({
       address: address as string,
       chain: EvmChain.SEPOLIA
     });
-    const tokensWithBalances2 = await Moralis.EvmApi.token.getWalletTokenBalances({
+    const tokensWithBalancesGoerli = await Moralis.EvmApi.token.getWalletTokenBalances({
+      address: address as string,
+      chain: EvmChain.GOERLI
+    });
+    const tokensWithBalancesBsc = await Moralis.EvmApi.token.getWalletTokenBalances({
       address: address as string,
       chain: EvmChain.BSC_TESTNET
     });
+    const tokensWithBalancesMumbai = await Moralis.EvmApi.token.getWalletTokenBalances({
+      address: address as string,
+      chain: EvmChain.MUMBAI
+    });
 
-    const tokensWithBalances = tokensWithBalances1.raw
+    const tokensWithBalances = tokensWithBalancesSepolia.raw
       .map(token => ({ ...token, chainName: 'Ethereum Sepolia' }))
-      .concat(tokensWithBalances2.raw.map(token => ({ ...token, chainName: 'BSC Testnet' })));
+      .concat(tokensWithBalancesGoerli.raw.map(token => ({ ...token, chainName: 'Ethereum Goerli' })))
+      .concat(tokensWithBalancesBsc.raw.map(token => ({ ...token, chainName: 'BSC Testnet' })))
+      .concat(tokensWithBalancesMumbai.raw.map(token => ({ ...token, chainName: 'Polygon Mumbai' })));
 
     //testnet tokens does not have logos
     const mainnetTokensMetadataResponse = await Moralis.EvmApi.token.getTokenMetadata({
@@ -529,7 +585,8 @@ app.get('/api/evm-tokens', async (_req, res) => {
         '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
         '0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984',
         '0x4fabb145d64652a948d72533023f6e7a623c7c53',
-        '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599'
+        '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599',
+        '0x7c9f4C87d911613Fe9ca58b579f737911AAD2D43'
       ],
       chain: EvmChain.ETHEREUM
     });
@@ -557,7 +614,8 @@ app.get('/api/evm-tokens', async (_req, res) => {
     tokens.push(...tokensWithBalancesAndLogos);
 
     res.status(200).send(tokens);
-  } catch (error) {
+  } catch (error: any) {
+    console.log(error.message, 'error');
     res.status(500).send({ error });
   }
 });
