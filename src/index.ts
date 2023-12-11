@@ -6,17 +6,20 @@ import express, { Request, Response } from 'express';
 import firebaseAdmin from 'firebase-admin';
 import { stdSerializers } from 'pino';
 import pinoHttp from 'pino-http';
+import swaggerJSDoc from 'swagger-jsdoc';
+import swaggerUi from 'swagger-ui-express';
 
 import { getAdvertisingInfo } from './advertising/advertising';
 import { MIN_ANDROID_APP_VERSION, MIN_IOS_APP_VERSION } from './config';
 import getDAppsStats from './getDAppsStats';
-import { basicAuth } from './middlewares/basic-auth.middleware';
+import { basicAuth, BasicAuthRights } from './middlewares/basic-auth.middleware';
 import { Notification, PlatformType } from './notifications/notification.interface';
 import { getImageFallback } from './notifications/utils/get-image-fallback.util';
 import { getNotifications } from './notifications/utils/get-notifications.util';
 import { getParsedContent } from './notifications/utils/get-parsed-content.util';
 import { getPlatforms } from './notifications/utils/get-platforms.util';
 import { redisClient } from './redis';
+import { sliseRulesRouter } from './routers/slise-rules-router';
 import { getABData } from './utils/ab-test';
 import { cancelAliceBobOrder } from './utils/alice-bob/cancel-alice-bob-order';
 import { createAliceBobOrder } from './utils/alice-bob/create-alice-bob-order';
@@ -115,7 +118,7 @@ app.get('/api/notifications', async (_req, res) => {
   }
 });
 
-app.post('/api/notifications', basicAuth, async (req, res) => {
+app.post('/api/notifications', basicAuth(BasicAuthRights.AddNotification), async (req, res) => {
   try {
     const {
       mobile,
@@ -321,6 +324,21 @@ app.get('/api/advertising-info', (_req, res) => {
     res.status(500).send({ error });
   }
 });
+
+app.use('/api/slise-ad-container-rules', sliseRulesRouter);
+
+const swaggerOptions = {
+  swaggerDefinition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'Temple Wallet backend',
+      version: '1.0.0'
+    }
+  },
+  apis: ['./src/index.ts', './src/routers/*.ts']
+};
+const swaggerSpec = swaggerJSDoc(swaggerOptions);
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // start the server listening for requests
 const port = Boolean(process.env.PORT) ? process.env.PORT : 3000;

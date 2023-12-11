@@ -3,13 +3,30 @@ import { Request, Response, NextFunction } from 'express';
 import { EnvVars } from '../config';
 import { isDefined } from '../utils/helpers';
 
-export const basicAuth = (req: Request, res: Response, next: NextFunction) => {
+export enum BasicAuthRights {
+  AddNotification = 'add-notification',
+  ManageAds = 'manage-ads'
+}
+
+const credentials = {
+  [BasicAuthRights.AddNotification]: {
+    username: EnvVars.ADD_NOTIFICATION_USERNAME,
+    password: EnvVars.ADD_NOTIFICATION_PASSWORD
+  },
+  [BasicAuthRights.ManageAds]: {
+    username: EnvVars.MANAGE_ADS_USERNAME,
+    password: EnvVars.MANAGE_ADS_PASSWORD
+  }
+};
+
+export const basicAuth = (rights: BasicAuthRights) => (req: Request, res: Response, next: NextFunction) => {
   const base64EncodedCredentials = req.get('Authorization');
 
   if (isDefined(base64EncodedCredentials)) {
     const [username, password] = Buffer.from(base64EncodedCredentials.split(' ')[1], 'base64').toString().split(':');
+    const { username: correctUsername, password: correctPassword } = credentials[rights];
 
-    if (!(username === EnvVars.ADD_NOTIFICATION_USERNAME && password === EnvVars.ADD_NOTIFICATION_PASSWORD)) {
+    if (!(username === correctUsername && password === correctPassword)) {
       handleNotAuthenticated(res, next);
     }
     next();
