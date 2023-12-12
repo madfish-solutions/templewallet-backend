@@ -9,7 +9,7 @@ import {
   removeSliseHeuristicUrlRegexes,
   upsertSliseHeuristicSelectors
 } from '../advertising/slise';
-import { basicAuth, BasicAuthRights } from '../middlewares/basic-auth.middleware';
+import { basicAuth } from '../middlewares/basic-auth.middleware';
 import { addObjectStorageMethodsToRouter, withBodyValidation, withExceptionHandler } from '../utils/express-helpers';
 import { adTypesListSchema, regexStringListSchema, sliseSelectorsDictionarySchema } from '../utils/schemas';
 
@@ -93,7 +93,7 @@ sliseHeuristicRulesRouter
     })
   )
   .post(
-    basicAuth(BasicAuthRights.ManageAds),
+    basicAuth,
     withExceptionHandler(
       withBodyValidation(regexStringListSchema, async (req, res) => {
         const regexesAddedCount = await addSliseHeuristicUrlRegexes(req.body);
@@ -103,7 +103,7 @@ sliseHeuristicRulesRouter
     )
   )
   .delete(
-    basicAuth(BasicAuthRights.ManageAds),
+    basicAuth,
     withExceptionHandler(
       withBodyValidation(regexStringListSchema, async (req, res) => {
         const regexesRemovedCount = await removeSliseHeuristicUrlRegexes(req.body);
@@ -206,6 +206,5 @@ addObjectStorageMethodsToRouter<string[]>(
   'adType',
   sliseSelectorsDictionarySchema,
   adTypesListSchema,
-  removedEntriesCount => `${removedEntriesCount} ad types have been removed`,
-  BasicAuthRights.ManageAds
+  removedEntriesCount => `${removedEntriesCount} ad types have been removed`
 );

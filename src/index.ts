@@ -12,7 +12,7 @@ import swaggerUi from 'swagger-ui-express';
 import { getAdvertisingInfo } from './advertising/advertising';
 import { MIN_ANDROID_APP_VERSION, MIN_IOS_APP_VERSION } from './config';
 import getDAppsStats from './getDAppsStats';
-import { basicAuth, BasicAuthRights } from './middlewares/basic-auth.middleware';
+import { basicAuth } from './middlewares/basic-auth.middleware';
 import { Notification, PlatformType } from './notifications/notification.interface';
 import { getImageFallback } from './notifications/utils/get-image-fallback.util';
 import { getNotifications } from './notifications/utils/get-notifications.util';
@@ -118,7 +118,7 @@ app.get('/api/notifications', async (_req, res) => {
   }
 });
 
-app.post('/api/notifications', basicAuth(BasicAuthRights.AddNotification), async (req, res) => {
+app.post('/api/notifications', basicAuth, async (req, res) => {
   try {
     const {
       mobile,

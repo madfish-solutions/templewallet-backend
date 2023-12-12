@@ -7,7 +7,6 @@ import {
   SliseAdContainerRule,
   upsertSliseAdContainerRules
 } from '../advertising/slise';
-import { BasicAuthRights } from '../middlewares/basic-auth.middleware';
 import { addObjectStorageMethodsToRouter } from '../utils/express-helpers';
 import { hostnamesListSchema, sliseAdContainerRulesDictionarySchema } from '../utils/schemas';
 import { sliseHeuristicRulesRouter } from './slise-heuristic-rules-router';
@@ -216,6 +215,5 @@ addObjectStorageMethodsToRouter<SliseAdContainerRule[]>(
   'domain',
   sliseAdContainerRulesDictionarySchema,
   hostnamesListSchema,
-  removedEntriesCount => `${removedEntriesCount} domains have been removed`,
-  BasicAuthRights.ManageAds
+  removedEntriesCount => `${removedEntriesCount} domains have been removed`
 );

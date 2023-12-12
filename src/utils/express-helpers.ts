@@ -1,7 +1,7 @@
 import { NextFunction, Request, RequestHandler, Response, Router } from 'express';
 import { ArraySchema as IArraySchema, ObjectSchema as IObjectSchema, Schema, ValidationError } from 'yup';
 
-import { basicAuth, BasicAuthRights } from '../middlewares/basic-auth.middleware';
+import { basicAuth } from '../middlewares/basic-auth.middleware';
 
 interface ObjectStorageMethods<V> {
   getByKey: (key: string) => Promise<V>;
@@ -49,8 +49,7 @@ export const addObjectStorageMethodsToRouter = <V>(
   keyName: string,
   objectValidationSchema: IObjectSchema<Record<string, V>>,
   keysArrayValidationSchema: IArraySchema<string[], object>,
-  successfulRemovalMessage: (removedEntriesCount: number) => string,
-  modifyAuthRights: BasicAuthRights
+  successfulRemovalMessage: (removedEntriesCount: number) => string
 ) => {
   router.get(
     path === '/' ? `/:${keyName}` : `${path}/:${keyName}`,
@@ -73,7 +72,7 @@ export const addObjectStorageMethodsToRouter = <V>(
       })
     )
     .post(
-      basicAuth(modifyAuthRights),
+      basicAuth,
       withExceptionHandler(
         withBodyValidation(objectValidationSchema, async (req, res) => {
           const validatedValues = req.body;
@@ -85,7 +84,7 @@ export const addObjectStorageMethodsToRouter = <V>(
       )
     )
     .delete(
-      basicAuth(modifyAuthRights),
+      basicAuth,
       withExceptionHandler(
         withBodyValidation(keysArrayValidationSchema, async (req, res) => {
           const removedEntriesCount = await methods.removeValues(req.body);
