@@ -97,7 +97,7 @@ export const sliseAdProvidersRouter = Router();
  *   post:
  *     summary: >
  *       Add providers of ads for which ads should be replaced at all sites. They will not be removed
- *       from lists of providers from specific sites.
+ *       from lists of providers from specific sites. Checks for providers existence are not performed
  *     security:
  *       - basicAuth: []
  *     requestBody:
@@ -212,7 +212,9 @@ sliseAdProvidersRouter
  *       '500':
  *         $ref: '#/components/responses/ErrorResponse'
  *   post:
- *     summary: Add rules for providers of ads for the specified sites
+ *     summary: >
+ *       Add rules for providers of ads for the specified sites. They will not be removed from lists
+ *       of providers from all sites. Checks for providers existence are not performed
  *     security:
  *       - basicAuth: []
  *     requestBody:
