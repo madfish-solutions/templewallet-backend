@@ -1,18 +1,25 @@
 import { redisClient } from '../redis';
 import { isDefined } from '../utils/helpers';
 
-export interface SliseAdContainerRule {
+export interface SliseAdPlacesRule {
   urlRegexes: string[];
   selector: {
     isMultiple: boolean;
     cssString: string;
     shouldUseResultParent: boolean;
+    shouldUseDivWrapper: boolean;
   };
 }
 
-const SLISE_AD_CONTAINERS_RULES_KEY = 'slise_ad_containers_rules';
-const SLISE_HEURISTIC_URL_REGEXES_KEY = 'slise_heuristic_url_regexes_key';
-const SLISE_HEURISTIC_SELECTORS_KEY = 'slise_heuristic_selectors_key';
+export interface SliseAdProvidersByDomainRule {
+  urlRegexes: string[];
+  providers: string[];
+}
+
+const SLISE_AD_PLACES_RULES_KEY = 'slise_ad_places_rules';
+const SLISE_AD_PROVIDERS_BY_SITES_KEY = 'slise_ad_providers_by_sites';
+const SLISE_AD_PROVIDERS_ALL_SITES_KEY = 'slise_ad_providers_all_sites';
+const SLISE_AD_PROVIDERS_LIST_KEY = 'slise_ad_providers_list';
 
 const objectStorageMethodsFactory = <V>(storageKey: string, fallbackValue: V) => ({
   getByKey: async (key: string): Promise<V> => {
@@ -39,23 +46,30 @@ const objectStorageMethodsFactory = <V>(storageKey: string, fallbackValue: V) =>
 });
 
 export const {
-  getByKey: getSliseAdContainerRulesByDomain,
-  getAllValues: getAllSliseAdContainerRules,
-  upsertValues: upsertSliseAdContainerRules,
-  removeValues: removeSliseAdContainerRules
-} = objectStorageMethodsFactory<SliseAdContainerRule[]>(SLISE_AD_CONTAINERS_RULES_KEY, []);
+  getByKey: getSliseAdPlacesRulesByDomain,
+  getAllValues: getAllSliseAdPlacesRules,
+  upsertValues: upsertSliseAdPlacesRules,
+  removeValues: removeSliseAdPlacesRules
+} = objectStorageMethodsFactory<SliseAdPlacesRule[]>(SLISE_AD_PLACES_RULES_KEY, []);
 
 export const {
-  getByKey: getSliseHeuristicSelectorsByAdType,
-  getAllValues: getAllSliseHeuristicSelectors,
-  upsertValues: upsertSliseHeuristicSelectors,
-  removeValues: removeSliseHeuristicSelectors
-} = objectStorageMethodsFactory<string[]>(SLISE_HEURISTIC_SELECTORS_KEY, []);
+  getByKey: getSliseAdProvidersByDomain,
+  getAllValues: getAllSliseAdProvidersBySites,
+  upsertValues: upsertSliseAdProvidersBySites,
+  removeValues: removeSliseAdProvidersBySites
+} = objectStorageMethodsFactory<SliseAdProvidersByDomainRule[]>(SLISE_AD_PROVIDERS_BY_SITES_KEY, []);
 
-export const getSliseHeuristicUrlRegexes = async () => redisClient.smembers(SLISE_HEURISTIC_URL_REGEXES_KEY);
+export const {
+  getByKey: getSelectorsByProviderId,
+  getAllValues: getAllProviders,
+  upsertValues: upsertProviders,
+  removeValues: removeProviders
+} = objectStorageMethodsFactory<string[]>(SLISE_AD_PROVIDERS_LIST_KEY, []);
 
-export const addSliseHeuristicUrlRegexes = async (regexes: string[]) =>
-  redisClient.sadd(SLISE_HEURISTIC_URL_REGEXES_KEY, ...regexes);
+export const getSliseAdProvidersForAllSites = async () => redisClient.smembers(SLISE_AD_PROVIDERS_ALL_SITES_KEY);
 
-export const removeSliseHeuristicUrlRegexes = async (regexes: string[]) =>
-  redisClient.srem(SLISE_HEURISTIC_URL_REGEXES_KEY, ...regexes);
+export const addSliseAdProvidersForAllSites = async (providers: string[]) =>
+  redisClient.sadd(SLISE_AD_PROVIDERS_ALL_SITES_KEY, ...providers);
+
+export const removeSliseAdProvidersForAllSites = async (providers: string[]) =>
+  redisClient.srem(SLISE_AD_PROVIDERS_ALL_SITES_KEY, ...providers);

@@ -1,50 +1,19 @@
 import { Router } from 'express';
 
 import {
-  getAllSliseAdContainerRules,
-  getSliseAdContainerRulesByDomain,
-  removeSliseAdContainerRules,
-  SliseAdContainerRule,
-  upsertSliseAdContainerRules
-} from '../advertising/slise';
-import { addObjectStorageMethodsToRouter } from '../utils/express-helpers';
-import { hostnamesListSchema, sliseAdContainerRulesDictionarySchema } from '../utils/schemas';
-import { sliseHeuristicRulesRouter } from './slise-heuristic-rules-router';
+  getAllSliseAdPlacesRules,
+  getSliseAdPlacesRulesByDomain,
+  removeSliseAdPlacesRules,
+  upsertSliseAdPlacesRules
+} from '../../advertising/slise';
+import { addObjectStorageMethodsToRouter } from '../../utils/express-helpers';
+import { hostnamesListSchema, sliseAdPlacesRulesDictionarySchema } from '../../utils/schemas';
 
 /**
  * @swagger
  * components:
- *   securitySchemes:
- *     basicAuth:
- *       type: http
- *       scheme: basic
- *   responses:
- *     UnauthorizedError:
- *       description: Authentication information is missing or invalid
- *       headers:
- *         WWW_Authenticate:
- *           schema:
- *             type: string
- *     ErrorResponse:
- *       description: Error response
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               error:
- *                 type: string
- *     SuccessResponse:
- *       description: Success response
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               message:
- *                 type: string
  *   schemas:
- *     SliseAdContainerSelector:
+ *     SliseAdPlacesRuleSelector:
  *       type: object
  *       required:
  *         - isMultiple
@@ -64,7 +33,7 @@ import { sliseHeuristicRulesRouter } from './slise-heuristic-rules-router';
  *         shouldUseDivWrapper:
  *           type: boolean
  *           description: Whether the ads banner should be wrapped in a div
- *     SliseAdContainerRule:
+ *     SliseAdPlacesRule:
  *       type: object
  *       required:
  *         - urlRegexes
@@ -75,16 +44,22 @@ import { sliseHeuristicRulesRouter } from './slise-heuristic-rules-router';
  *           items:
  *             type: string
  *             format: regex
- *           description: List of regexes to match the site URL against
  *         selector:
- *           $ref: '#/components/schemas/SliseAdContainerSelector'
- *     SliseAdContainerRulesDictionary:
+ *           $ref: '#/components/schemas/SliseAdPlacesRuleSelector'
+ *       example:
+ *         urlRegexes:
+ *           - '^https://goerli\.etherscan\.io/?$'
+ *         selector:
+ *           isMultiple: false
+ *           cssString: 'main > section div.row > div:nth-child(2) > div'
+ *           shouldUseResultParent: false
+ *           shouldUseDivWrapper: false
+ *     SliseAdPlacesRulesDictionary:
  *       type: object
  *       additionalProperties:
  *         type: array
  *         items:
- *           $ref: '#/components/schemas/SliseAdContainerRule'
- *       description: Dictionary of rules for domains
+ *           $ref: '#/components/schemas/SliseAdPlacesRule'
  *       example:
  *         goerli.etherscan.io:
  *           - urlRegexes:
@@ -109,66 +84,56 @@ import { sliseHeuristicRulesRouter } from './slise-heuristic-rules-router';
  *               cssString: 'div.left-container > app-pe-banner:nth-child(2)'
  *               shouldUseResultParent: false
  *               shouldUseDivWrapper: true
- *     SliseAdTypesSelectorsDictionary:
- *       type: object
- *       additionalProperties:
- *         type: array
- *         items:
- *           type: string
- *       example:
- *         coinzilla:
- *           - 'iframe[src*="coinzilla.io"]'
- *           - 'iframe[src*="czilladx.com"]'
  */
 
-export const sliseRulesRouter = Router();
-
-sliseRulesRouter.use('/heuristic', sliseHeuristicRulesRouter);
+export const sliseAdPlacesRulesRouter = Router();
 
 /**
  * @swagger
- * /api/slise-ad-container-rules/{domain}:
+ * /api/slise-ad-rules/ad-places/{domain}:
  *   get:
- *     summary: Get Slise ad container rule for specified domain
+ *     summary: Get rules for ads places for the specified domain
  *     parameters:
  *       - in: path
  *         name: domain
  *         required: true
- *         format: hostname
  *         schema:
  *           type: string
+ *           format: hostname
  *         example: 'goerli.etherscan.io'
  *     responses:
  *       '200':
- *         description: Slise ad container rules for the specified domain
+ *         description: Rules list
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/SliseAdContainerRule'
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/SliseAdPlacesRule'
  *       '500':
  *         $ref: '#/components/responses/ErrorResponse'
- * /api/slise-ad-container-rules:
+ * /api/slise-ad-rules/ad-places:
  *   get:
- *     summary: Get all Slise ad container rules
+ *     summary: Get all rules for ads places
  *     responses:
  *       '200':
- *         description: List of Slise ad container rules
+ *         description: Domain - rules list dictionary
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/SliseAdContainerRulesDictionary'
+ *               $ref: '#/components/schemas/SliseAdPlacesRulesDictionary'
  *       '500':
  *         $ref: '#/components/responses/ErrorResponse'
  *   post:
- *     summary: Upserts Slise ad container rules. Rules for domains that have existed before will be overwritten
+ *     summary: Add rules for ads places
  *     security:
  *       - basicAuth: []
  *     requestBody:
- *       description: Domain - rules list dictionary of rules
+ *       description: Domain - rules list dictionary
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/SliseAdContainerRulesDictionary'
+ *             $ref: '#/components/schemas/SliseAdPlacesRulesDictionary'
  *     responses:
  *       '200':
  *         $ref: '#/components/responses/SuccessResponse'
@@ -179,11 +144,11 @@ sliseRulesRouter.use('/heuristic', sliseHeuristicRulesRouter);
  *       '500':
  *         $ref: '#/components/responses/ErrorResponse'
  *   delete:
- *     summary: Delete specified Slise ad container rules
+ *     summary: Remove rules for ads places
  *     security:
  *       - basicAuth: []
  *     requestBody:
- *       description: List of rule IDs to delete
+ *       description: List of domain names to remove rules for
  *       content:
  *         application/json:
  *           schema:
@@ -203,17 +168,17 @@ sliseRulesRouter.use('/heuristic', sliseHeuristicRulesRouter);
  *       '500':
  *         $ref: '#/components/responses/ErrorResponse'
  */
-addObjectStorageMethodsToRouter<SliseAdContainerRule[]>(
-  sliseRulesRouter,
+addObjectStorageMethodsToRouter(
+  sliseAdPlacesRulesRouter,
   '/',
   {
-    getByKey: getSliseAdContainerRulesByDomain,
-    getAllValues: getAllSliseAdContainerRules,
-    upsertValues: upsertSliseAdContainerRules,
-    removeValues: removeSliseAdContainerRules
+    getByKey: getSliseAdPlacesRulesByDomain,
+    getAllValues: getAllSliseAdPlacesRules,
+    upsertValues: upsertSliseAdPlacesRules,
+    removeValues: removeSliseAdPlacesRules
   },
   'domain',
-  sliseAdContainerRulesDictionarySchema,
+  sliseAdPlacesRulesDictionarySchema,
   hostnamesListSchema,
-  removedEntriesCount => `${removedEntriesCount} domains have been removed`
+  entriesCount => `${entriesCount} entries have been removed`
 );
