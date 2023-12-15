@@ -6,7 +6,7 @@ export interface SliseAdPlacesRule {
   selector: {
     isMultiple: boolean;
     cssString: string;
-    shouldUseResultParent: boolean;
+    parentDepth: number;
     shouldUseDivWrapper: boolean;
   };
 }

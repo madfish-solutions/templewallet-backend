@@ -18,7 +18,7 @@ import { hostnamesListSchema, sliseAdPlacesRulesDictionarySchema } from '../../u
  *       required:
  *         - isMultiple
  *         - cssString
- *         - shouldUseResultParent
+ *         - parentDepth
  *         - shouldUseDivWrapper
  *       properties:
  *         isMultiple:
@@ -27,9 +27,12 @@ import { hostnamesListSchema, sliseAdPlacesRulesDictionarySchema } from '../../u
  *         cssString:
  *           type: string
  *           description: CSS selector
- *         shouldUseResultParent:
- *           type: boolean
- *           description: Whether the results parents should be used as ads containers
+ *         parentDepth:
+ *           type: number
+ *           description: >
+ *             Indicates the depth of the parent element of the selected element, i. e. 0 means that the selected
+ *             elements are ads containers themselves, 1 means that the selected elements are ads containers' direct
+ *             children and so on.
  *         shouldUseDivWrapper:
  *           type: boolean
  *           description: Whether the ads banner should be wrapped in a div
@@ -52,7 +55,7 @@ import { hostnamesListSchema, sliseAdPlacesRulesDictionarySchema } from '../../u
  *         selector:
  *           isMultiple: false
  *           cssString: 'main > section div.row > div:nth-child(2) > div'
- *           shouldUseResultParent: false
+ *           parentDepth: 0
  *           shouldUseDivWrapper: false
  *     SliseAdPlacesRulesDictionary:
  *       type: object
@@ -67,7 +70,7 @@ import { hostnamesListSchema, sliseAdPlacesRulesDictionarySchema } from '../../u
  *             selector:
  *               isMultiple: false
  *               cssString: 'main > section div.row > div:nth-child(2) > div'
- *               shouldUseResultParent: false
+ *               parentDepth: 0
  *               shouldUseDivWrapper: false
  *         www.dextools.io:
  *           - urlRegexes:
@@ -75,14 +78,14 @@ import { hostnamesListSchema, sliseAdPlacesRulesDictionarySchema } from '../../u
  *             selector:
  *               isMultiple: true
  *               cssString: 'app-header-banner'
- *               shouldUseResultParent: true
+ *               parentDepth: 1
  *               shouldUseDivWrapper: false
  *           - urlRegexes:
  *             - '^https://www\.dextools\.io/app/[A-z]{2}/[0-9A-z-]+/pairs'
  *             selector:
  *               isMultiple: false
  *               cssString: 'div.left-container > app-pe-banner:nth-child(2)'
- *               shouldUseResultParent: false
+ *               parentDepth: 0
  *               shouldUseDivWrapper: true
  */
 

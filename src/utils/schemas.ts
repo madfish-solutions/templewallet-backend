@@ -2,6 +2,7 @@ import {
   array as arraySchema,
   ArraySchema as IArraySchema,
   boolean as booleanSchema,
+  number as numberSchema,
   object as objectSchema,
   ObjectSchema as IObjectSchema,
   Schema,
@@ -66,7 +67,7 @@ const sliseAdPlacesRulesSchema = arraySchema()
         selector: objectSchema().shape({
           isMultiple: booleanSchema().required(),
           cssString: cssSelectorSchema.clone().required(),
-          shouldUseResultParent: booleanSchema().required(),
+          parentDepth: numberSchema().integer().min(0).required(),
           shouldUseDivWrapper: booleanSchema().required()
         })
       })
