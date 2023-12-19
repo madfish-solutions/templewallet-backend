@@ -2,6 +2,7 @@ import { NextFunction, Request, RequestHandler, Response, Router } from 'express
 import { ArraySchema as IArraySchema, ObjectSchema as IObjectSchema, Schema, ValidationError } from 'yup';
 
 import { basicAuth } from '../middlewares/basic-auth.middleware';
+import logger from './logger';
 
 interface ObjectStorageMethods<V> {
   getByKey: (key: string) => Promise<V>;
@@ -38,6 +39,7 @@ export const withExceptionHandler =
     try {
       await handler(req, res, next);
     } catch (error) {
+      logger.error(error as object);
       res.status(500).send({ error });
     }
   };

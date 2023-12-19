@@ -29,6 +29,8 @@ import { hostnamesListSchema, sliseAdPlacesRulesDictionarySchema } from '../../u
  *           description: CSS selector
  *         parentDepth:
  *           type: number
+ *           min: 0
+ *           integer: true
  *           description: >
  *             Indicates the depth of the parent element of the selected element, i. e. 0 means that the selected
  *             elements are ads containers themselves, 1 means that the selected elements are ads containers' direct
@@ -36,6 +38,28 @@ import { hostnamesListSchema, sliseAdPlacesRulesDictionarySchema } from '../../u
  *         shouldUseDivWrapper:
  *           type: boolean
  *           description: Whether the ads banner should be wrapped in a div
+ *         divWrapperStyle:
+ *           type: object
+ *           description: Style of the div wrapper
+ *           additionalProperties:
+ *             type: string
+ *     SliseAdStylesOverrides:
+ *       type: object
+ *       required:
+ *         - parentDepth
+ *         - style
+ *       properties:
+ *         parentDepth:
+ *           type: number
+ *           min: 0
+ *           integer: true
+ *           description: >
+ *             Indicates the depth of the parent element for the selected element that should change its style.
+ *         style:
+ *           type: object
+ *           description: New style of the parent element
+ *           additionalProperties:
+ *             type: string
  *     SliseAdPlacesRule:
  *       type: object
  *       required:
@@ -49,6 +73,10 @@ import { hostnamesListSchema, sliseAdPlacesRulesDictionarySchema } from '../../u
  *             format: regex
  *         selector:
  *           $ref: '#/components/schemas/SliseAdPlacesRuleSelector'
+ *         stylesOverrides:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/SliseAdStylesOverrides'
  *       example:
  *         urlRegexes:
  *           - '^https://goerli\.etherscan\.io/?$'
@@ -128,7 +156,7 @@ export const sliseAdPlacesRulesRouter = Router();
  *       '500':
  *         $ref: '#/components/responses/ErrorResponse'
  *   post:
- *     summary: Add rules for ads places
+ *     summary: Add rules for ads places. If rules for a domain already exist, they will be overwritten
  *     security:
  *       - basicAuth: []
  *     requestBody:

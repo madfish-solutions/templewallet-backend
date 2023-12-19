@@ -1,6 +1,82 @@
 import { redisClient } from '../redis';
 import { isDefined } from '../utils/helpers';
 
+/** Style properties names that are likely to be unnecessary for banners are skipped */
+export const stylePropsNames = [
+  'align-content',
+  'align-items',
+  'align-self',
+  'alignment-baseline',
+  'aspect-ratio',
+  'background',
+  'border-radius',
+  'bottom',
+  'box-shadow',
+  'box-sizing',
+  'display',
+  'flex',
+  'flex-basis',
+  'flex-direction',
+  'flex-flow',
+  'flex-grow',
+  'flex-shrink',
+  'flex-wrap',
+  'float',
+  'height',
+  'justify-content',
+  'justify-items',
+  'justify-self',
+  'left',
+  'margin',
+  'margin-block',
+  'margin-block-end',
+  'margin-block-start',
+  'margin-bottom',
+  'margin-inline',
+  'margin-inline-end',
+  'margin-inline-start',
+  'margin-left',
+  'margin-right',
+  'margin-top',
+  'max-block-size',
+  'max-height',
+  'max-inline-size',
+  'max-width',
+  'min-block-size',
+  'min-height',
+  'min-inline-size',
+  'min-width',
+  'overflow',
+  'overflow-anchor',
+  'overflow-wrap',
+  'overflow-x',
+  'overflow-y',
+  'padding',
+  'padding-block',
+  'padding-block-end',
+  'padding-block-start',
+  'padding-bottom',
+  'padding-inline',
+  'padding-inline-end',
+  'padding-inline-start',
+  'padding-left',
+  'padding-right',
+  'padding-top',
+  'position',
+  'right',
+  'text-align',
+  'top',
+  'visibility',
+  'width',
+  'z-index'
+];
+export type StylePropName = (typeof stylePropsNames)[number];
+
+interface SliseAdStylesOverrides {
+  parentDepth: number;
+  style: Record<StylePropName, string>;
+}
+
 export interface SliseAdPlacesRule {
   urlRegexes: string[];
   selector: {
@@ -8,7 +84,9 @@ export interface SliseAdPlacesRule {
     cssString: string;
     parentDepth: number;
     shouldUseDivWrapper: boolean;
+    divWrapperStyle?: Record<StylePropName, string>;
   };
+  stylesOverrides?: SliseAdStylesOverrides[];
 }
 
 export interface SliseAdProvidersByDomainRule {
