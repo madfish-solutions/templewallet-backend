@@ -33,11 +33,11 @@ import { hostnamesListSchema, sliseAdPlacesRulesDictionarySchema } from '../../u
  *           integer: true
  *           description: >
  *             Indicates the depth of the parent element of the selected element, i. e. 0 means that the selected
- *             elements are ads containers themselves, 1 means that the selected elements are ads containers' direct
+ *             elements are ads banners themselves, 1 means that the selected elements are ads banners' direct
  *             children and so on.
  *         shouldUseDivWrapper:
  *           type: boolean
- *           description: Whether the ads banner should be wrapped in a div
+ *           description: Whether the Slise ads banner should be wrapped in a div
  *         divWrapperStyle:
  *           type: object
  *           description: Style of the div wrapper
@@ -54,7 +54,7 @@ import { hostnamesListSchema, sliseAdPlacesRulesDictionarySchema } from '../../u
  *           min: 0
  *           integer: true
  *           description: >
- *             Indicates the depth of the parent element for the selected element that should change its style.
+ *             Indicates the depth of the parent element for an ad banner that should change its style.
  *         style:
  *           type: object
  *           description: New style of the parent element
