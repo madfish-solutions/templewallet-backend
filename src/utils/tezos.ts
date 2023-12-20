@@ -1,11 +1,12 @@
 import { compose, MichelCodecPacker, Signer, TezosToolkit } from '@taquito/taquito';
 import { tzip12 } from '@taquito/tzip12';
 import { tzip16 } from '@taquito/tzip16';
+import { AxiosError } from 'axios';
 import memoizee from 'memoizee';
 
-import { EnvVars } from '../config';
-import { ITicker } from '../interfaces/ticker.interface';
-import fetch from './fetch';
+import { getMarketsBySymbols } from './coingecko';
+import { isDefined } from './helpers';
+import logger from './logger';
 import SingleQueryDataProvider from './SingleQueryDataProvider';
 import { BcdTokenData } from './tzkt';
 
@@ -54,18 +55,28 @@ export const getStorage = memoizee(
 );
 
 const getTezExchangeRate = async () => {
-  const marketTickers = await fetch<Array<ITicker>>(
-    `https://api.tzpro.io/markets/tickers?api_key=${EnvVars.TZPRO_API_KEY}`
-  );
-  const usdTickers = marketTickers.filter(e => e.quote === 'USD' && e.base === 'XTZ');
-  // price index: use all USD ticker last prices with equal weight
-  const vol = usdTickers.reduce((s, t) => s + t.volume_base, 0) || null;
-  const price = vol === null ? 1 : usdTickers.reduce((s, t) => s + (t.last * t.volume_base) / vol, 0);
+  try {
+    const [xtzMarket] = await getMarketsBySymbols(['xtz']);
 
-  return price;
+    return xtzMarket.current_price;
+  } catch (e) {
+    if (!(e instanceof AxiosError)) {
+      logger.error('Request for TEZ exchange rate failed with unknown error');
+    } else if (isDefined(e.response) && isDefined(e.response.data)) {
+      logger.error(
+        `Request for TEZ exchange rate failed with status ${e.response.status} and message ${e.response.data}`
+      );
+    } else if (isDefined(e.response) && isDefined(e.response.status)) {
+      logger.error(`Request for TEZ exchange rate failed with status ${e.response.status}`);
+    } else {
+      logger.error('Request for TEZ exchange rate failed without response');
+    }
+
+    throw e;
+  }
 };
 
-export const tezExchangeRateProvider = new SingleQueryDataProvider(30000, getTezExchangeRate);
+export const tezExchangeRateProvider = new SingleQueryDataProvider(60000, getTezExchangeRate);
 
 export class MetadataParseError extends Error {}
 

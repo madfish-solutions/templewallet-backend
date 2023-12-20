@@ -27,7 +27,7 @@ export const dappList: DappList[] = [
   },
   {
     name: 'Yupana',
-    dappUrl: 'https://yupana.finance',
+    dappUrl: 'https://app.yupana.finance',
     type: DappType.DeFi,
     logo: 'https://pbs.twimg.com/profile_images/1450382829062393859/NSu06S5C_400x400.png',
     slug: 'yupana',
