@@ -46,6 +46,7 @@ export const stylePropsNames = [
   'min-height',
   'min-inline-size',
   'min-width',
+  'opacity',
   'overflow',
   'overflow-anchor',
   'overflow-wrap',
