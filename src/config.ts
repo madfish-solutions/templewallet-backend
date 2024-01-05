@@ -1,8 +1,8 @@
 import { getEnv } from './utils/env';
 import { isDefined } from './utils/helpers';
 
-export const MIN_IOS_APP_VERSION = '1.10.445';
-export const MIN_ANDROID_APP_VERSION = '1.10.445';
+export const MIN_IOS_APP_VERSION = '1.19.1026';
+export const MIN_ANDROID_APP_VERSION = '1.19.1026';
 
 export const EnvVars = {
   MOONPAY_SECRET_KEY: getEnv('MOONPAY_SECRET_KEY'),
