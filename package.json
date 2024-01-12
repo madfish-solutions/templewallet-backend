@@ -25,7 +25,10 @@
     "pino-http": "^5.5.0",
     "pino-pretty": "^4.7.1",
     "qs": "^6.10.3",
-    "semaphore": "^1.1.0"
+    "semaphore": "^1.1.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.0",
+    "yup": "^1.3.2"
   },
   "scripts": {
     "start": "cross-env NODE_ENV=development ts-node-dev --files --quiet src/index.ts",
