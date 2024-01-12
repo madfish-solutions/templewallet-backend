@@ -6,6 +6,11 @@
   "author": "Inokentii Mazhara <keshan3262@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "@ethersproject/address": "^5.7.0",
+    "@ethersproject/hash": "^5.7.0",
+    "@ethersproject/strings": "^5.7.0",
+    "@ethersproject/transactions": "^5.7.0",
+    "@stablelib/random": "^1.0.2",
     "@taquito/rpc": "14.0.0",
     "@taquito/taquito": "14.0.0",
     "@taquito/tzip12": "14.0.0",
@@ -37,6 +42,7 @@
     "ts": "tsc --pretty",
     "lint": "eslint ./src --ext .js,.ts",
     "lint:fix": "eslint ./src --ext .js,.ts --fix",
+    "lint:rules": "eslint --print-config",
     "clean": "rimraf dist/",
     "db-migration": "cd migrations/notifications && npx ts-node index.ts"
   },
