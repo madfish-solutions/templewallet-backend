@@ -1,10 +1,14 @@
+import type { StatusCodes } from 'http-status-codes';
+
 interface CodedErrorForResponse {
   message: string;
   code?: string;
 }
 
+type StatusCodeNumber = (typeof StatusCodes)[keyof typeof StatusCodes];
+
 export class CodedError extends Error {
-  constructor(public code: number, message: string, public errorCode?: string) {
+  constructor(public code: StatusCodeNumber, message: string, public errorCode?: string) {
     super(message);
   }
 

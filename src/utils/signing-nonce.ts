@@ -4,20 +4,29 @@ import memoizee from 'memoizee';
 
 import { CodedError } from './errors';
 
-export const SIGNING_NONCE_TTL = 5 * 60_000;
+const SIGNING_NONCE_TTL = 5 * 60_000;
 
-const MEMOIZE_OPTIONS = {
-  max: 500,
-  maxAge: SIGNING_NONCE_TTL
-};
+export const getSigningNonce = memoizee(
+  (pkh: string) => {
+    if (validateAddress(pkh) !== ValidationResult.VALID) throw new CodedError(400, 'Invalid address');
 
-export const getSigningNonce = memoizee((pkh: string) => {
-  if (validateAddress(pkh) !== ValidationResult.VALID) throw new CodedError(400, 'Invalid address');
+    return buildNonce();
+  },
+  {
+    max: 500,
+    maxAge: SIGNING_NONCE_TTL
+  }
+);
 
-  return buildNonce();
-}, MEMOIZE_OPTIONS);
+export function removeSigningNonce(pkh: string) {
+  getSigningNonce.delete(pkh);
+}
 
 function buildNonce() {
-  // The way it is done in SIWE.generateNonce()
-  return randomStringForEntropy(96);
+  // Same as in in SIWE.generateNonce()
+  const value = randomStringForEntropy(96);
+
+  const expiresAt = new Date(Date.now() + SIGNING_NONCE_TTL).toISOString();
+
+  return { value, expiresAt };
 }

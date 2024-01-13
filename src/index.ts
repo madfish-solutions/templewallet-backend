@@ -34,7 +34,7 @@ import { coinGeckoTokens } from './utils/gecko-tokens';
 import { getExternalApiErrorPayload, isDefined, isNonEmptyString } from './utils/helpers';
 import logger from './utils/logger';
 import { getSignedMoonPayUrl } from './utils/moonpay/get-signed-moonpay-url';
-import { getSigningNonce, SIGNING_NONCE_TTL } from './utils/signing-nonce';
+import { getSigningNonce } from './utils/signing-nonce';
 import SingleQueryDataProvider from './utils/SingleQueryDataProvider';
 import { tezExchangeRateProvider } from './utils/tezos';
 import { getExchangeRatesFromDB } from './utils/tokens';
@@ -360,14 +360,12 @@ app.get('/api/magic-square-quest/participants', basicAuth, async (req, res) => {
   }
 });
 
-app.get('/api/auth-nonce', async (req, res) => {
+app.get('/api/signing-nonce', async (req, res) => {
   try {
     const pkh = req.query.pkh;
     if (!pkh || typeof pkh !== 'string') throw new Error('PKH is not a string');
 
-    const nonce = getSigningNonce(pkh);
-
-    res.status(200).send({ nonce, ttl: SIGNING_NONCE_TTL });
+    res.status(200).send(getSigningNonce(pkh));
   } catch (error: any) {
     console.error(error);
 

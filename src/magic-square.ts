@@ -2,13 +2,13 @@ import * as ethersAddressUtils from '@ethersproject/address';
 import * as ethersHashUtils from '@ethersproject/hash';
 import * as ethersStringsUtils from '@ethersproject/strings';
 import * as ethersTxUtils from '@ethersproject/transactions';
-import { STATUS_CODE } from '@taquito/http-utils';
 import { validateAddress, ValidationResult, verifySignature, getPkhfromPk } from '@taquito/utils';
+import { StatusCodes } from 'http-status-codes';
 
 import { redisClient } from './redis';
 import { CodedError } from './utils/errors';
 import { safeCheck } from './utils/helpers';
-import { getSigningNonce } from './utils/signing-nonce';
+import { getSigningNonce, removeSigningNonce } from './utils/signing-nonce';
 
 const REDIS_DB_KEY = 'magic_square_quest';
 
@@ -32,7 +32,7 @@ export async function startMagicSquareQuest({ pkh, publicKey, messageBytes, sign
   // Public Key Hashes
 
   if (!safeCheck(() => validateAddress(pkh) === ValidationResult.VALID && getPkhfromPk(publicKey) === pkh))
-    throw new CodedError(STATUS_CODE.BAD_REQUEST, 'Invalid Tezos public key (hash)');
+    throw new CodedError(StatusCodes.BAD_REQUEST, 'Invalid Tezos public key (hash)');
 
   let evmPkh: string;
   try {
@@ -40,13 +40,23 @@ export async function startMagicSquareQuest({ pkh, publicKey, messageBytes, sign
     evmPkh = ethersAddressUtils.getAddress(evm.pkh);
   } catch (err) {
     console.error(err);
-    throw new CodedError(STATUS_CODE.BAD_REQUEST, 'Invalid EVM public key hash');
+    throw new CodedError(StatusCodes.BAD_REQUEST, 'Invalid EVM public key hash');
   }
+
+  // Nonce
+  const { value: nonce } = getSigningNonce(pkh);
+  const nonceBytes = Buffer.from(nonce, 'utf-8').toString('hex');
+
+  if (!messageBytes.includes(nonceBytes))
+    throw new CodedError(StatusCodes.UNAUTHORIZED, 'Invalid Tezos message nonce', 'INVALID_NONCE_TEZ');
+
+  if (!evm.messageBytes.includes(nonceBytes))
+    throw new CodedError(StatusCodes.UNAUTHORIZED, 'Invalid EVM message nonce', 'INVALID_NONCE_EVM');
 
   // Signatures
 
   if (!safeCheck(() => verifySignature(messageBytes, publicKey, signature)))
-    throw new CodedError(STATUS_CODE.UNAUTHORIZED, 'Invalid Tezos signature or message');
+    throw new CodedError(StatusCodes.UNAUTHORIZED, 'Invalid Tezos signature or message');
 
   if (
     !safeCheck(() => {
@@ -56,7 +66,7 @@ export async function startMagicSquareQuest({ pkh, publicKey, messageBytes, sign
       return ethersTxUtils.recoverAddress(messageHash, evm.signature) === evmPkh;
     })
   )
-    throw new CodedError(STATUS_CODE.UNAUTHORIZED, 'Invalid EVM signature or message');
+    throw new CodedError(StatusCodes.UNAUTHORIZED, 'Invalid EVM signature or message');
 
   // Presence check
 
@@ -64,11 +74,10 @@ export async function startMagicSquareQuest({ pkh, publicKey, messageBytes, sign
     .lrange(REDIS_DB_KEY, 0, -1)
     .then(items => items.some(item => item.includes(pkh) && item.includes(evmPkh)));
 
-  if (exists)
-    throw new CodedError(STATUS_CODE.CONFLICT, 'Quest already started for the given credentials', 'QUEST_STARTED');
+  if (exists) throw new CodedError(StatusCodes.CONFLICT, 'Your quest was already started before', 'QUEST_IS_STARTED');
 
   // Auth nonce
-  getSigningNonce.delete(pkh);
+  removeSigningNonce(pkh);
 
   // Registering
 
