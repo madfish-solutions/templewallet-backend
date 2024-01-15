@@ -13,7 +13,7 @@ export const getSigningNonce = memoizee(
     return buildNonce();
   },
   {
-    max: 500,
+    max: 1_000_000,
     maxAge: SIGNING_NONCE_TTL
   }
 );

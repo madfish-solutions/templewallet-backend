@@ -360,7 +360,7 @@ app.get('/api/magic-square-quest/participants', basicAuth, async (req, res) => {
   }
 });
 
-app.get('/api/signing-nonce', async (req, res) => {
+app.get('/api/signing-nonce', (req, res) => {
   try {
     const pkh = req.query.pkh;
     if (!pkh || typeof pkh !== 'string') throw new Error('PKH is not a string');

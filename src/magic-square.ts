@@ -5,15 +5,23 @@ import * as ethersTxUtils from '@ethersproject/transactions';
 import { validateAddress, ValidationResult, verifySignature, getPkhfromPk } from '@taquito/utils';
 import { StatusCodes } from 'http-status-codes';
 
-import { redisClient } from './redis';
+import { objectStorageMethodsFactory } from './redis';
 import { CodedError } from './utils/errors';
 import { safeCheck } from './utils/helpers';
 import { getSigningNonce, removeSigningNonce } from './utils/signing-nonce';
 
+interface Participant {
+  pkh: string;
+  evmPkh: string;
+  ts: string;
+}
+
 const REDIS_DB_KEY = 'magic_square_quest';
 
+const redisStorage = objectStorageMethodsFactory<Participant, null>(REDIS_DB_KEY, null);
+
 export function getMagicSquareQuestParticipants() {
-  return redisClient.lrange(REDIS_DB_KEY, 0, -1).then(records => records.map(r => JSON.parse(r)));
+  return redisStorage.getAllValues().then(records => Object.values(records));
 }
 
 interface StartQuestPayload {
@@ -43,6 +51,8 @@ export async function startMagicSquareQuest({ pkh, publicKey, messageBytes, sign
     throw new CodedError(StatusCodes.BAD_REQUEST, 'Invalid EVM public key hash');
   }
 
+  const storageKey = `${pkh}+${evmPkh}`;
+
   // Nonce
   const { value: nonce } = getSigningNonce(pkh);
   const nonceBytes = Buffer.from(nonce, 'utf-8').toString('hex');
@@ -70,22 +80,21 @@ export async function startMagicSquareQuest({ pkh, publicKey, messageBytes, sign
 
   // Presence check
 
-  const exists = await redisClient
-    .lrange(REDIS_DB_KEY, 0, -1)
-    .then(items => items.some(item => item.includes(pkh) && item.includes(evmPkh)));
+  const existingValue = await redisStorage.getByKey(storageKey);
 
-  if (exists) throw new CodedError(StatusCodes.CONFLICT, 'Your quest was already started before', 'QUEST_IS_STARTED');
+  if (existingValue)
+    throw new CodedError(StatusCodes.CONFLICT, 'Your quest was already started before', 'QUEST_IS_STARTED');
 
   // Auth nonce
   removeSigningNonce(pkh);
 
   // Registering
 
-  const item = {
+  const participant: Participant = {
     pkh,
     evmPkh,
     ts: new Date().toISOString()
   };
 
-  await redisClient.lpush(REDIS_DB_KEY, JSON.stringify(item));
+  await redisStorage.upsertValues({ [storageKey]: participant });
 }
