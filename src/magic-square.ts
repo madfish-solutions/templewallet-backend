@@ -2,7 +2,7 @@ import * as ethersAddressUtils from '@ethersproject/address';
 import * as ethersHashUtils from '@ethersproject/hash';
 import * as ethersStringsUtils from '@ethersproject/strings';
 import * as ethersTxUtils from '@ethersproject/transactions';
-import { validateAddress, ValidationResult, verifySignature, getPkhfromPk } from '@taquito/utils';
+import { verifySignature, getPkhfromPk } from '@taquito/utils';
 import { StatusCodes } from 'http-status-codes';
 
 import { objectStorageMethodsFactory } from './redis';
@@ -25,7 +25,6 @@ export function getMagicSquareQuestParticipants() {
 }
 
 interface StartQuestPayload {
-  pkh: string;
   publicKey: string;
   messageBytes: string;
   signature: string;
@@ -36,11 +35,16 @@ interface StartQuestPayload {
   };
 }
 
-export async function startMagicSquareQuest({ pkh, publicKey, messageBytes, signature, evm }: StartQuestPayload) {
+export async function startMagicSquareQuest({ publicKey, messageBytes, signature, evm }: StartQuestPayload) {
   // Public Key Hashes
 
-  if (!safeCheck(() => validateAddress(pkh) === ValidationResult.VALID && getPkhfromPk(publicKey) === pkh))
-    throw new CodedError(StatusCodes.BAD_REQUEST, 'Invalid Tezos public key (hash)');
+  let pkh: string;
+  try {
+    pkh = getPkhfromPk(publicKey);
+  } catch (err) {
+    console.error(err);
+    throw new CodedError(StatusCodes.BAD_REQUEST, 'Invalid Tezos public key');
+  }
 
   let evmPkh: string;
   try {
@@ -50,8 +54,6 @@ export async function startMagicSquareQuest({ pkh, publicKey, messageBytes, sign
     console.error(err);
     throw new CodedError(StatusCodes.BAD_REQUEST, 'Invalid EVM public key hash');
   }
-
-  const storageKey = `${pkh}+${evmPkh}`;
 
   // Nonce
   const { value: nonce } = getSigningNonce(pkh);
@@ -80,12 +82,14 @@ export async function startMagicSquareQuest({ pkh, publicKey, messageBytes, sign
 
   // Presence check
 
+  const storageKey = `${pkh}+${evmPkh}`;
+
   const existingValue = await redisStorage.getByKey(storageKey);
 
   if (existingValue)
     throw new CodedError(StatusCodes.CONFLICT, 'Your quest was already started before', 'QUEST_IS_STARTED');
 
-  // Auth nonce
+  // Invalidating nonce
   removeSigningNonce(pkh);
 
   // Registering
