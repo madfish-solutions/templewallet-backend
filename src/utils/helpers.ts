@@ -45,3 +45,13 @@ export const getExternalApiErrorPayload = (error: unknown) => {
 
   return { status, data };
 };
+
+export function safeCheck(check: () => boolean, def = false) {
+  try {
+    return check();
+  } catch (error) {
+    console.error();
+
+    return def;
+  }
+}

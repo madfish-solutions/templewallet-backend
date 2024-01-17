@@ -12,6 +12,7 @@ import swaggerUi from 'swagger-ui-express';
 import { getAdvertisingInfo } from './advertising/advertising';
 import { MIN_ANDROID_APP_VERSION, MIN_IOS_APP_VERSION } from './config';
 import getDAppsStats from './getDAppsStats';
+import { getMagicSquareQuestParticipants, startMagicSquareQuest } from './magic-square';
 import { basicAuth } from './middlewares/basic-auth.middleware';
 import { Notification, PlatformType } from './notifications/notification.interface';
 import { getImageFallback } from './notifications/utils/get-image-fallback.util';
@@ -28,10 +29,12 @@ import { getAliceBobEstimationPayload } from './utils/alice-bob/get-alice-bob-es
 import { getAliceBobOrderInfo } from './utils/alice-bob/get-alice-bob-order-info';
 import { getAliceBobPairInfo } from './utils/alice-bob/get-alice-bob-pair-info';
 import { getAliceBobPairsInfo } from './utils/alice-bob/get-alice-bob-pairs-info';
+import { CodedError } from './utils/errors';
 import { coinGeckoTokens } from './utils/gecko-tokens';
 import { getExternalApiErrorPayload, isDefined, isNonEmptyString } from './utils/helpers';
 import logger from './utils/logger';
 import { getSignedMoonPayUrl } from './utils/moonpay/get-signed-moonpay-url';
+import { getSigningNonce } from './utils/signing-nonce';
 import SingleQueryDataProvider from './utils/SingleQueryDataProvider';
 import { tezExchangeRateProvider } from './utils/tezos';
 import { getExchangeRatesFromDB } from './utils/tokens';
@@ -326,6 +329,53 @@ app.get('/api/advertising-info', (_req, res) => {
 });
 
 app.use('/api/slise-ad-rules', sliseRulesRouter);
+
+app.post('/api/magic-square-quest/start', async (req, res) => {
+  try {
+    await startMagicSquareQuest(req.body);
+
+    res.status(200).send({ message: 'Quest successfully started' });
+  } catch (error: any) {
+    console.error(error);
+
+    if (error instanceof CodedError) {
+      res.status(error.code).send(error.buildResponse());
+    } else {
+      res.status(500).send({ message: error?.message });
+    }
+  }
+});
+
+app.get('/api/magic-square-quest/participants', basicAuth, async (req, res) => {
+  try {
+    res.status(200).send(await getMagicSquareQuestParticipants());
+  } catch (error: any) {
+    console.error(error);
+
+    if (error instanceof CodedError) {
+      res.status(error.code).send(error.buildResponse());
+    } else {
+      res.status(500).send({ message: error?.message });
+    }
+  }
+});
+
+app.get('/api/signing-nonce', (req, res) => {
+  try {
+    const pkh = req.query.pkh;
+    if (!pkh || typeof pkh !== 'string') throw new Error('PKH is not a string');
+
+    res.status(200).send(getSigningNonce(pkh));
+  } catch (error: any) {
+    console.error(error);
+
+    if (error instanceof CodedError) {
+      res.status(error.code).send(error.buildResponse());
+    } else {
+      res.status(500).send({ message: error?.message });
+    }
+  }
+});
 
 const swaggerOptions = {
   swaggerDefinition: {
