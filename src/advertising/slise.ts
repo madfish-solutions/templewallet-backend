@@ -90,6 +90,29 @@ export interface SliseAdPlacesRule {
   stylesOverrides?: SliseAdStylesOverrides[];
 }
 
+export interface PermanentSliseAdPlacesRule {
+  urlRegexes: string[];
+  adSelector: {
+    isMultiple: boolean;
+    cssString: string;
+    parentDepth: number;
+  };
+  parentSelector: {
+    isMultiple: boolean;
+    cssString: string;
+    parentDepth: number;
+  };
+  insertionIndex?: number;
+  insertBeforeSelector?: string;
+  insertAfterSelector?: string;
+  insertionsCount?: number;
+  shouldUseDivWrapper: boolean;
+  divWrapperStyle?: Record<StylePropName, string>;
+  elementToMeasureSelector?: string;
+  stylesOverrides?: SliseAdStylesOverrides[];
+  shouldHideOriginal?: boolean;
+}
+
 export interface SliseAdProvidersByDomainRule {
   urlRegexes: string[];
   providers: string[];
@@ -99,6 +122,7 @@ const SLISE_AD_PLACES_RULES_KEY = 'slise_ad_places_rules';
 const SLISE_AD_PROVIDERS_BY_SITES_KEY = 'slise_ad_providers_by_sites';
 const SLISE_AD_PROVIDERS_ALL_SITES_KEY = 'slise_ad_providers_all_sites';
 const SLISE_AD_PROVIDERS_LIST_KEY = 'slise_ad_providers_list';
+const PERMANENT_SLISE_AD_PLACES_RULES_KEY = 'permanent_slise_ad_places_rules';
 
 const objectStorageMethodsFactory = <V>(storageKey: string, fallbackValue: V) => ({
   getByKey: async (key: string): Promise<V> => {
@@ -144,6 +168,13 @@ export const {
   upsertValues: upsertProviders,
   removeValues: removeProviders
 } = objectStorageMethodsFactory<string[]>(SLISE_AD_PROVIDERS_LIST_KEY, []);
+
+export const {
+  getByKey: getPermanentSliseAdPlacesRulesByDomain,
+  getAllValues: getAllPermanentSliseAdPlacesRules,
+  upsertValues: upsertPermanentSliseAdPlacesRules,
+  removeValues: removePermanentSliseAdPlacesRules
+} = objectStorageMethodsFactory<PermanentSliseAdPlacesRule[]>(PERMANENT_SLISE_AD_PLACES_RULES_KEY, []);
 
 export const getSliseAdProvidersForAllSites = async () => redisClient.smembers(SLISE_AD_PROVIDERS_ALL_SITES_KEY);
 
