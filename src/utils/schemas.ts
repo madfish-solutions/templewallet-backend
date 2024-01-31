@@ -10,7 +10,13 @@ import {
   StringSchema as IStringSchema
 } from 'yup';
 
-import { SliseAdPlacesRule, SliseAdProvidersByDomainRule, StylePropName, stylePropsNames } from '../advertising/slise';
+import {
+  SliseAdPlacesRule,
+  PermanentSliseAdPlacesRule,
+  SliseAdProvidersByDomainRule,
+  StylePropName,
+  stylePropsNames
+} from '../advertising/slise';
 import { isValidSelectorsGroup } from '../utils/selectors.min.js';
 import { isDefined } from './helpers';
 
@@ -55,7 +61,7 @@ export const regexStringListSchema = arraySchema().of(regexStringSchema.clone().
 
 const cssSelectorSchema = stringSchema().test('is-css-selector', function (value: string | undefined) {
   // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-  if (isDefined(value) && isValidSelectorsGroup(value)) {
+  if (!isDefined(value) || isValidSelectorsGroup(value)) {
     return true;
   }
 
@@ -92,7 +98,7 @@ const styleSchema: IObjectSchema<Record<StylePropName, string>> = makeDictionary
 
 const sliseAdStylesOverridesSchema = objectSchema().shape({
   parentDepth: numberSchema().integer().min(0).required(),
-  style: styleSchema.required()
+  style: styleSchema.clone().required()
 });
 
 const sliseAdPlacesRulesSchema = arraySchema()
@@ -117,6 +123,58 @@ const sliseAdPlacesRulesSchema = arraySchema()
 
 export const sliseAdPlacesRulesDictionarySchema: IObjectSchema<Record<string, SliseAdPlacesRule[]>> =
   makeDictionarySchema(hostnameSchema, sliseAdPlacesRulesSchema).required();
+
+const permanentSliseAdPlacesRulesSchema = arraySchema()
+  .of(
+    objectSchema()
+      .shape({
+        urlRegexes: arraySchema().of(regexStringSchema.clone().required()).required(),
+        adSelector: objectSchema()
+          .shape({
+            isMultiple: booleanSchema().required(),
+            cssString: cssSelectorSchema.clone().required(),
+            parentDepth: numberSchema().integer().min(0).required()
+          })
+          .required(),
+        parentSelector: objectSchema()
+          .shape({
+            isMultiple: booleanSchema().required(),
+            cssString: cssSelectorSchema.clone().required(),
+            parentDepth: numberSchema().integer().min(0).required()
+          })
+          .required(),
+        insertionIndex: numberSchema().integer(),
+        insertBeforeSelector: cssSelectorSchema,
+        insertAfterSelector: cssSelectorSchema,
+        insertionsCount: numberSchema().integer().min(1).default(1),
+        shouldUseDivWrapper: booleanSchema().required(),
+        divWrapperStyle: styleSchema,
+        elementToMeasureSelector: cssSelectorSchema,
+        stylesOverrides: arraySchema().of(sliseAdStylesOverridesSchema.clone().required()),
+        shouldHideOriginal: booleanSchema().default(false)
+      })
+      .test('insertion-place-specified', (value: PermanentSliseAdPlacesRule | undefined) => {
+        if (!value) {
+          return true;
+        }
+
+        const { insertionIndex, insertBeforeSelector, insertAfterSelector } = value;
+        const definedValuesCount = [insertionIndex, insertBeforeSelector, insertAfterSelector].filter(isDefined).length;
+
+        if (definedValuesCount !== 1) {
+          throw new Error(
+            'Exactly one of insertionIndex, insertBeforeSelector and insertAfterSelector must be specified'
+          );
+        }
+
+        return true;
+      })
+      .required()
+  )
+  .required();
+
+export const permanentSliseAdPlacesRulesDictionarySchema: IObjectSchema<Record<string, PermanentSliseAdPlacesRule[]>> =
+  makeDictionarySchema(hostnameSchema, permanentSliseAdPlacesRulesSchema).required();
 
 const sliseAdProvidersByDomainRulesSchema = arraySchema()
   .of(

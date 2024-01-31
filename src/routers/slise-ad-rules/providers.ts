@@ -24,6 +24,8 @@ import {
 
 /**
  * @swagger
+ * tags:
+ *   name: Known ads providers
  * components:
  *   schemas:
  *     SliseAdProvidersByDomainRule:
@@ -80,6 +82,8 @@ export const sliseAdProvidersRouter = Router();
  * /api/slise-ad-rules/providers/all-sites:
  *   get:
  *     summary: Get providers of ads for which ads should be replaced at all sites
+ *     tags:
+ *       - Known ads providers
  *     responses:
  *       '200':
  *         description: List of providers
@@ -98,6 +102,8 @@ export const sliseAdProvidersRouter = Router();
  *     summary: >
  *       Add providers of ads for which ads should be replaced at all sites. They will not be removed
  *       from lists of providers from specific sites. Checks for providers existence are not performed
+ *     tags:
+ *       - Known ads providers
  *     security:
  *       - basicAuth: []
  *     requestBody:
@@ -122,6 +128,8 @@ export const sliseAdProvidersRouter = Router();
  *         $ref: '#/components/responses/ErrorResponse'
  *   delete:
  *     summary: Remove providers of ads for which ads should be replaced at all sites
+ *     tags:
+ *       - Known ads providers
  *     security:
  *       - basicAuth: []
  *     requestBody:
@@ -180,6 +188,8 @@ sliseAdProvidersRouter
  * /api/slise-ad-rules/providers/by-sites/{domain}:
  *   get:
  *     summary: Get rules for providers of ads for which ads should be replaced at the specified site
+ *     tags:
+ *       - Known ads providers
  *     parameters:
  *       - in: path
  *         name: domain
@@ -202,6 +212,8 @@ sliseAdProvidersRouter
  * /api/slise-ad-rules/providers/by-sites:
  *   get:
  *     summary: Get rules for providers of ads for which ads should be replaced at all sites
+ *     tags:
+ *       - Known ads providers
  *     responses:
  *       '200':
  *         description: Domain - rules list dictionary
@@ -215,6 +227,8 @@ sliseAdProvidersRouter
  *     summary: >
  *       Add rules for providers of ads for the specified sites. They will not be removed from lists
  *       of providers from all sites. Checks for providers existence are not performed
+ *     tags:
+ *       - Known ads providers
  *     security:
  *       - basicAuth: []
  *     requestBody:
@@ -234,6 +248,8 @@ sliseAdProvidersRouter
  *         $ref: '#/components/responses/ErrorResponse'
  *   delete:
  *     summary: Remove rules for providers of ads for the specified sites
+ *     tags:
+ *       - Known ads providers
  *     security:
  *       - basicAuth: []
  *     requestBody:
@@ -278,6 +294,8 @@ addObjectStorageMethodsToRouter(
  * /api/slise-ad-rules/providers/{providerId}:
  *   get:
  *     summary: Get selectors for a provider
+ *     tags:
+ *       - Known ads providers
  *     parameters:
  *       - in: path
  *         name: providerId
@@ -303,6 +321,8 @@ addObjectStorageMethodsToRouter(
  * /api/slise-ad-rules/providers:
  *   get:
  *     summary: Get all providers
+ *     tags:
+ *       - Known ads providers
  *     responses:
  *       '200':
  *         description: Provider - selectors dictionary
@@ -314,6 +334,8 @@ addObjectStorageMethodsToRouter(
  *         $ref: '#/components/responses/ErrorResponse'
  *   post:
  *     summary: Upserts providers. Providers that have existed before will be overwritten
+ *     tags:
+ *       - Known ads providers
  *     security:
  *       - basicAuth: []
  *     requestBody:
@@ -333,6 +355,8 @@ addObjectStorageMethodsToRouter(
  *         $ref: '#/components/responses/ErrorResponse'
  *   delete:
  *     summary: Delete specified providers. Cascade delete rules are not applied
+ *     tags:
+ *       - Known ads providers
  *     security:
  *       - basicAuth: []
  *     requestBody:
