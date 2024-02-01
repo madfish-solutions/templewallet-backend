@@ -112,13 +112,7 @@ const getSwapsByOneToken = async (outputTokenSymbol: string) => {
     throw new Error(`Failed to get swaps for 1 ${outputTokenSymbol}`);
   }
 
-  const directSwap = await getThreeRouteSwap({
-    inputTokenSymbol: THREE_ROUTE_TEZ_SYMBOL,
-    outputTokenSymbol,
-    realAmount: invertedSwap.output
-  });
-
-  return { directSwap, invertedSwap, updatedAt };
+  return { directSwap: EMPTY_SWAP, invertedSwap, updatedAt };
 };
 
 const getSwaps = async (outputTokenSymbol: string) => {

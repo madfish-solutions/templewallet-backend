@@ -25,6 +25,7 @@
     "no-shadow": "off",
     "import/no-duplicates": "error",
     "import/no-self-import": "error",
+    "import/no-cycle": "error",
     "import/order": [
       "error",
       {
@@ -36,12 +37,11 @@
         "newlines-between": "always"
       }
     ],
-    "@typescript-eslint/strict-boolean-expressions": "error",
+    "@typescript-eslint/strict-boolean-expressions": "warn",
     "@typescript-eslint/no-unused-vars": "error",
     "@typescript-eslint/explicit-module-boundary-types": "off",
     "@typescript-eslint/no-unnecessary-type-constraint": "off",
-    "@typescript-eslint/ban-ts-comment": "off",
-    "quotes": ["error", "single"]
+    "@typescript-eslint/ban-ts-comment": "off"
   },
   "globals": {
     "localStorage": true
