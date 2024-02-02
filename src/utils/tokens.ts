@@ -40,14 +40,14 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
   }
 
   const exchangeRatesWithHoles = await Promise.all(
-    tokens
+    tokens!
       .filter(
         (token): token is ThreeRouteFa12Token | ThreeRouteFa2Token => token.standard !== ThreeRouteStandardEnum.xtz
       )
       .map(async (token): Promise<TokenExchangeRateEntry | undefined> => {
         const { contract, tokenId: rawTokenId, symbol } = token;
         const tokenId = isDefined(rawTokenId) ? Number(rawTokenId) : undefined;
-        const { ask, bid } = exchangeRatesInputs[symbol] ?? { ask: 0, bid: 0 };
+        const { ask, bid } = exchangeRatesInputs![symbol] ?? { ask: 0, bid: 0 };
 
         if (ask === 0 && bid === 0) {
           logger.error(`Failed to get exchange rate for token ${token.symbol}`);
@@ -57,7 +57,7 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
 
         const { data: metadata } = await tokensMetadataProvider.get(contract, tokenId);
         const tokensPerTez = ask === 0 ? bid : ask;
-        const exchangeRate = new BigNumber(1).div(tokensPerTez).times(tezExchangeRate);
+        const exchangeRate = new BigNumber(1).div(tokensPerTez).times(tezExchangeRate!);
 
         return {
           tokenAddress: contract,
