@@ -34,8 +34,9 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
   const { data: exchangeRatesInputs, error: exchangeRatesError } = await threeRouteExchangeRatesProvider.getState();
   const { data: tezExchangeRate, error: tezExchangeRateError } = await tezExchangeRateProvider.getState();
 
-  if (tokensError ?? exchangeRatesError ?? tezExchangeRateError) {
-    throw tokensError ?? tezExchangeRateError;
+  const error = tokensError ?? exchangeRatesError ?? tezExchangeRateError;
+  if (error) {
+    throw error;
   }
 
   const exchangeRatesWithHoles = await Promise.all(
