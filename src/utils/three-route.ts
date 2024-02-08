@@ -24,20 +24,6 @@ export interface ThreeRouteChain {
   hops: ThreeRouteHop[];
 }
 
-// TODO: add axios adapter and change type if precision greater than of standard js number type is necessary
-export interface ThreeRouteClassicSwapResponse {
-  input: number;
-  output: number;
-  chains: ThreeRouteChain[];
-}
-
-export interface ThreeRouteSirsSwapResponse {
-  input: number;
-  output: number;
-  tzbtcChain: ThreeRouteClassicSwapResponse;
-  xtzChain: ThreeRouteClassicSwapResponse;
-}
-
 interface ThreeRouteTokenCommon {
   id: number;
   symbol: string;
@@ -96,14 +82,10 @@ export interface ThreeRouteDex {
   token2: ThreeRouteToken;
 }
 
-type ThreeRouteQueryParams = object | SwapQueryParams;
-type ThreeRouteQueryResponse =
-  | ThreeRouteClassicSwapResponse
-  | ThreeRouteSirsSwapResponse
-  | ThreeRouteDex[]
-  | ThreeRouteToken[];
+type ThreeRouteExchangeRates = Record<string, { ask: number; bid: number }>;
 
-export type ThreeRouteSwapResponse = ThreeRouteClassicSwapResponse | ThreeRouteSirsSwapResponse;
+type ThreeRouteQueryParams = object | SwapQueryParams;
+type ThreeRouteQueryResponse = ThreeRouteExchangeRates | ThreeRouteToken[];
 
 export const THREE_ROUTE_SIRS_SYMBOL = 'SIRS';
 
@@ -113,17 +95,6 @@ const threeRouteBuildQueryFn = makeBuildQueryFn<ThreeRouteQueryParams, ThreeRout
   { headers: { Authorization: `Basic ${EnvVars.THREE_ROUTE_API_AUTH_TOKEN}` } }
 );
 
-export const getThreeRouteSwap = threeRouteBuildQueryFn<SwapQueryParams, ThreeRouteSwapResponse>(
-  ({ inputTokenSymbol, outputTokenSymbol, realAmount }) => {
-    const isSirsSwap = inputTokenSymbol === THREE_ROUTE_SIRS_SYMBOL || outputTokenSymbol === THREE_ROUTE_SIRS_SYMBOL;
-
-    return `/${isSirsSwap ? 'swap-sirs' : 'swap'}/${inputTokenSymbol}/${outputTokenSymbol}/${realAmount}`;
-  }
-);
-
-export const getThreeRouteDexes = threeRouteBuildQueryFn<object, ThreeRouteDex[]>('/dexes', []);
-
 export const getThreeRouteTokens = threeRouteBuildQueryFn<object, ThreeRouteToken[]>('/tokens', []);
 
-export const getChains = (response: ThreeRouteSwapResponse) =>
-  'chains' in response ? response.chains : [...response.xtzChain.chains, ...response.tzbtcChain.chains];
+export const getThreeRouteExchangeRates = threeRouteBuildQueryFn<object, ThreeRouteExchangeRates>('/prices', []);

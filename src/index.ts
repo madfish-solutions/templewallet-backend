@@ -37,7 +37,7 @@ import { getSignedMoonPayUrl } from './utils/moonpay/get-signed-moonpay-url';
 import { getSigningNonce } from './utils/signing-nonce';
 import SingleQueryDataProvider from './utils/SingleQueryDataProvider';
 import { tezExchangeRateProvider } from './utils/tezos';
-import { getExchangeRatesFromDB } from './utils/tokens';
+import { getExchangeRates } from './utils/tokens';
 
 const PINO_LOGGER = {
   logger: logger.child({ name: 'web' }),
@@ -172,7 +172,7 @@ app.get('/api/abtest', (_, res) => {
 app.get('/api/exchange-rates/tez', makeProviderDataRequestHandler(tezExchangeRateProvider));
 
 app.get('/api/exchange-rates', async (_req, res) => {
-  const tokensExchangeRates = await getExchangeRatesFromDB();
+  const tokensExchangeRates = await getExchangeRates();
   const { data: tezExchangeRate, error: tezExchangeRateError } = await getProviderStateWithTimeout(
     tezExchangeRateProvider
   );
