@@ -66,6 +66,7 @@ export const stylePropsNames = [
   'right',
   'text-align',
   'top',
+  'vertical-align',
   'visibility',
   'width',
   'z-index'
@@ -106,6 +107,7 @@ export interface PermanentSliseAdPlacesRule {
   insertAfterSelector?: string;
   insertionsCount?: number;
   shouldUseDivWrapper: boolean;
+  elementStyle?: Record<StylePropName, string>;
   divWrapperStyle?: Record<StylePropName, string>;
   elementToMeasureSelector?: string;
   stylesOverrides?: SliseAdStylesOverrides[];
@@ -122,34 +124,29 @@ const SLISE_AD_PROVIDERS_BY_SITES_KEY = 'slise_ad_providers_by_sites';
 const SLISE_AD_PROVIDERS_ALL_SITES_KEY = 'slise_ad_providers_all_sites';
 const SLISE_AD_PROVIDERS_LIST_KEY = 'slise_ad_providers_list';
 const PERMANENT_SLISE_AD_PLACES_RULES_KEY = 'permanent_slise_ad_places_rules';
+const PERMANENT_NATIVE_AD_PLACES_RULES_KEY = 'permanent_native_ad_places_rules';
 
-export const {
-  getByKey: getSliseAdPlacesRulesByDomain,
-  getAllValues: getAllSliseAdPlacesRules,
-  upsertValues: upsertSliseAdPlacesRules,
-  removeValues: removeSliseAdPlacesRules
-} = objectStorageMethodsFactory<SliseAdPlacesRule[]>(SLISE_AD_PLACES_RULES_KEY, []);
+export const sliseAdPlacesRulesMethods = objectStorageMethodsFactory<SliseAdPlacesRule[]>(
+  SLISE_AD_PLACES_RULES_KEY,
+  []
+);
 
-export const {
-  getByKey: getSliseAdProvidersByDomain,
-  getAllValues: getAllSliseAdProvidersBySites,
-  upsertValues: upsertSliseAdProvidersBySites,
-  removeValues: removeSliseAdProvidersBySites
-} = objectStorageMethodsFactory<SliseAdProvidersByDomainRule[]>(SLISE_AD_PROVIDERS_BY_SITES_KEY, []);
+export const sliseAdProvidersByDomainRulesMethods = objectStorageMethodsFactory<SliseAdProvidersByDomainRule[]>(
+  SLISE_AD_PROVIDERS_BY_SITES_KEY,
+  []
+);
 
-export const {
-  getByKey: getSelectorsByProviderId,
-  getAllValues: getAllProviders,
-  upsertValues: upsertProviders,
-  removeValues: removeProviders
-} = objectStorageMethodsFactory<string[]>(SLISE_AD_PROVIDERS_LIST_KEY, []);
+export const sliseAdProvidersMethods = objectStorageMethodsFactory<string[]>(SLISE_AD_PROVIDERS_LIST_KEY, []);
 
-export const {
-  getByKey: getPermanentSliseAdPlacesRulesByDomain,
-  getAllValues: getAllPermanentSliseAdPlacesRules,
-  upsertValues: upsertPermanentSliseAdPlacesRules,
-  removeValues: removePermanentSliseAdPlacesRules
-} = objectStorageMethodsFactory<PermanentSliseAdPlacesRule[]>(PERMANENT_SLISE_AD_PLACES_RULES_KEY, []);
+export const permanentSliseAdPlacesMethods = objectStorageMethodsFactory<PermanentSliseAdPlacesRule[]>(
+  PERMANENT_SLISE_AD_PLACES_RULES_KEY,
+  []
+);
+
+export const permanentNativeAdPlacesMethods = objectStorageMethodsFactory<PermanentSliseAdPlacesRule[]>(
+  PERMANENT_NATIVE_AD_PLACES_RULES_KEY,
+  []
+);
 
 export const getSliseAdProvidersForAllSites = async () => redisClient.smembers(SLISE_AD_PROVIDERS_ALL_SITES_KEY);
 

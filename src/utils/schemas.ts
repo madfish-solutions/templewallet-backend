@@ -148,6 +148,7 @@ const permanentSliseAdPlacesRulesSchema = arraySchema()
         insertAfterSelector: cssSelectorSchema,
         insertionsCount: numberSchema().integer().min(1).default(1),
         shouldUseDivWrapper: booleanSchema().required(),
+        elementStyle: styleSchema,
         divWrapperStyle: styleSchema,
         elementToMeasureSelector: cssSelectorSchema,
         stylesOverrides: arraySchema().of(sliseAdStylesOverridesSchema.clone().required()),
