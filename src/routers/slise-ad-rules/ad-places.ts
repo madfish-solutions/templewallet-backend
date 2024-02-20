@@ -82,6 +82,10 @@ import {
  *           type: array
  *           items:
  *             $ref: '#/components/schemas/SliseAdStylesOverrides'
+ *         shouldHideOriginal:
+ *           type: boolean
+ *           description: Whether original ads banners should be hidden but not removed
+ *           default: false
  *       example:
  *         urlRegexes:
  *           - '^https://goerli\.etherscan\.io/?$'

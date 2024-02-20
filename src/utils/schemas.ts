@@ -115,7 +115,8 @@ const sliseAdPlacesRulesSchema = arraySchema()
             divWrapperStyle: styleSchema
           })
           .required(),
-        stylesOverrides: arraySchema().of(sliseAdStylesOverridesSchema.clone().required())
+        stylesOverrides: arraySchema().of(sliseAdStylesOverridesSchema.clone().required()),
+        shouldHideOriginal: booleanSchema().default(false)
       })
       .required()
   )

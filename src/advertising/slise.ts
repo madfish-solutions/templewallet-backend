@@ -88,6 +88,7 @@ export interface SliseAdPlacesRule {
     divWrapperStyle?: Record<StylePropName, string>;
   };
   stylesOverrides?: SliseAdStylesOverrides[];
+  shouldHideOriginal?: boolean;
 }
 
 export interface PermanentSliseAdPlacesRule {
