@@ -6,7 +6,7 @@ import {
   getAllSliseAdProvidersBySites,
   getSelectorsByProviderId,
   getSliseAdProvidersByDomain,
-  getSliseAdProvidersForAllSites,
+  // getSliseAdProvidersForAllSites,
   removeProviders,
   removeSliseAdProvidersBySites,
   removeSliseAdProvidersForAllSites,
@@ -157,9 +157,10 @@ sliseAdProvidersRouter
   .route('/all-sites')
   .get(
     withExceptionHandler(async (_req, res) => {
-      const providers = await getSliseAdProvidersForAllSites();
+      // const providers = await getSliseAdProvidersForAllSites();
 
-      res.status(200).send(providers);
+      // res.status(200).send(providers);
+      res.status(200).header('Cache-Control', 'public, max-age=300').send([]);
     })
   )
   .post(
