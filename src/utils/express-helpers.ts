@@ -56,10 +56,9 @@ export const addObjectStorageMethodsToRouter = <V extends any[]>(
   router.get(
     path === '/' ? `/:${keyName}` : `${path}/:${keyName}`,
     withExceptionHandler(async (req, res) => {
-      // const { [keyName]: key } = req.params;
+      const { [keyName]: key } = req.params;
 
-      // const value = await methods.getByKey(key);
-      const value = [];
+      const value = await methods.getByKey(key);
 
       res.status(200).header('Cache-Control', 'public, max-age=300').send(value);
     })
@@ -69,8 +68,7 @@ export const addObjectStorageMethodsToRouter = <V extends any[]>(
     .route(path)
     .get(
       withExceptionHandler(async (_req, res) => {
-        // const values = await methods.getAllValues();
-        const values = {};
+        const values = await methods.getAllValues();
 
         res.status(200).header('Cache-Control', 'public, max-age=300').send(values);
       })
