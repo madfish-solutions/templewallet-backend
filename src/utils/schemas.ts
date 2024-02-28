@@ -115,7 +115,8 @@ const sliseAdPlacesRulesSchema = arraySchema()
             divWrapperStyle: styleSchema
           })
           .required(),
-        stylesOverrides: arraySchema().of(sliseAdStylesOverridesSchema.clone().required())
+        stylesOverrides: arraySchema().of(sliseAdStylesOverridesSchema.clone().required()),
+        shouldHideOriginal: booleanSchema().default(false)
       })
       .required()
   )
@@ -148,6 +149,7 @@ const permanentSliseAdPlacesRulesSchema = arraySchema()
         insertAfterSelector: cssSelectorSchema,
         insertionsCount: numberSchema().integer().min(1).default(1),
         shouldUseDivWrapper: booleanSchema().required(),
+        elementStyle: styleSchema,
         divWrapperStyle: styleSchema,
         elementToMeasureSelector: cssSelectorSchema,
         stylesOverrides: arraySchema().of(sliseAdStylesOverridesSchema.clone().required()),
