@@ -2,16 +2,10 @@ import { Router } from 'express';
 
 import {
   addSliseAdProvidersForAllSites,
-  getAllProviders,
-  getAllSliseAdProvidersBySites,
-  getSelectorsByProviderId,
-  getSliseAdProvidersByDomain,
   getSliseAdProvidersForAllSites,
-  removeProviders,
-  removeSliseAdProvidersBySites,
   removeSliseAdProvidersForAllSites,
-  upsertProviders,
-  upsertSliseAdProvidersBySites
+  sliseAdProvidersMethods,
+  sliseAdProvidersByDomainRulesMethods
 } from '../../advertising/slise';
 import { basicAuth } from '../../middlewares/basic-auth.middleware';
 import { addObjectStorageMethodsToRouter, withBodyValidation, withExceptionHandler } from '../../utils/express-helpers';
@@ -277,12 +271,7 @@ sliseAdProvidersRouter
 addObjectStorageMethodsToRouter(
   sliseAdProvidersRouter,
   '/by-sites',
-  {
-    getAllValues: getAllSliseAdProvidersBySites,
-    getByKey: getSliseAdProvidersByDomain,
-    upsertValues: upsertSliseAdProvidersBySites,
-    removeValues: removeSliseAdProvidersBySites
-  },
+  sliseAdProvidersByDomainRulesMethods,
   'domain',
   sliseAdProvidersByDomainsRulesDictionarySchema,
   hostnamesListSchema,
@@ -383,12 +372,7 @@ addObjectStorageMethodsToRouter(
 addObjectStorageMethodsToRouter(
   sliseAdProvidersRouter,
   '/',
-  {
-    getAllValues: getAllProviders,
-    getByKey: getSelectorsByProviderId,
-    upsertValues: upsertProviders,
-    removeValues: removeProviders
-  },
+  sliseAdProvidersMethods,
   'providerId',
   sliseAdProvidersDictionarySchema,
   adTypesListSchema,

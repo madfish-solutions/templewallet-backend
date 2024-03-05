@@ -1,14 +1,9 @@
 import { Router } from 'express';
 
 import {
-  getAllPermanentSliseAdPlacesRules,
-  getAllSliseAdPlacesRules,
-  getPermanentSliseAdPlacesRulesByDomain,
-  getSliseAdPlacesRulesByDomain,
-  removePermanentSliseAdPlacesRules,
-  removeSliseAdPlacesRules,
-  upsertPermanentSliseAdPlacesRules,
-  upsertSliseAdPlacesRules
+  permanentNativeAdPlacesMethods,
+  permanentSliseAdPlacesMethods,
+  sliseAdPlacesRulesMethods
 } from '../../advertising/slise';
 import { addObjectStorageMethodsToRouter } from '../../utils/express-helpers';
 import {
@@ -87,6 +82,10 @@ import {
  *           type: array
  *           items:
  *             $ref: '#/components/schemas/SliseAdStylesOverrides'
+ *         shouldHideOriginal:
+ *           type: boolean
+ *           description: Whether original ads banners should be hidden but not removed
+ *           default: false
  *       example:
  *         urlRegexes:
  *           - '^https://goerli\.etherscan\.io/?$'
@@ -210,6 +209,11 @@ import {
  *         shouldUseDivWrapper:
  *           type: boolean
  *           description: Whether the Slise ads banner should be wrapped in a div
+ *         elementStyle:
+ *           type: object
+ *           description: Style of the new ad banner
+ *           additionalProperties:
+ *             type: string
  *         divWrapperStyle:
  *           type: object
  *           description: Style of the div wrapper
@@ -262,6 +266,104 @@ import {
  */
 
 export const sliseAdPlacesRulesRouter = Router();
+
+/**
+ * @swagger
+ * /api/slise-ad-rules/ad-places/permanent-native/{domain}:
+ *   get:
+ *     summary: Get rules for permanent native ads places for the specified domain
+ *     tags:
+ *       - Slise ad places
+ *     parameters:
+ *       - in: path
+ *         name: domain
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: hostname
+ *         example: 'etherscan.io'
+ *     responses:
+ *       '200':
+ *         description: Rules list
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/PermanentSliseAdPlacesRule'
+ *       '500':
+ *         $ref: '#/components/responses/ErrorResponse'
+ * /api/slise-ad-rules/ad-places/permanent-native:
+ *   get:
+ *     summary: Get all rules for permanent native ads places
+ *     tags:
+ *       - Slise ad places
+ *     responses:
+ *       '200':
+ *         description: Domain - rules list dictionary
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PermanentSliseAdPlacesRulesDictionary'
+ *       '500':
+ *         $ref: '#/components/responses/ErrorResponse'
+ *   post:
+ *     summary: Add rules for permanent ads places. If rules for a domain already exist, they will be overwritten
+ *     tags:
+ *       - Slise ad places
+ *     security:
+ *       - basicAuth: []
+ *     requestBody:
+ *       description: Domain - rules list dictionary
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/PermanentSliseAdPlacesRulesDictionary'
+ *     responses:
+ *       '200':
+ *         $ref: '#/components/responses/SuccessResponse'
+ *       '400':
+ *         $ref: '#/components/responses/ErrorResponse'
+ *       '401':
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       '500':
+ *         $ref: '#/components/responses/ErrorResponse'
+ *   delete:
+ *     summary: Remove rules for permanent ads places
+ *     tags:
+ *       - Slise ad places
+ *     security:
+ *       - basicAuth: []
+ *     requestBody:
+ *       description: List of domain names to remove rules for
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *             items:
+ *               type: string
+ *               format: hostname
+ *             example:
+ *               - 'etherscan.io'
+ *     responses:
+ *       '200':
+ *         $ref: '#/components/responses/SuccessResponse'
+ *       '400':
+ *         $ref: '#/components/responses/ErrorResponse'
+ *       '401':
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       '500':
+ *         $ref: '#/components/responses/ErrorResponse'
+ */
+addObjectStorageMethodsToRouter(
+  sliseAdPlacesRulesRouter,
+  '/permanent-native',
+  permanentNativeAdPlacesMethods,
+  'domain',
+  permanentSliseAdPlacesRulesDictionarySchema,
+  hostnamesListSchema,
+  entriesCount => `${entriesCount} entries have been removed`
+);
 
 /**
  * @swagger
@@ -354,12 +456,7 @@ export const sliseAdPlacesRulesRouter = Router();
 addObjectStorageMethodsToRouter(
   sliseAdPlacesRulesRouter,
   '/permanent',
-  {
-    getByKey: getPermanentSliseAdPlacesRulesByDomain,
-    getAllValues: getAllPermanentSliseAdPlacesRules,
-    upsertValues: upsertPermanentSliseAdPlacesRules,
-    removeValues: removePermanentSliseAdPlacesRules
-  },
+  permanentSliseAdPlacesMethods,
   'domain',
   permanentSliseAdPlacesRulesDictionarySchema,
   hostnamesListSchema,
@@ -457,12 +554,7 @@ addObjectStorageMethodsToRouter(
 addObjectStorageMethodsToRouter(
   sliseAdPlacesRulesRouter,
   '/',
-  {
-    getByKey: getSliseAdPlacesRulesByDomain,
-    getAllValues: getAllSliseAdPlacesRules,
-    upsertValues: upsertSliseAdPlacesRules,
-    removeValues: removeSliseAdPlacesRules
-  },
+  sliseAdPlacesRulesMethods,
   'domain',
   sliseAdPlacesRulesDictionarySchema,
   hostnamesListSchema,
