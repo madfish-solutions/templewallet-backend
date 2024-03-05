@@ -8,6 +8,7 @@ export const stylePropsNames = [
   'alignment-baseline',
   'aspect-ratio',
   'background',
+  'border',
   'border-radius',
   'bottom',
   'box-shadow',
@@ -69,7 +70,10 @@ export const stylePropsNames = [
   'vertical-align',
   'visibility',
   'width',
-  'z-index'
+  'z-index',
+  'background-image',
+  'background-clip',
+  'background-color'
 ];
 export type StylePropName = (typeof stylePropsNames)[number];
 
