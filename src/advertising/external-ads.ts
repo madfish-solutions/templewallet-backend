@@ -154,7 +154,7 @@ export const adProvidersByDomainRulesMethods = objectStorageMethodsFactory<AdPro
 );
 
 /** @deprecated */
-export const sliseAdProvidersMethodsLegacy = objectStorageMethodsFactory<string[]>(SLISE_AD_PROVIDERS_LIST_KEY, []);
+export const adProvidersMethodsLegacy = objectStorageMethodsFactory<string[]>(SLISE_AD_PROVIDERS_LIST_KEY, []);
 
 export const adProvidersMethods = objectStorageMethodsFactory<AdProviderSelectorsRule[]>(AD_PROVIDERS_LIST_KEY, []);
 

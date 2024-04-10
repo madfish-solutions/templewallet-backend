@@ -1,4 +1,4 @@
-import { adProvidersMethods, sliseAdProvidersMethodsLegacy } from '../advertising/external-ads';
+import { adProvidersMethods, adProvidersMethodsLegacy } from '../advertising/external-ads';
 import { redisClient } from '../redis';
 import { isDefined } from './helpers';
 import logger from './logger';
@@ -7,7 +7,7 @@ const DATA_VERSION_STORAGE_KEY = 'data_version';
 
 const migrations = {
   '1': async () => {
-    const oldSliseAdsProviders = await sliseAdProvidersMethodsLegacy.getAllValues();
+    const oldSliseAdsProviders = await adProvidersMethodsLegacy.getAllValues();
     await adProvidersMethods.upsertValues(
       Object.fromEntries(
         Object.entries(oldSliseAdsProviders).map(([providerName, selectors]) => [providerName, [{ selectors }]])

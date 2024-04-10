@@ -24,7 +24,7 @@ import {
  *   name: Known ads providers
  * components:
  *   schemas:
- *     SliseAdProvidersByDomainRule:
+ *     AdProvidersByDomainRule:
  *       type: object
  *       required:
  *         - urlRegexes
@@ -45,7 +45,7 @@ import {
  *         providers:
  *           - 'coinzilla'
  *           - 'bitmedia'
- *     SliseAdProvidersByDomainsRulesDictionary:
+ *     AdProvidersByDomainsRulesDictionary:
  *       type: object
  *       additionalProperties:
  *         type: array
