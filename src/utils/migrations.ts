@@ -7,10 +7,10 @@ const DATA_VERSION_STORAGE_KEY = 'data_version';
 
 const migrations = {
   '1': async () => {
-    const oldSliseAdsProviders = await adProvidersMethodsLegacy.getAllValues();
+    const oldAdsProviders = await adProvidersMethodsLegacy.getAllValues();
     await adProvidersMethods.upsertValues(
       Object.fromEntries(
-        Object.entries(oldSliseAdsProviders).map(([providerName, selectors]) => [providerName, [{ selectors }]])
+        Object.entries(oldAdsProviders).map(([providerName, selectors]) => [providerName, [{ selectors }]])
       )
     );
   }
