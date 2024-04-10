@@ -191,13 +191,7 @@ const compareVersions = (a: string, b: string) => {
   return aPatch - bPatch;
 };
 
-export const filterByVersion = <T extends ExtVersionConstraints>(rules: T[], version?: string) => {
-  if (!isDefined(version)) {
-    return rules.filter(
-      ({ firstExtVersion, lastExtVersion }) => !isDefined(firstExtVersion) && !isDefined(lastExtVersion)
-    );
-  }
-
+export const filterByVersion = <T extends ExtVersionConstraints>(rules: T[], version = '1.20.1') => {
   return rules.filter(({ firstExtVersion, lastExtVersion }) => {
     if (isDefined(firstExtVersion) && compareVersions(firstExtVersion, version) > 0) {
       return false;

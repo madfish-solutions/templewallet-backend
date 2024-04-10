@@ -351,9 +351,8 @@ addObjectStorageMethodsToRouter(adProvidersRouter, {
  *         name: extVersion
  *         schema:
  *           type: string
- *         description: >
- *           The extension version for which the rules should be returned. If not specified, the rules that are
- *           applicable for all extension versions will be returned.
+ *           default: '1.20.1'
+ *         description: The extension version for which the rules should be returned
  *     responses:
  *       '200':
  *         description: List of CSS selectors
@@ -379,9 +378,8 @@ addObjectStorageMethodsToRouter(adProvidersRouter, {
  *         name: extVersion
  *         schema:
  *           type: string
- *         description: >
- *           The extension version for which the rules should be returned. If not specified, the rules that are
- *           applicable for all extension versions will be returned.
+ *           default: '1.20.1'
+ *         description: The extension version for which the rules should be returned
  *     responses:
  *       '200':
  *         description: Provider - selectors dictionary
