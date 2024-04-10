@@ -20,7 +20,7 @@ import { getNotifications } from './notifications/utils/get-notifications.util';
 import { getParsedContent } from './notifications/utils/get-parsed-content.util';
 import { getPlatforms } from './notifications/utils/get-platforms.util';
 import { redisClient } from './redis';
-import { sliseRulesRouter } from './routers/slise-ad-rules';
+import { adRulesRouter } from './routers/slise-ad-rules';
 import { getABData } from './utils/ab-test';
 import { cancelAliceBobOrder } from './utils/alice-bob/cancel-alice-bob-order';
 import { createAliceBobOrder } from './utils/alice-bob/create-alice-bob-order';
@@ -33,6 +33,7 @@ import { CodedError } from './utils/errors';
 import { coinGeckoTokens } from './utils/gecko-tokens';
 import { getExternalApiErrorPayload, isDefined, isNonEmptyString } from './utils/helpers';
 import logger from './utils/logger';
+import { doMigrations } from './utils/migrations';
 import { getSignedMoonPayUrl } from './utils/moonpay/get-signed-moonpay-url';
 import { getSigningNonce } from './utils/signing-nonce';
 import SingleQueryDataProvider from './utils/SingleQueryDataProvider';
@@ -101,6 +102,11 @@ const makeProviderDataRequestHandler = <T, U>(provider: SingleQueryDataProvider<
     }
   };
 };
+
+doMigrations().catch(error => {
+  console.error(error);
+  process.exit(1);
+});
 
 app.get('/api/top-coins', (_req, res) => {
   res.status(200).send(coinGeckoTokens);
@@ -328,7 +334,7 @@ app.get('/api/advertising-info', (_req, res) => {
   }
 });
 
-app.use('/api/slise-ad-rules', sliseRulesRouter);
+app.use('/api/slise-ad-rules', adRulesRouter);
 
 app.post('/api/magic-square-quest/start', async (req, res) => {
   try {
