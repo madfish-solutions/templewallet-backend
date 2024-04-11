@@ -1,3 +1,5 @@
+import { satisfies as versionSatisfiesRange } from 'semver';
+
 import { objectStorageMethodsFactory, redisClient } from '../redis';
 import { isDefined } from '../utils/helpers';
 
@@ -84,8 +86,7 @@ interface AdStylesOverrides {
 }
 
 interface ExtVersionConstraints {
-  firstExtVersion?: string;
-  lastExtVersion?: string;
+  extVersion?: string;
 }
 
 export interface AdPlacesRule extends ExtVersionConstraints {
@@ -176,31 +177,5 @@ export const addAdProvidersForAllSites = async (providers: string[]) =>
 export const removeAdProvidersForAllSites = async (providers: string[]) =>
   redisClient.srem(AD_PROVIDERS_ALL_SITES_KEY, ...providers);
 
-const compareVersions = (a: string, b: string) => {
-  const [aMajor = 0, aMinor = 0, aPatch = 0] = a.split('.').map(Number);
-  const [bMajor = 0, bMinor = 0, bPatch = 0] = b.split('.').map(Number);
-
-  if (aMajor !== bMajor) {
-    return aMajor - bMajor;
-  }
-
-  if (aMinor !== bMinor) {
-    return aMinor - bMinor;
-  }
-
-  return aPatch - bPatch;
-};
-
-export const filterByVersion = <T extends ExtVersionConstraints>(rules: T[], version = '1.20.1') => {
-  return rules.filter(({ firstExtVersion, lastExtVersion }) => {
-    if (isDefined(firstExtVersion) && compareVersions(firstExtVersion, version) > 0) {
-      return false;
-    }
-
-    if (isDefined(lastExtVersion) && compareVersions(lastExtVersion, version) < 0) {
-      return false;
-    }
-
-    return true;
-  });
-};
+export const filterByVersion = <T extends ExtVersionConstraints>(rules: T[], version = '1.20.1') =>
+  rules.filter(({ extVersion }) => !isDefined(extVersion) || versionSatisfiesRange(version, extVersion));

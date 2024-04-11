@@ -69,19 +69,11 @@ import {
  *     ExtVersionConstraints:
  *       type: object
  *       properties:
- *         firstExtVersion:
+ *         extVersion:
  *           type: string
- *           format: version
  *           description: >
- *             The first extension version where the rule is applicable. If not specified, the rule is applicable
- *             for all extension versions not greater than the `lastExtVersion` value. If neither of them is specified,
- *             the rule is applicable for all extension versions.
- *         lastExtVersion:
- *           type: string
- *           format: version
- *           description: >
- *             The last extension version where the rule is applicable. If not specified, the rule is applicable
- *             for all extension versions not less than the `firstExtVersion` value.
+ *             A range of versions where the rule is applicable. If not specified, the rule is applicable
+ *             for all versions. See the [ranges format](https://www.npmjs.com/package/semver#ranges)
  *     AdPlacesRule:
  *       allOf:
  *         - $ref: '#/components/schemas/ExtVersionConstraints'

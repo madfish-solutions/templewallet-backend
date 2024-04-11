@@ -1,3 +1,4 @@
+import { validRange as getValidatedRange } from 'semver';
 import {
   array as arraySchema,
   ArraySchema as IArraySchema,
@@ -60,8 +61,8 @@ const regexStringSchema = stringSchema().test('is-regex', function (value: strin
 
 export const regexStringListSchema = arraySchema().of(regexStringSchema.clone().required());
 
-const versionSchema = stringSchema().test('is-version', function (value: string | undefined) {
-  return !isDefined(value) || /^\d+\.\d+\.\d+$/.test(value);
+const versionRangeSchema = stringSchema().test('is-version-range', function (value: string | undefined) {
+  return !isDefined(value) || isDefined(getValidatedRange(value));
 });
 
 const cssSelectorSchema = stringSchema().test('is-css-selector', function (value: string | undefined) {
@@ -122,8 +123,7 @@ const adPlacesRulesSchema = arraySchema()
           .required(),
         stylesOverrides: arraySchema().of(adStylesOverridesSchema.clone().required()),
         shouldHideOriginal: booleanSchema().default(false),
-        firstExtVersion: versionSchema,
-        lastExtVersion: versionSchema
+        extVersion: versionRangeSchema
       })
       .required()
   )
@@ -163,8 +163,7 @@ const permanentAdPlacesRulesSchema = arraySchema()
         elementToMeasureSelector: cssSelectorSchema,
         stylesOverrides: arraySchema().of(adStylesOverridesSchema.clone().required()),
         shouldHideOriginal: booleanSchema().default(false),
-        firstExtVersion: versionSchema,
-        lastExtVersion: versionSchema
+        extVersion: versionRangeSchema
       })
       .test('insertion-place-specified', (value: PermanentAdPlacesRule | undefined) => {
         if (!value) {
@@ -195,8 +194,7 @@ const adProvidersByDomainRulesSchema = arraySchema()
       .shape({
         urlRegexes: arraySchema().of(regexStringSchema.clone().required()).required(),
         providers: arraySchema().of(stringSchema().required()).required(),
-        firstExtVersion: versionSchema,
-        lastExtVersion: versionSchema
+        extVersion: versionRangeSchema
       })
       .required()
   )
@@ -207,8 +205,7 @@ export const adProvidersByDomainsRulesDictionarySchema: IObjectSchema<Record<str
 
 const adProvidersSelectorsRuleSchema = objectSchema().shape({
   selectors: cssSelectorsListSchema.clone().required(),
-  firstExtVersion: versionSchema,
-  lastExtVersion: versionSchema
+  extVersion: versionRangeSchema
 });
 
 export const adProvidersDictionarySchema: IObjectSchema<Record<string, AdProviderSelectorsRule[]>> =
