@@ -21,6 +21,7 @@ export const withBodyValidation =
   <T>(schema: Schema<T>, handler: TypedBodyRequestHandler<T>): RequestHandler =>
   async (req, res, next) => {
     try {
+      console.log('oy vey 1', JSON.stringify(req.body), JSON.stringify(await schema.validate(req.body)));
       req.body = await schema.validate(req.body);
     } catch (error) {
       if (error instanceof ValidationError) {

@@ -122,8 +122,8 @@ const adPlacesRulesSchema = arraySchema()
           })
           .required(),
         stylesOverrides: arraySchema().of(adStylesOverridesSchema.clone().required()),
-        shouldHideOriginal: booleanSchema().default(false),
-        extVersion: versionRangeSchema
+        shouldHideOriginal: booleanSchema(),
+        extVersion: versionRangeSchema.clone().required()
       })
       .required()
   )
@@ -156,14 +156,14 @@ const permanentAdPlacesRulesSchema = arraySchema()
         insertionIndex: numberSchema().integer(),
         insertBeforeSelector: cssSelectorSchema,
         insertAfterSelector: cssSelectorSchema,
-        insertionsCount: numberSchema().integer().min(1).default(1),
+        insertionsCount: numberSchema().integer().min(1),
         shouldUseDivWrapper: booleanSchema().required(),
         elementStyle: styleSchema,
         divWrapperStyle: styleSchema,
         elementToMeasureSelector: cssSelectorSchema,
         stylesOverrides: arraySchema().of(adStylesOverridesSchema.clone().required()),
-        shouldHideOriginal: booleanSchema().default(false),
-        extVersion: versionRangeSchema
+        shouldHideOriginal: booleanSchema(),
+        extVersion: versionRangeSchema.clone().required()
       })
       .test('insertion-place-specified', (value: PermanentAdPlacesRule | undefined) => {
         if (!value) {
@@ -194,7 +194,7 @@ const adProvidersByDomainRulesSchema = arraySchema()
       .shape({
         urlRegexes: arraySchema().of(regexStringSchema.clone().required()).required(),
         providers: arraySchema().of(stringSchema().required()).required(),
-        extVersion: versionRangeSchema
+        extVersion: versionRangeSchema.clone().required()
       })
       .required()
   )
@@ -205,7 +205,7 @@ export const adProvidersByDomainsRulesDictionarySchema: IObjectSchema<Record<str
 
 const adProvidersSelectorsRuleSchema = objectSchema().shape({
   selectors: cssSelectorsListSchema.clone().required(),
-  extVersion: versionRangeSchema
+  extVersion: versionRangeSchema.clone().required()
 });
 
 export const adProvidersDictionarySchema: IObjectSchema<Record<string, AdProviderSelectorsRule[]>> =

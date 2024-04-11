@@ -74,6 +74,7 @@ import {
  *           description: >
  *             A range of versions where the rule is applicable. If not specified, the rule is applicable
  *             for all versions. See the [ranges format](https://www.npmjs.com/package/semver#ranges)
+ *           default: '*'
  *     AdPlacesRule:
  *       allOf:
  *         - $ref: '#/components/schemas/ExtVersionConstraints'
@@ -337,7 +338,7 @@ export const adPlacesRulesRouter = Router();
  *         name: extVersion
  *         schema:
  *           type: string
- *           default: '1.20.1'
+ *           default: '0.0.0'
  *         description: The extension version for which the rules should be returned
  *     responses:
  *       '200':
@@ -360,7 +361,7 @@ export const adPlacesRulesRouter = Router();
  *         name: extVersion
  *         schema:
  *           type: string
- *           default: '1.20.1'
+ *           default: '0.0.0'
  *         description: The extension version for which the rules should be returned
  *     responses:
  *       '200':
@@ -486,7 +487,7 @@ addObjectStorageMethodsToRouter(adPlacesRulesRouter, {
  *         name: extVersion
  *         schema:
  *           type: string
- *           default: '1.20.1'
+ *           default: '0.0.0'
  *         description: The extension version for which the rules should be returned
  *     responses:
  *       '200':
@@ -509,7 +510,7 @@ addObjectStorageMethodsToRouter(adPlacesRulesRouter, {
  *         name: extVersion
  *         schema:
  *           type: string
- *           default: '1.20.1'
+ *           default: '0.0.0'
  *         description: The extension version for which the rules should be returned
  *     responses:
  *       '200':
@@ -635,7 +636,7 @@ addObjectStorageMethodsToRouter(adPlacesRulesRouter, {
  *         name: extVersion
  *         schema:
  *           type: string
- *           default: '1.20.1'
+ *           default: '0.0.0'
  *         description: The extension version for which the rules should be returned
  *     responses:
  *       '200':
@@ -658,7 +659,7 @@ addObjectStorageMethodsToRouter(adPlacesRulesRouter, {
  *         name: extVersion
  *         schema:
  *           type: string
- *           default: '1.20.1'
+ *           default: '0.0.0'
  *         description: The extension version for which the rules should be returned
  *     responses:
  *       '200':

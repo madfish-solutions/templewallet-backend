@@ -33,7 +33,6 @@ import { CodedError } from './utils/errors';
 import { coinGeckoTokens } from './utils/gecko-tokens';
 import { getExternalApiErrorPayload, isDefined, isNonEmptyString } from './utils/helpers';
 import logger from './utils/logger';
-import { doMigrations } from './utils/migrations';
 import { getSignedMoonPayUrl } from './utils/moonpay/get-signed-moonpay-url';
 import { getSigningNonce } from './utils/signing-nonce';
 import SingleQueryDataProvider from './utils/SingleQueryDataProvider';
@@ -102,11 +101,6 @@ const makeProviderDataRequestHandler = <T, U>(provider: SingleQueryDataProvider<
     }
   };
 };
-
-doMigrations().catch(error => {
-  console.error(error);
-  process.exit(1);
-});
 
 app.get('/api/top-coins', (_req, res) => {
   res.status(200).send(coinGeckoTokens);

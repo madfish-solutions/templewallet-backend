@@ -351,7 +351,7 @@ addObjectStorageMethodsToRouter(adProvidersRouter, {
  *         name: extVersion
  *         schema:
  *           type: string
- *           default: '1.20.1'
+ *           default: '0.0.0'
  *         description: The extension version for which the rules should be returned
  *     responses:
  *       '200':
@@ -378,7 +378,7 @@ addObjectStorageMethodsToRouter(adProvidersRouter, {
  *         name: extVersion
  *         schema:
  *           type: string
- *           default: '1.20.1'
+ *           default: '0.0.0'
  *         description: The extension version for which the rules should be returned
  *     responses:
  *       '200':
