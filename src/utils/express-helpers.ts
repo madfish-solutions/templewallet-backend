@@ -21,6 +21,7 @@ export const withBodyValidation =
   <T>(schema: Schema<T>, handler: TypedBodyRequestHandler<T>): RequestHandler =>
   async (req, res, next) => {
     try {
+      console.log('oy vey 1', JSON.stringify(req.body), JSON.stringify(await schema.validate(req.body)));
       req.body = await schema.validate(req.body);
     } catch (error) {
       if (error instanceof ValidationError) {
@@ -44,17 +45,41 @@ export const withExceptionHandler =
     }
   };
 
-export const addObjectStorageMethodsToRouter = <V>(
+interface ObjectStorageMethodsEntrypointsConfig<U, V> {
+  path: string;
+  methods: ObjectStorageMethods<U>;
+  keyName: string;
+  objectValidationSchema: IObjectSchema<Record<string, U>>;
+  keysArrayValidationSchema: IArraySchema<string[], object>;
+  successfulRemovalMessage: (removedEntriesCount: number) => string;
+  transformGotValueFn?: (value: U, req: Request) => V;
+}
+
+export const addObjectStorageMethodsToRouter = <U, V = U>(
   router: Router,
-  path: string,
-  methods: ObjectStorageMethods<V>,
-  keyName: string,
-  objectValidationSchema: IObjectSchema<Record<string, V>>,
-  keysArrayValidationSchema: IArraySchema<string[], object>,
-  successfulRemovalMessage: (removedEntriesCount: number) => string
+  config: ObjectStorageMethodsEntrypointsConfig<U, V>
 ) => {
+  const {
+    path,
+    methods,
+    keyName,
+    objectValidationSchema,
+    keysArrayValidationSchema,
+    successfulRemovalMessage,
+    transformGotValueFn = value => value as unknown as V
+  } = config;
+
   router.get(
-    path === '/' ? `/:${keyName}` : `${path}/:${keyName}`,
+    path === '/' ? '/raw/all' : `${path}/raw/all`,
+    withExceptionHandler(async (_req, res) => {
+      const values = await methods.getAllValues();
+
+      res.status(200).send(values);
+    })
+  );
+
+  router.get(
+    path === '/' ? `/:${keyName}/raw` : `${path}/:${keyName}/raw`,
     withExceptionHandler(async (req, res) => {
       const { [keyName]: key } = req.params;
 
@@ -64,13 +89,28 @@ export const addObjectStorageMethodsToRouter = <V>(
     })
   );
 
+  router.get(
+    path === '/' ? `/:${keyName}` : `${path}/:${keyName}`,
+    withExceptionHandler(async (req, res) => {
+      const { [keyName]: key } = req.params;
+
+      const value = await methods.getByKey(key);
+
+      res.status(200).send(transformGotValueFn(value, req));
+    })
+  );
+
   router
     .route(path)
     .get(
-      withExceptionHandler(async (_req, res) => {
+      withExceptionHandler(async (req, res) => {
         const values = await methods.getAllValues();
 
-        res.status(200).send(values);
+        res
+          .status(200)
+          .send(
+            Object.fromEntries(Object.entries(values).map(([key, value]) => [key, transformGotValueFn(value, req)]))
+          );
       })
     )
     .post(
