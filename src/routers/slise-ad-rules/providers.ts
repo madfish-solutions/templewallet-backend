@@ -172,7 +172,7 @@ adProvidersRouter
     withExceptionHandler(async (_req, res) => {
       const providers = await getAdProvidersForAllSites();
 
-      res.status(200).send(providers);
+      res.status(200).header('Cache-Control', 'public, max-age=300').send(providers);
     })
   )
   .post(
