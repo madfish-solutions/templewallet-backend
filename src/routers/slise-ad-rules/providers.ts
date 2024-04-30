@@ -12,7 +12,7 @@ import {
 import { basicAuth } from '../../middlewares/basic-auth.middleware';
 import { addObjectStorageMethodsToRouter, withBodyValidation, withExceptionHandler } from '../../utils/express-helpers';
 import {
-  adTypesListSchema,
+  nonEmptyStringsListSchema,
   hostnamesListSchema,
   adProvidersByDomainsRulesDictionarySchema,
   adProvidersDictionarySchema
@@ -178,7 +178,7 @@ adProvidersRouter
   .post(
     basicAuth,
     withExceptionHandler(
-      withBodyValidation(adTypesListSchema, async (req, res) => {
+      withBodyValidation(nonEmptyStringsListSchema, async (req, res) => {
         const providersAddedCount = await addAdProvidersForAllSites(req.body);
 
         res.status(200).send({ message: `${providersAddedCount} providers have been added` });
@@ -188,7 +188,7 @@ adProvidersRouter
   .delete(
     basicAuth,
     withExceptionHandler(
-      withBodyValidation(adTypesListSchema, async (req, res) => {
+      withBodyValidation(nonEmptyStringsListSchema, async (req, res) => {
         const providersRemovedCount = await removeAdProvidersForAllSites(req.body);
 
         res.status(200).send({ message: `${providersRemovedCount} providers have been removed` });
@@ -442,7 +442,7 @@ addObjectStorageMethodsToRouter<AdProviderSelectorsRule[], string[]>(adProviders
   methods: adProvidersMethods,
   keyName: 'providerId',
   objectValidationSchema: adProvidersDictionarySchema,
-  keysArrayValidationSchema: adTypesListSchema,
+  keysArrayValidationSchema: nonEmptyStringsListSchema,
   successfulRemovalMessage: entriesCount => `${entriesCount} providers have been removed`,
   transformGotValueFn: (rules, req) =>
     Array.from(

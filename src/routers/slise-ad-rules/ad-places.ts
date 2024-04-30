@@ -68,13 +68,14 @@ import {
  *             type: string
  *     ExtVersionConstraints:
  *       type: object
+ *       required:
+ *         - extVersion
  *       properties:
  *         extVersion:
  *           type: string
  *           description: >
  *             A range of versions where the rule is applicable. If not specified, the rule is applicable
  *             for all versions. See the [ranges format](https://www.npmjs.com/package/semver#ranges)
- *           default: '*'
  *     AdPlacesRule:
  *       allOf:
  *         - $ref: '#/components/schemas/ExtVersionConstraints'

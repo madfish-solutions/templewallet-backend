@@ -17,7 +17,8 @@ import {
   AdProvidersByDomainRule,
   StylePropName,
   stylePropsNames,
-  AdProviderSelectorsRule
+  AdProviderSelectorsRule,
+  ReplaceAdsUrlsBlacklistEntry
 } from '../advertising/external-ads';
 import { isValidSelectorsGroup } from '../utils/selectors.min.js';
 import { isDefined } from './helpers';
@@ -86,14 +87,14 @@ export const hostnamesListSchema: IArraySchema<string[], object, any> = arraySch
   .of(hostnameSchema.clone().required())
   .required();
 
-const adTypeSchema = stringSchema().min(1);
+const nonEmptyStringSchema = stringSchema().min(1);
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const adTypesListSchema: IArraySchema<string[], object, any> = arraySchema()
-  .of(adTypeSchema.clone().required())
+export const nonEmptyStringsListSchema: IArraySchema<string[], object, any> = arraySchema()
+  .of(nonEmptyStringSchema.clone().required())
   .min(1)
   .required()
-  .typeError('Must be a non-empty string');
+  .typeError('Must be a non-empty array');
 
 const styleSchema: IObjectSchema<Record<StylePropName, string>> = makeDictionarySchema(
   stringSchema()
@@ -210,6 +211,17 @@ const adProvidersSelectorsRuleSchema = objectSchema().shape({
 
 export const adProvidersDictionarySchema: IObjectSchema<Record<string, AdProviderSelectorsRule[]>> =
   makeDictionarySchema(
-    adTypeSchema.clone().required(),
+    nonEmptyStringSchema.clone().required(),
     arraySchema().of(adProvidersSelectorsRuleSchema.clone().required()).required()
+  ).required();
+
+const replaceUrlsBlacklistEntrySchema = objectSchema().shape({
+  extVersion: versionRangeSchema.clone().required(),
+  regexes: regexStringListSchema.clone().required()
+});
+
+export const replaceUrlsBlacklistDictionarySchema: IObjectSchema<Record<string, ReplaceAdsUrlsBlacklistEntry[]>> =
+  makeDictionarySchema(
+    nonEmptyStringSchema.clone().required(),
+    arraySchema().of(replaceUrlsBlacklistEntrySchema.clone().required()).required()
   ).required();
