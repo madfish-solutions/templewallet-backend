@@ -1,4 +1,5 @@
-import { Router } from 'express';
+import { Request, Router } from 'express';
+import { identity } from 'lodash';
 
 import {
   addAdProvidersForAllSites,
@@ -7,10 +8,12 @@ import {
   adProvidersMethods,
   adProvidersByDomainRulesMethods,
   AdProviderSelectorsRule,
-  filterByVersion
+  filterByVersion,
+  AdProvidersByDomainRule
 } from '../../advertising/external-ads';
 import { basicAuth } from '../../middlewares/basic-auth.middleware';
 import { addObjectStorageMethodsToRouter, withBodyValidation, withExceptionHandler } from '../../utils/express-helpers';
+import { transformValues } from '../../utils/helpers';
 import {
   nonEmptyStringsListSchema,
   hostnamesListSchema,
@@ -287,13 +290,15 @@ adProvidersRouter
  *       '500':
  *         $ref: '#/components/responses/ErrorResponse'
  */
-addObjectStorageMethodsToRouter(adProvidersRouter, {
+addObjectStorageMethodsToRouter<AdProvidersByDomainRule[]>(adProvidersRouter, {
   path: '/by-sites',
   methods: adProvidersByDomainRulesMethods,
   keyName: 'domain',
   objectValidationSchema: adProvidersByDomainsRulesDictionarySchema,
   keysArrayValidationSchema: hostnamesListSchema,
-  successfulRemovalMessage: entriesCount => `${entriesCount} entries have been removed`
+  successfulRemovalMessage: entriesCount => `${entriesCount} entries have been removed`,
+  valueTransformFn: identity,
+  objectTransformFn: identity
 });
 
 /**
@@ -437,19 +442,22 @@ addObjectStorageMethodsToRouter(adProvidersRouter, {
  *       '500':
  *         $ref: '#/components/responses/ErrorResponse'
  */
-addObjectStorageMethodsToRouter<AdProviderSelectorsRule[], string[]>(adProvidersRouter, {
+const transformAdProviderSelectorsRules = (rules: AdProviderSelectorsRule[], req: Request) =>
+  Array.from(
+    new Set(
+      filterByVersion(rules, req.query.extVersion as string | undefined)
+        .map(({ selectors }) => selectors)
+        .flat()
+    )
+  );
+
+addObjectStorageMethodsToRouter<AdProviderSelectorsRule[], Record<string, string[]>, string[]>(adProvidersRouter, {
   path: '/',
   methods: adProvidersMethods,
   keyName: 'providerId',
   objectValidationSchema: adProvidersDictionarySchema,
   keysArrayValidationSchema: nonEmptyStringsListSchema,
   successfulRemovalMessage: entriesCount => `${entriesCount} providers have been removed`,
-  transformGotValueFn: (rules, req) =>
-    Array.from(
-      new Set(
-        filterByVersion(rules, req.query.extVersion as string | undefined)
-          .map(({ selectors }) => selectors)
-          .flat()
-      )
-    )
+  valueTransformFn: transformAdProviderSelectorsRules,
+  objectTransformFn: (rules, req) => transformValues(rules, value => transformAdProviderSelectorsRules(value, req))
 });

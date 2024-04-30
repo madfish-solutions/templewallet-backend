@@ -84,7 +84,7 @@ interface AdStylesOverrides {
   style: Record<StylePropName, string>;
 }
 
-interface ExtVersionConstraints {
+export interface ExtVersionConstraints {
   extVersion: string;
 }
 

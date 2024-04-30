@@ -103,7 +103,7 @@ export const replaceUrlsBlacklistRouter = Router();
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/ReplaceAdsUrlsBlacklistEntry'
+ *                 type: string
  *       '500':
  *         $ref: '#/components/responses/ErrorResponse'
  * /api/slise-ad-rules/replace-urls-blacklist:
@@ -124,11 +124,9 @@ export const replaceUrlsBlacklistRouter = Router();
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               additionalProperties:
- *                 type: array
- *                 items:
- *                   type: string
+ *               type: array
+ *               items:
+ *                 type: string
  *       '500':
  *         $ref: '#/components/responses/ErrorResponse'
  *   post:
@@ -176,19 +174,19 @@ export const replaceUrlsBlacklistRouter = Router();
  *       '500':
  *         $ref: '#/components/responses/ErrorResponse'
  */
-addObjectStorageMethodsToRouter<ReplaceAdsUrlsBlacklistEntry[], string[]>(replaceUrlsBlacklistRouter, {
+addObjectStorageMethodsToRouter<ReplaceAdsUrlsBlacklistEntry[], string[], string[]>(replaceUrlsBlacklistRouter, {
   path: '/',
   methods: replaceAdsUrlsBlacklistMethods,
   keyName: 'id',
   objectValidationSchema: replaceUrlsBlacklistDictionarySchema,
   keysArrayValidationSchema: nonEmptyStringsListSchema,
   successfulRemovalMessage: entriesCount => `${entriesCount} blacklist entries have been removed`,
-  transformGotValueFn: (entries, req) =>
-    Array.from(
-      new Set(
-        filterByVersion(entries, req.query.extVersion as string | undefined)
-          .map(({ regexes }) => regexes)
-          .flat()
-      )
-    )
+  objectTransformFn: (value, req) =>
+    filterByVersion(Object.values(value).flat(), req.query.extVersion as string | undefined)
+      .map(({ regexes }) => regexes)
+      .flat(),
+  valueTransformFn: (value, req) =>
+    filterByVersion(value, req.query.extVersion as string | undefined)
+      .map(({ regexes }) => regexes)
+      .flat()
 });

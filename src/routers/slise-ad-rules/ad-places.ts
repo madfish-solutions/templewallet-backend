@@ -1,17 +1,26 @@
-import { Router } from 'express';
+import { Request, Router } from 'express';
 
 import {
   filterByVersion,
   permanentNativeAdPlacesMethods,
   permanentAdPlacesMethods,
-  adPlacesRulesMethods
+  adPlacesRulesMethods,
+  PermanentAdPlacesRule,
+  AdPlacesRule,
+  ExtVersionConstraints
 } from '../../advertising/external-ads';
 import { addObjectStorageMethodsToRouter } from '../../utils/express-helpers';
+import { transformValues } from '../../utils/helpers';
 import {
   hostnamesListSchema,
   permanentAdPlacesRulesDictionarySchema,
   adPlacesRulesDictionarySchema
 } from '../../utils/schemas';
+
+const transformAdPlaces = <T extends ExtVersionConstraints>(value: T[], req: Request) =>
+  filterByVersion(value, req.query.extVersion as string | undefined);
+const transformAdPlacesDictionary = <T extends ExtVersionConstraints>(rules: Record<string, T[]>, req: Request) =>
+  transformValues(rules, value => transformAdPlaces(value, req));
 
 /**
  * @swagger
@@ -421,14 +430,15 @@ export const adPlacesRulesRouter = Router();
  *       '500':
  *         $ref: '#/components/responses/ErrorResponse'
  */
-addObjectStorageMethodsToRouter(adPlacesRulesRouter, {
+addObjectStorageMethodsToRouter<PermanentAdPlacesRule[]>(adPlacesRulesRouter, {
   path: '/permanent-native',
   methods: permanentNativeAdPlacesMethods,
   keyName: 'domain',
   objectValidationSchema: permanentAdPlacesRulesDictionarySchema,
   keysArrayValidationSchema: hostnamesListSchema,
   successfulRemovalMessage: entriesCount => `${entriesCount} entries have been removed`,
-  transformGotValueFn: (value, req) => filterByVersion(value, req.query.extVersion as string | undefined)
+  valueTransformFn: transformAdPlaces,
+  objectTransformFn: transformAdPlacesDictionary
 });
 
 /**
@@ -570,14 +580,15 @@ addObjectStorageMethodsToRouter(adPlacesRulesRouter, {
  *       '500':
  *         $ref: '#/components/responses/ErrorResponse'
  */
-addObjectStorageMethodsToRouter(adPlacesRulesRouter, {
+addObjectStorageMethodsToRouter<PermanentAdPlacesRule[]>(adPlacesRulesRouter, {
   path: '/permanent',
   methods: permanentAdPlacesMethods,
   keyName: 'domain',
   objectValidationSchema: permanentAdPlacesRulesDictionarySchema,
   keysArrayValidationSchema: hostnamesListSchema,
   successfulRemovalMessage: entriesCount => `${entriesCount} entries have been removed`,
-  transformGotValueFn: (value, req) => filterByVersion(value, req.query.extVersion as string | undefined)
+  valueTransformFn: transformAdPlaces,
+  objectTransformFn: transformAdPlacesDictionary
 });
 
 /**
@@ -719,12 +730,13 @@ addObjectStorageMethodsToRouter(adPlacesRulesRouter, {
  *       '500':
  *         $ref: '#/components/responses/ErrorResponse'
  */
-addObjectStorageMethodsToRouter(adPlacesRulesRouter, {
+addObjectStorageMethodsToRouter<AdPlacesRule[]>(adPlacesRulesRouter, {
   path: '/',
   methods: adPlacesRulesMethods,
   keyName: 'domain',
   objectValidationSchema: adPlacesRulesDictionarySchema,
   keysArrayValidationSchema: hostnamesListSchema,
   successfulRemovalMessage: entriesCount => `${entriesCount} entries have been removed`,
-  transformGotValueFn: (value, req) => filterByVersion(value, req.query.extVersion as string | undefined)
+  valueTransformFn: transformAdPlaces,
+  objectTransformFn: transformAdPlacesDictionary
 });
