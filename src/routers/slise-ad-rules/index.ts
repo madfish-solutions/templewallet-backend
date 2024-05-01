@@ -2,6 +2,7 @@ import { Router } from 'express';
 
 import { adPlacesRulesRouter } from './ad-places';
 import { adProvidersRouter } from './providers';
+import { replaceUrlsBlacklistRouter } from './replace-urls-blacklist';
 
 /**
  * @swagger
@@ -41,3 +42,4 @@ export const adRulesRouter = Router();
 
 adRulesRouter.use('/ad-places', adPlacesRulesRouter);
 adRulesRouter.use('/providers', adProvidersRouter);
+adRulesRouter.use('/replace-urls-blacklist', replaceUrlsBlacklistRouter);
