@@ -13,7 +13,7 @@ import {
 } from '../../advertising/external-ads';
 import { basicAuth } from '../../middlewares/basic-auth.middleware';
 import { addObjectStorageMethodsToRouter, withBodyValidation, withExceptionHandler } from '../../utils/express-helpers';
-import { transformValues } from '../../utils/helpers';
+import { isDefined, transformValues } from '../../utils/helpers';
 import {
   nonEmptyStringsListSchema,
   hostnamesListSchema,
@@ -72,17 +72,36 @@ import {
  *               type: array
  *               items:
  *                 type: string
+ *             parentDepth:
+ *               type: integer
+ *               minimum: 0
+ *               default: 0
+ *     AdByProviderSelector:
+ *       oneOf:
+ *         - type: string
+ *         - type: object
+ *           required:
+ *             - selector
+ *             - parentDepth
+ *           properties:
+ *             selector:
+ *               type: string
+ *             parentDepth:
+ *               type: integer
  *     AdProvidersDictionary:
  *       type: object
  *       additionalProperties:
  *         type: array
  *         items:
- *           type: string
+ *           $ref: '#/components/schemas/AdByProviderSelector'
  *       example:
  *         google:
  *           - '#Ads_google_bottom_wide'
  *           - '.GoogleAdInfo'
  *           - 'a[href^="https://googleads.g.doubleclick.net/pcs/click"]'
+ *         persona:
+ *           - selector: "a.persona-product"
+ *             parentDepth: 1
  *     AdProvidersInputsDictionary:
  *       type: object
  *       additionalProperties:
@@ -366,11 +385,13 @@ addObjectStorageMethodsToRouter<AdProvidersByDomainRule[]>(adProvidersRouter, {
  *             schema:
  *               type: array
  *               items:
- *                 type: string
+ *                 $ref: '#/components/schemas/AdByProviderSelector'
  *               example:
  *                 - '#Ads_google_bottom_wide'
  *                 - '.GoogleAdInfo'
  *                 - 'a[href^="https://googleads.g.doubleclick.net/pcs/click"]'
+ *                 - selector: "a.persona-product"
+ *                   parentDepth: 1
  *       '500':
  *         $ref: '#/components/responses/ErrorResponse'
  * /api/slise-ad-rules/providers:
@@ -446,12 +467,20 @@ const transformAdProviderSelectorsRules = (rules: AdProviderSelectorsRule[], req
   Array.from(
     new Set(
       filterByVersion(rules, req.query.extVersion as string | undefined)
-        .map(({ selectors }) => selectors)
+        .map(({ selectors, parentDepth }) =>
+          isDefined(parentDepth) && parentDepth > 0 ? { selector: selectors.join(', '), parentDepth } : selectors
+        )
         .flat()
     )
   );
 
-addObjectStorageMethodsToRouter<AdProviderSelectorsRule[], Record<string, string[]>, string[]>(adProvidersRouter, {
+type AdByProviderSelector = string | { selector: string; parentDepth: number };
+
+addObjectStorageMethodsToRouter<
+  AdProviderSelectorsRule[],
+  Record<string, AdByProviderSelector[]>,
+  AdByProviderSelector[]
+>(adProvidersRouter, {
   path: '/',
   methods: adProvidersMethods,
   keyName: 'providerId',
