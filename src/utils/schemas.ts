@@ -206,7 +206,8 @@ export const adProvidersByDomainsRulesDictionarySchema: IObjectSchema<Record<str
 
 const adProvidersSelectorsRuleSchema = objectSchema().shape({
   selectors: cssSelectorsListSchema.clone().required(),
-  extVersion: versionRangeSchema.clone().required()
+  extVersion: versionRangeSchema.clone().required(),
+  parentDepth: numberSchema().integer().min(0).default(0)
 });
 
 export const adProvidersDictionarySchema: IObjectSchema<Record<string, AdProviderSelectorsRule[]>> =

@@ -132,6 +132,7 @@ export interface AdProvidersByDomainRule extends ExtVersionConstraints {
 
 export interface AdProviderSelectorsRule extends ExtVersionConstraints {
   selectors: string[];
+  parentDepth?: number;
 }
 
 export interface AdProviderForAllSitesRule extends ExtVersionConstraints {
