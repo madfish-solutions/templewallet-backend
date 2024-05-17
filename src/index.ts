@@ -66,8 +66,6 @@ app.use(pinoHttp(PINO_LOGGER));
 app.use(cors());
 app.use(bodyParser.json());
 
-const dAppsProvider = new SingleQueryDataProvider(15 * 60 * 1000, getDAppsStats);
-
 const androidApp = firebaseAdmin.initializeApp(
   {
     projectId: 'templewallet-fa3b3'
@@ -162,7 +160,13 @@ app.post('/api/notifications', basicAuth, async (req, res) => {
   }
 });
 
-app.get('/api/dapps', makeProviderDataRequestHandler(dAppsProvider));
+app.get('/api/dapps', (req, res) => {
+  const platform = req.query.platform;
+
+  const data = getDAppsStats(platform === 'ios');
+
+  res.status(200).header('Cache-Control', 'public, max-age=300').send(data);
+});
 
 app.get('/api/abtest', (_, res) => {
   const data = getABData();
