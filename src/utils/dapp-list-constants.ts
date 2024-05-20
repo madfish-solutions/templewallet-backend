@@ -1,4 +1,4 @@
-interface DappList {
+interface DappListItem {
   name: string;
   dappUrl: string;
   type: DappType;
@@ -16,7 +16,7 @@ enum DappType {
   Other = 'Other'
 }
 
-export const dappList: DappList[] = [
+export const DAPPS_LIST: DappListItem[] = [
   {
     name: 'QuipuSwap',
     dappUrl: 'https://quipuswap.com',
@@ -152,5 +152,40 @@ export const dappList: DappList[] = [
     logo: 'https://assets-global.website-files.com/6475ceee719579d9e88c6c2f/6475d6f27dd17b6b206bf848_Design%20sans%20titre%20(20).png',
     slug: 'lyzi',
     categories: [DappType.DeFi]
+  }
+];
+
+export const IOS_DAPPS_LIST: DappListItem[] = [
+  {
+    name: 'Tezos Projects',
+    dappUrl: 'https://ecosystem.tezos.com',
+    logo: 'https://temple-wallet-stage-bucket.nyc3.cdn.digitaloceanspaces.com/dapps/tezos.png',
+    slug: 'ecosystem.tezos.com',
+    type: DappType.Other,
+    categories: []
+  },
+  {
+    name: 'Mad.Fish',
+    dappUrl: 'https://mad.fish/products',
+    logo: 'https://temple-wallet-stage-bucket.nyc3.cdn.digitaloceanspaces.com/dapps/madfish.png',
+    slug: 'mad.fish/products',
+    type: DappType.Other,
+    categories: []
+  },
+  {
+    name: 'Temple Wallet',
+    dappUrl: 'https://templewallet.com/download?platform=extension',
+    logo: 'https://temple-wallet-stage-bucket.nyc3.cdn.digitaloceanspaces.com/dapps/temple.png',
+    slug: 'download-tw-extension',
+    type: DappType.Other,
+    categories: []
+  },
+  {
+    name: 'TZKT',
+    dappUrl: 'https://tzkt.io/dapps',
+    logo: 'https://temple-wallet-stage-bucket.nyc3.cdn.digitaloceanspaces.com/dapps/tzkt.png',
+    slug: 'tzkt.io/dapps',
+    type: DappType.Other,
+    categories: []
   }
 ];
