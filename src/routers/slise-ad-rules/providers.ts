@@ -1,4 +1,5 @@
-import { Router } from 'express';
+import { Request, Router } from 'express';
+import { identity } from 'lodash';
 
 import {
   addAdProvidersForAllSites,
@@ -7,12 +8,14 @@ import {
   adProvidersMethods,
   adProvidersByDomainRulesMethods,
   AdProviderSelectorsRule,
-  filterByVersion
+  filterByVersion,
+  AdProvidersByDomainRule
 } from '../../advertising/external-ads';
 import { basicAuth } from '../../middlewares/basic-auth.middleware';
 import { addObjectStorageMethodsToRouter, withBodyValidation, withExceptionHandler } from '../../utils/express-helpers';
+import { isDefined, transformValues } from '../../utils/helpers';
 import {
-  adTypesListSchema,
+  nonEmptyStringsListSchema,
   hostnamesListSchema,
   adProvidersByDomainsRulesDictionarySchema,
   adProvidersDictionarySchema
@@ -69,17 +72,36 @@ import {
  *               type: array
  *               items:
  *                 type: string
+ *             parentDepth:
+ *               type: integer
+ *               minimum: 0
+ *               default: 0
+ *     AdByProviderSelector:
+ *       oneOf:
+ *         - type: string
+ *         - type: object
+ *           required:
+ *             - selector
+ *             - parentDepth
+ *           properties:
+ *             selector:
+ *               type: string
+ *             parentDepth:
+ *               type: integer
  *     AdProvidersDictionary:
  *       type: object
  *       additionalProperties:
  *         type: array
  *         items:
- *           type: string
+ *           $ref: '#/components/schemas/AdByProviderSelector'
  *       example:
  *         google:
  *           - '#Ads_google_bottom_wide'
  *           - '.GoogleAdInfo'
  *           - 'a[href^="https://googleads.g.doubleclick.net/pcs/click"]'
+ *         persona:
+ *           - selector: "a.persona-product"
+ *             parentDepth: 1
  *     AdProvidersInputsDictionary:
  *       type: object
  *       additionalProperties:
@@ -178,7 +200,7 @@ adProvidersRouter
   .post(
     basicAuth,
     withExceptionHandler(
-      withBodyValidation(adTypesListSchema, async (req, res) => {
+      withBodyValidation(nonEmptyStringsListSchema, async (req, res) => {
         const providersAddedCount = await addAdProvidersForAllSites(req.body);
 
         res.status(200).send({ message: `${providersAddedCount} providers have been added` });
@@ -188,7 +210,7 @@ adProvidersRouter
   .delete(
     basicAuth,
     withExceptionHandler(
-      withBodyValidation(adTypesListSchema, async (req, res) => {
+      withBodyValidation(nonEmptyStringsListSchema, async (req, res) => {
         const providersRemovedCount = await removeAdProvidersForAllSites(req.body);
 
         res.status(200).send({ message: `${providersRemovedCount} providers have been removed` });
@@ -287,13 +309,15 @@ adProvidersRouter
  *       '500':
  *         $ref: '#/components/responses/ErrorResponse'
  */
-addObjectStorageMethodsToRouter(adProvidersRouter, {
+addObjectStorageMethodsToRouter<AdProvidersByDomainRule[]>(adProvidersRouter, {
   path: '/by-sites',
   methods: adProvidersByDomainRulesMethods,
   keyName: 'domain',
   objectValidationSchema: adProvidersByDomainsRulesDictionarySchema,
   keysArrayValidationSchema: hostnamesListSchema,
-  successfulRemovalMessage: entriesCount => `${entriesCount} entries have been removed`
+  successfulRemovalMessage: entriesCount => `${entriesCount} entries have been removed`,
+  valueTransformFn: identity,
+  objectTransformFn: identity
 });
 
 /**
@@ -361,11 +385,13 @@ addObjectStorageMethodsToRouter(adProvidersRouter, {
  *             schema:
  *               type: array
  *               items:
- *                 type: string
+ *                 $ref: '#/components/schemas/AdByProviderSelector'
  *               example:
  *                 - '#Ads_google_bottom_wide'
  *                 - '.GoogleAdInfo'
  *                 - 'a[href^="https://googleads.g.doubleclick.net/pcs/click"]'
+ *                 - selector: "a.persona-product"
+ *                   parentDepth: 1
  *       '500':
  *         $ref: '#/components/responses/ErrorResponse'
  * /api/slise-ad-rules/providers:
@@ -437,19 +463,30 @@ addObjectStorageMethodsToRouter(adProvidersRouter, {
  *       '500':
  *         $ref: '#/components/responses/ErrorResponse'
  */
-addObjectStorageMethodsToRouter<AdProviderSelectorsRule[], string[]>(adProvidersRouter, {
+const transformAdProviderSelectorsRules = (rules: AdProviderSelectorsRule[], req: Request) =>
+  Array.from(
+    new Set(
+      filterByVersion(rules, req.query.extVersion as string | undefined)
+        .map(({ selectors, parentDepth }) =>
+          isDefined(parentDepth) && parentDepth > 0 ? { selector: selectors.join(', '), parentDepth } : selectors
+        )
+        .flat()
+    )
+  );
+
+type AdByProviderSelector = string | { selector: string; parentDepth: number };
+
+addObjectStorageMethodsToRouter<
+  AdProviderSelectorsRule[],
+  Record<string, AdByProviderSelector[]>,
+  AdByProviderSelector[]
+>(adProvidersRouter, {
   path: '/',
   methods: adProvidersMethods,
   keyName: 'providerId',
   objectValidationSchema: adProvidersDictionarySchema,
-  keysArrayValidationSchema: adTypesListSchema,
+  keysArrayValidationSchema: nonEmptyStringsListSchema,
   successfulRemovalMessage: entriesCount => `${entriesCount} providers have been removed`,
-  transformGotValueFn: (rules, req) =>
-    Array.from(
-      new Set(
-        filterByVersion(rules, req.query.extVersion as string | undefined)
-          .map(({ selectors }) => selectors)
-          .flat()
-      )
-    )
+  valueTransformFn: transformAdProviderSelectorsRules,
+  objectTransformFn: (rules, req) => transformValues(rules, value => transformAdProviderSelectorsRules(value, req))
 });

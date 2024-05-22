@@ -84,7 +84,7 @@ interface AdStylesOverrides {
   style: Record<StylePropName, string>;
 }
 
-interface ExtVersionConstraints {
+export interface ExtVersionConstraints {
   extVersion: string;
 }
 
@@ -132,10 +132,15 @@ export interface AdProvidersByDomainRule extends ExtVersionConstraints {
 
 export interface AdProviderSelectorsRule extends ExtVersionConstraints {
   selectors: string[];
+  parentDepth?: number;
 }
 
 export interface AdProviderForAllSitesRule extends ExtVersionConstraints {
   providers: string[];
+}
+
+export interface ReplaceAdsUrlsBlacklistEntry extends ExtVersionConstraints {
+  regexes: string[];
 }
 
 const AD_PLACES_RULES_KEY = 'ad_places_rules';
@@ -144,6 +149,7 @@ const AD_PROVIDERS_ALL_SITES_KEY = 'ad_providers_all_sites';
 const AD_PROVIDERS_LIST_KEY = 'ad_providers_list';
 const PERMANENT_AD_PLACES_RULES_KEY = 'permanent_ad_places_rules';
 const PERMANENT_NATIVE_AD_PLACES_RULES_KEY = 'permanent_native_ad_places_rules';
+const REPLACE_ADS_URLS_BLACKLIST_KEY = 'replace_ads_urls_blacklist';
 
 export const adPlacesRulesMethods = objectStorageMethodsFactory<AdPlacesRule[]>(AD_PLACES_RULES_KEY, []);
 
@@ -161,6 +167,11 @@ export const permanentAdPlacesMethods = objectStorageMethodsFactory<PermanentAdP
 
 export const permanentNativeAdPlacesMethods = objectStorageMethodsFactory<PermanentAdPlacesRule[]>(
   PERMANENT_NATIVE_AD_PLACES_RULES_KEY,
+  []
+);
+
+export const replaceAdsUrlsBlacklistMethods = objectStorageMethodsFactory<ReplaceAdsUrlsBlacklistEntry[]>(
+  REPLACE_ADS_URLS_BLACKLIST_KEY,
   []
 );
 

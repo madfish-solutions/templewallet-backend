@@ -44,19 +44,24 @@ export const withExceptionHandler =
     }
   };
 
-interface ObjectStorageMethodsEntrypointsConfig<U, V> {
+interface ObjectStorageMethodsEntrypointsConfig<StoredValue, ObjectResponse, ValueResponse> {
   path: string;
-  methods: ObjectStorageMethods<U>;
+  methods: ObjectStorageMethods<StoredValue>;
   keyName: string;
-  objectValidationSchema: IObjectSchema<Record<string, U>>;
+  objectValidationSchema: IObjectSchema<Record<string, StoredValue>>;
   keysArrayValidationSchema: IArraySchema<string[], object>;
   successfulRemovalMessage: (removedEntriesCount: number) => string;
-  transformGotValueFn?: (value: U, req: Request) => V;
+  objectTransformFn: (value: Record<string, StoredValue>, req: Request) => ObjectResponse;
+  valueTransformFn: (value: StoredValue, req: Request) => ValueResponse;
 }
 
-export const addObjectStorageMethodsToRouter = <U, V = U>(
+export const addObjectStorageMethodsToRouter = <
+  StoredValue,
+  ObjectResponse = Record<string, StoredValue>,
+  ValueResponse = StoredValue
+>(
   router: Router,
-  config: ObjectStorageMethodsEntrypointsConfig<U, V>
+  config: ObjectStorageMethodsEntrypointsConfig<StoredValue, ObjectResponse, ValueResponse>
 ) => {
   const {
     path,
@@ -65,7 +70,8 @@ export const addObjectStorageMethodsToRouter = <U, V = U>(
     objectValidationSchema,
     keysArrayValidationSchema,
     successfulRemovalMessage,
-    transformGotValueFn = value => value as unknown as V
+    objectTransformFn,
+    valueTransformFn
   } = config;
 
   router.get(
@@ -95,7 +101,7 @@ export const addObjectStorageMethodsToRouter = <U, V = U>(
 
       const value = await methods.getByKey(key);
 
-      res.status(200).send(transformGotValueFn(value, req));
+      res.status(200).send(valueTransformFn(value, req));
     })
   );
 
@@ -105,12 +111,7 @@ export const addObjectStorageMethodsToRouter = <U, V = U>(
       withExceptionHandler(async (req, res) => {
         const values = await methods.getAllValues();
 
-        res
-          .status(200)
-          .header('Cache-Control', 'public, max-age=300')
-          .send(
-            Object.fromEntries(Object.entries(values).map(([key, value]) => [key, transformGotValueFn(value, req)]))
-          );
+        res.status(200).header('Cache-Control', 'public, max-age=300').send(objectTransformFn(values, req));
       })
     )
     .post(
