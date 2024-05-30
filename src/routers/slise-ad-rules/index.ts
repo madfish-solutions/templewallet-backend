@@ -1,7 +1,8 @@
 import { Router } from 'express';
 
-import { sliseAdPlacesRulesRouter } from './ad-places';
-import { sliseAdProvidersRouter } from './providers';
+import { adPlacesRulesRouter } from './ad-places';
+import { adProvidersRouter } from './providers';
+import { replaceUrlsBlacklistRouter } from './replace-urls-blacklist';
 
 /**
  * @swagger
@@ -37,7 +38,8 @@ import { sliseAdProvidersRouter } from './providers';
  *                 type: string
  */
 
-export const sliseRulesRouter = Router();
+export const adRulesRouter = Router();
 
-sliseRulesRouter.use('/ad-places', sliseAdPlacesRulesRouter);
-sliseRulesRouter.use('/providers', sliseAdProvidersRouter);
+adRulesRouter.use('/ad-places', adPlacesRulesRouter);
+adRulesRouter.use('/providers', adProvidersRouter);
+adRulesRouter.use('/replace-urls-blacklist', replaceUrlsBlacklistRouter);

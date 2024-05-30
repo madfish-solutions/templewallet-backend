@@ -1,3 +1,5 @@
+import { satisfies as versionSatisfiesRange } from 'semver';
+
 import { objectStorageMethodsFactory, redisClient } from '../redis';
 
 /** Style properties names that are likely to be unnecessary for banners are skipped */
@@ -77,12 +79,16 @@ export const stylePropsNames = [
 ];
 export type StylePropName = (typeof stylePropsNames)[number];
 
-interface SliseAdStylesOverrides {
+interface AdStylesOverrides {
   parentDepth: number;
   style: Record<StylePropName, string>;
 }
 
-export interface SliseAdPlacesRule {
+export interface ExtVersionConstraints {
+  extVersion: string;
+}
+
+export interface AdPlacesRule extends ExtVersionConstraints {
   urlRegexes: string[];
   selector: {
     isMultiple: boolean;
@@ -91,11 +97,11 @@ export interface SliseAdPlacesRule {
     shouldUseDivWrapper: boolean;
     divWrapperStyle?: Record<StylePropName, string>;
   };
-  stylesOverrides?: SliseAdStylesOverrides[];
+  stylesOverrides?: AdStylesOverrides[];
   shouldHideOriginal?: boolean;
 }
 
-export interface PermanentSliseAdPlacesRule {
+export interface PermanentAdPlacesRule extends ExtVersionConstraints {
   urlRegexes: string[];
   adSelector: {
     isMultiple: boolean;
@@ -115,48 +121,69 @@ export interface PermanentSliseAdPlacesRule {
   elementStyle?: Record<StylePropName, string>;
   divWrapperStyle?: Record<StylePropName, string>;
   elementToMeasureSelector?: string;
-  stylesOverrides?: SliseAdStylesOverrides[];
+  stylesOverrides?: AdStylesOverrides[];
   shouldHideOriginal?: boolean;
 }
 
-export interface SliseAdProvidersByDomainRule {
+export interface AdProvidersByDomainRule extends ExtVersionConstraints {
   urlRegexes: string[];
   providers: string[];
 }
 
-const SLISE_AD_PLACES_RULES_KEY = 'slise_ad_places_rules';
-const SLISE_AD_PROVIDERS_BY_SITES_KEY = 'slise_ad_providers_by_sites';
-const SLISE_AD_PROVIDERS_ALL_SITES_KEY = 'slise_ad_providers_all_sites';
-const SLISE_AD_PROVIDERS_LIST_KEY = 'slise_ad_providers_list';
-const PERMANENT_SLISE_AD_PLACES_RULES_KEY = 'permanent_slise_ad_places_rules';
+export interface AdProviderSelectorsRule extends ExtVersionConstraints {
+  selectors: string[];
+  parentDepth?: number;
+}
+
+export interface AdProviderForAllSitesRule extends ExtVersionConstraints {
+  providers: string[];
+}
+
+export interface ReplaceAdsUrlsBlacklistEntry extends ExtVersionConstraints {
+  regexes: string[];
+}
+
+const AD_PLACES_RULES_KEY = 'ad_places_rules';
+const AD_PROVIDERS_BY_SITES_KEY = 'ad_providers_by_sites';
+const AD_PROVIDERS_ALL_SITES_KEY = 'ad_providers_all_sites';
+const AD_PROVIDERS_LIST_KEY = 'ad_providers_list';
+const PERMANENT_AD_PLACES_RULES_KEY = 'permanent_ad_places_rules';
 const PERMANENT_NATIVE_AD_PLACES_RULES_KEY = 'permanent_native_ad_places_rules';
+const REPLACE_ADS_URLS_BLACKLIST_KEY = 'replace_ads_urls_blacklist';
 
-export const sliseAdPlacesRulesMethods = objectStorageMethodsFactory<SliseAdPlacesRule[]>(
-  SLISE_AD_PLACES_RULES_KEY,
+export const adPlacesRulesMethods = objectStorageMethodsFactory<AdPlacesRule[]>(AD_PLACES_RULES_KEY, []);
+
+export const adProvidersByDomainRulesMethods = objectStorageMethodsFactory<AdProvidersByDomainRule[]>(
+  AD_PROVIDERS_BY_SITES_KEY,
   []
 );
 
-export const sliseAdProvidersByDomainRulesMethods = objectStorageMethodsFactory<SliseAdProvidersByDomainRule[]>(
-  SLISE_AD_PROVIDERS_BY_SITES_KEY,
+export const adProvidersMethods = objectStorageMethodsFactory<AdProviderSelectorsRule[]>(AD_PROVIDERS_LIST_KEY, []);
+
+export const permanentAdPlacesMethods = objectStorageMethodsFactory<PermanentAdPlacesRule[]>(
+  PERMANENT_AD_PLACES_RULES_KEY,
   []
 );
 
-export const sliseAdProvidersMethods = objectStorageMethodsFactory<string[]>(SLISE_AD_PROVIDERS_LIST_KEY, []);
-
-export const permanentSliseAdPlacesMethods = objectStorageMethodsFactory<PermanentSliseAdPlacesRule[]>(
-  PERMANENT_SLISE_AD_PLACES_RULES_KEY,
-  []
-);
-
-export const permanentNativeAdPlacesMethods = objectStorageMethodsFactory<PermanentSliseAdPlacesRule[]>(
+export const permanentNativeAdPlacesMethods = objectStorageMethodsFactory<PermanentAdPlacesRule[]>(
   PERMANENT_NATIVE_AD_PLACES_RULES_KEY,
   []
 );
 
-export const getSliseAdProvidersForAllSites = async () => redisClient.smembers(SLISE_AD_PROVIDERS_ALL_SITES_KEY);
+export const replaceAdsUrlsBlacklistMethods = objectStorageMethodsFactory<ReplaceAdsUrlsBlacklistEntry[]>(
+  REPLACE_ADS_URLS_BLACKLIST_KEY,
+  []
+);
 
-export const addSliseAdProvidersForAllSites = async (providers: string[]) =>
-  redisClient.sadd(SLISE_AD_PROVIDERS_ALL_SITES_KEY, ...providers);
+export const getAdProvidersForAllSites = async () => redisClient.smembers(AD_PROVIDERS_ALL_SITES_KEY);
 
-export const removeSliseAdProvidersForAllSites = async (providers: string[]) =>
-  redisClient.srem(SLISE_AD_PROVIDERS_ALL_SITES_KEY, ...providers);
+export const addAdProvidersForAllSites = async (providers: string[]) =>
+  redisClient.sadd(AD_PROVIDERS_ALL_SITES_KEY, ...providers);
+
+export const removeAdProvidersForAllSites = async (providers: string[]) =>
+  redisClient.srem(AD_PROVIDERS_ALL_SITES_KEY, ...providers);
+
+const FALLBACK_VERSION = '0.0.0';
+
+export const filterByVersion = <T extends ExtVersionConstraints>(rules: T[], version?: string) =>
+  rules.filter(({ extVersion }) => versionSatisfiesRange(version ?? FALLBACK_VERSION, extVersion));

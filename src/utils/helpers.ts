@@ -55,3 +55,6 @@ export function safeCheck(check: () => boolean, def = false) {
     return def;
   }
 }
+
+export const transformValues = <T, U>(input: Record<string, T>, transformFn: (value: T) => U): Record<string, U> =>
+  Object.fromEntries(Object.entries(input).map(([key, value]) => [key, transformFn(value)]));

@@ -1,19 +1,24 @@
-import { Router } from 'express';
+import { Request, Router } from 'express';
+import { identity } from 'lodash';
 
 import {
-  addSliseAdProvidersForAllSites,
-  getSliseAdProvidersForAllSites,
-  removeSliseAdProvidersForAllSites,
-  sliseAdProvidersMethods,
-  sliseAdProvidersByDomainRulesMethods
-} from '../../advertising/slise';
+  addAdProvidersForAllSites,
+  getAdProvidersForAllSites,
+  removeAdProvidersForAllSites,
+  adProvidersMethods,
+  adProvidersByDomainRulesMethods,
+  AdProviderSelectorsRule,
+  filterByVersion,
+  AdProvidersByDomainRule
+} from '../../advertising/external-ads';
 import { basicAuth } from '../../middlewares/basic-auth.middleware';
 import { addObjectStorageMethodsToRouter, withBodyValidation, withExceptionHandler } from '../../utils/express-helpers';
+import { isDefined, transformValues } from '../../utils/helpers';
 import {
-  adTypesListSchema,
+  nonEmptyStringsListSchema,
   hostnamesListSchema,
-  sliseAdProvidersByDomainsRulesDictionarySchema,
-  sliseAdProvidersDictionarySchema
+  adProvidersByDomainsRulesDictionarySchema,
+  adProvidersDictionarySchema
 } from '../../utils/schemas';
 
 /**
@@ -22,7 +27,7 @@ import {
  *   name: Known ads providers
  * components:
  *   schemas:
- *     SliseAdProvidersByDomainRule:
+ *     AdProvidersByDomainRule:
  *       type: object
  *       required:
  *         - urlRegexes
@@ -43,12 +48,12 @@ import {
  *         providers:
  *           - 'coinzilla'
  *           - 'bitmedia'
- *     SliseAdProvidersByDomainsRulesDictionary:
+ *     AdProvidersByDomainsRulesDictionary:
  *       type: object
  *       additionalProperties:
  *         type: array
  *         items:
- *           $ref: '#/components/schemas/SliseAdProvidersByDomainRule'
+ *           $ref: '#/components/schemas/AdProvidersByDomainRule'
  *       example:
  *         polygonscan.com:
  *           - urlRegexes:
@@ -56,20 +61,56 @@ import {
  *             providers:
  *               - 'coinzilla'
  *               - 'bitmedia'
- *     SliseAdProvidersDictionary:
+ *     AdProvidersInputValue:
+ *       allOf:
+ *         - $ref: '#/components/schemas/ExtVersionConstraints'
+ *         - type: object
+ *           required:
+ *             - selectors
+ *           properties:
+ *             selectors:
+ *               type: array
+ *               items:
+ *                 type: string
+ *             parentDepth:
+ *               type: integer
+ *               minimum: 0
+ *               default: 0
+ *     AdByProviderSelector:
+ *       oneOf:
+ *         - type: string
+ *         - type: object
+ *           required:
+ *             - selector
+ *             - parentDepth
+ *           properties:
+ *             selector:
+ *               type: string
+ *             parentDepth:
+ *               type: integer
+ *     AdProvidersDictionary:
  *       type: object
  *       additionalProperties:
  *         type: array
  *         items:
- *           type: string
+ *           $ref: '#/components/schemas/AdByProviderSelector'
  *       example:
  *         google:
  *           - '#Ads_google_bottom_wide'
  *           - '.GoogleAdInfo'
  *           - 'a[href^="https://googleads.g.doubleclick.net/pcs/click"]'
+ *         persona:
+ *           - selector: "a.persona-product"
+ *             parentDepth: 1
+ *     AdProvidersInputsDictionary:
+ *       type: object
+ *       additionalProperties:
+ *         type: array
+ *         items:
+ *           $ref: '#/components/schemas/AdProvidersInputValue'
  */
 
-export const sliseAdProvidersRouter = Router();
+export const adProvidersRouter = Router();
 
 /**
  * @swagger
@@ -147,20 +188,20 @@ export const sliseAdProvidersRouter = Router();
  *       '500':
  *         $ref: '#/components/responses/ErrorResponse'
  */
-sliseAdProvidersRouter
+adProvidersRouter
   .route('/all-sites')
   .get(
     withExceptionHandler(async (_req, res) => {
-      const providers = await getSliseAdProvidersForAllSites();
+      const providers = await getAdProvidersForAllSites();
 
-      res.status(200).send(providers);
+      res.status(200).header('Cache-Control', 'public, max-age=300').send(providers);
     })
   )
   .post(
     basicAuth,
     withExceptionHandler(
-      withBodyValidation(adTypesListSchema, async (req, res) => {
-        const providersAddedCount = await addSliseAdProvidersForAllSites(req.body);
+      withBodyValidation(nonEmptyStringsListSchema, async (req, res) => {
+        const providersAddedCount = await addAdProvidersForAllSites(req.body);
 
         res.status(200).send({ message: `${providersAddedCount} providers have been added` });
       })
@@ -169,8 +210,8 @@ sliseAdProvidersRouter
   .delete(
     basicAuth,
     withExceptionHandler(
-      withBodyValidation(adTypesListSchema, async (req, res) => {
-        const providersRemovedCount = await removeSliseAdProvidersForAllSites(req.body);
+      withBodyValidation(nonEmptyStringsListSchema, async (req, res) => {
+        const providersRemovedCount = await removeAdProvidersForAllSites(req.body);
 
         res.status(200).send({ message: `${providersRemovedCount} providers have been removed` });
       })
@@ -200,7 +241,7 @@ sliseAdProvidersRouter
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/SliseAdProvidersByDomainRule'
+ *                 $ref: '#/components/schemas/AdProvidersByDomainRule'
  *       '500':
  *         $ref: '#/components/responses/ErrorResponse'
  * /api/slise-ad-rules/providers/by-sites:
@@ -214,7 +255,7 @@ sliseAdProvidersRouter
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/SliseAdProvidersByDomainsRulesDictionary'
+ *               $ref: '#/components/schemas/AdProvidersByDomainsRulesDictionary'
  *       '500':
  *         $ref: '#/components/responses/ErrorResponse'
  *   post:
@@ -230,7 +271,7 @@ sliseAdProvidersRouter
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/SliseAdProvidersByDomainsRulesDictionary'
+ *             $ref: '#/components/schemas/AdProvidersByDomainsRulesDictionary'
  *     responses:
  *       '200':
  *         $ref: '#/components/responses/SuccessResponse'
@@ -268,21 +309,36 @@ sliseAdProvidersRouter
  *       '500':
  *         $ref: '#/components/responses/ErrorResponse'
  */
-addObjectStorageMethodsToRouter(
-  sliseAdProvidersRouter,
-  '/by-sites',
-  sliseAdProvidersByDomainRulesMethods,
-  'domain',
-  sliseAdProvidersByDomainsRulesDictionarySchema,
-  hostnamesListSchema,
-  entriesCount => `${entriesCount} entries have been removed`
-);
+addObjectStorageMethodsToRouter<AdProvidersByDomainRule[]>(adProvidersRouter, {
+  path: '/by-sites',
+  methods: adProvidersByDomainRulesMethods,
+  keyName: 'domain',
+  objectValidationSchema: adProvidersByDomainsRulesDictionarySchema,
+  keysArrayValidationSchema: hostnamesListSchema,
+  successfulRemovalMessage: entriesCount => `${entriesCount} entries have been removed`,
+  valueTransformFn: identity,
+  objectTransformFn: identity
+});
 
 /**
  * @swagger
- * /api/slise-ad-rules/providers/{providerId}:
+ * /api/slise-ad-rules/providers/raw/all:
  *   get:
- *     summary: Get selectors for a provider
+ *     summary: Get selectors for all providers and all extensions versions
+ *     tags:
+ *       - Known ads providers
+ *     responses:
+ *       '200':
+ *         description: Provider - selectors dictionary
+ *         content:
+ *           application/json:
+ *             schema:
+ *              $ref: '#/components/schemas/AdProvidersInputsDictionary'
+ *       '500':
+ *         $ref: '#/components/responses/ErrorResponse'
+ * /api/slise-ad-rules/providers/{providerId}/raw:
+ *   get:
+ *     summary: Get selectors for a provider for all extensions versions
  *     tags:
  *       - Known ads providers
  *     parameters:
@@ -294,31 +350,69 @@ addObjectStorageMethodsToRouter(
  *         example: 'google'
  *     responses:
  *       '200':
+ *         description: Lists of CSS selectors for all extension versions
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                  $ref: '#/components/schemas/AdProvidersInputValue'
+ *       '500':
+ *         $ref: '#/components/responses/ErrorResponse'
+ * /api/slise-ad-rules/providers/{providerId}:
+ *   get:
+ *     summary: Get selectors for a provider filtered by extension version
+ *     tags:
+ *       - Known ads providers
+ *     parameters:
+ *       - in: path
+ *         name: providerId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: 'google'
+ *       - in: query
+ *         name: extVersion
+ *         schema:
+ *           type: string
+ *           default: '0.0.0'
+ *         description: The extension version for which the rules should be returned
+ *     responses:
+ *       '200':
  *         description: List of CSS selectors
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
- *                 type: string
+ *                 $ref: '#/components/schemas/AdByProviderSelector'
  *               example:
  *                 - '#Ads_google_bottom_wide'
  *                 - '.GoogleAdInfo'
  *                 - 'a[href^="https://googleads.g.doubleclick.net/pcs/click"]'
+ *                 - selector: "a.persona-product"
+ *                   parentDepth: 1
  *       '500':
  *         $ref: '#/components/responses/ErrorResponse'
  * /api/slise-ad-rules/providers:
  *   get:
- *     summary: Get all providers
+ *     summary: Get selectors for all providers filtered by extension version
  *     tags:
  *       - Known ads providers
+ *     parameters:
+ *       - in: query
+ *         name: extVersion
+ *         schema:
+ *           type: string
+ *           default: '0.0.0'
+ *         description: The extension version for which the rules should be returned
  *     responses:
  *       '200':
  *         description: Provider - selectors dictionary
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/SliseAdProvidersDictionary'
+ *               $ref: '#/components/schemas/AdProvidersDictionary'
  *       '500':
  *         $ref: '#/components/responses/ErrorResponse'
  *   post:
@@ -332,7 +426,7 @@ addObjectStorageMethodsToRouter(
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/SliseAdProvidersDictionary'
+ *             $ref: '#/components/schemas/AdProvidersInputsDictionary'
  *     responses:
  *       '200':
  *         $ref: '#/components/responses/SuccessResponse'
@@ -369,12 +463,30 @@ addObjectStorageMethodsToRouter(
  *       '500':
  *         $ref: '#/components/responses/ErrorResponse'
  */
-addObjectStorageMethodsToRouter(
-  sliseAdProvidersRouter,
-  '/',
-  sliseAdProvidersMethods,
-  'providerId',
-  sliseAdProvidersDictionarySchema,
-  adTypesListSchema,
-  entriesCount => `${entriesCount} providers have been removed`
-);
+const transformAdProviderSelectorsRules = (rules: AdProviderSelectorsRule[], req: Request) =>
+  Array.from(
+    new Set(
+      filterByVersion(rules, req.query.extVersion as string | undefined)
+        .map(({ selectors, parentDepth }) =>
+          isDefined(parentDepth) && parentDepth > 0 ? { selector: selectors.join(', '), parentDepth } : selectors
+        )
+        .flat()
+    )
+  );
+
+type AdByProviderSelector = string | { selector: string; parentDepth: number };
+
+addObjectStorageMethodsToRouter<
+  AdProviderSelectorsRule[],
+  Record<string, AdByProviderSelector[]>,
+  AdByProviderSelector[]
+>(adProvidersRouter, {
+  path: '/',
+  methods: adProvidersMethods,
+  keyName: 'providerId',
+  objectValidationSchema: adProvidersDictionarySchema,
+  keysArrayValidationSchema: nonEmptyStringsListSchema,
+  successfulRemovalMessage: entriesCount => `${entriesCount} providers have been removed`,
+  valueTransformFn: transformAdProviderSelectorsRules,
+  objectTransformFn: (rules, req) => transformValues(rules, value => transformAdProviderSelectorsRules(value, req))
+});

@@ -44,15 +44,56 @@ export const withExceptionHandler =
     }
   };
 
-export const addObjectStorageMethodsToRouter = <V>(
+interface ObjectStorageMethodsEntrypointsConfig<StoredValue, ObjectResponse, ValueResponse> {
+  path: string;
+  methods: ObjectStorageMethods<StoredValue>;
+  keyName: string;
+  objectValidationSchema: IObjectSchema<Record<string, StoredValue>>;
+  keysArrayValidationSchema: IArraySchema<string[], object>;
+  successfulRemovalMessage: (removedEntriesCount: number) => string;
+  objectTransformFn: (value: Record<string, StoredValue>, req: Request) => ObjectResponse;
+  valueTransformFn: (value: StoredValue, req: Request) => ValueResponse;
+}
+
+export const addObjectStorageMethodsToRouter = <
+  StoredValue,
+  ObjectResponse = Record<string, StoredValue>,
+  ValueResponse = StoredValue
+>(
   router: Router,
-  path: string,
-  methods: ObjectStorageMethods<V>,
-  keyName: string,
-  objectValidationSchema: IObjectSchema<Record<string, V>>,
-  keysArrayValidationSchema: IArraySchema<string[], object>,
-  successfulRemovalMessage: (removedEntriesCount: number) => string
+  config: ObjectStorageMethodsEntrypointsConfig<StoredValue, ObjectResponse, ValueResponse>
 ) => {
+  const {
+    path,
+    methods,
+    keyName,
+    objectValidationSchema,
+    keysArrayValidationSchema,
+    successfulRemovalMessage,
+    objectTransformFn,
+    valueTransformFn
+  } = config;
+
+  router.get(
+    path === '/' ? '/raw/all' : `${path}/raw/all`,
+    withExceptionHandler(async (_req, res) => {
+      const values = await methods.getAllValues();
+
+      res.status(200).send(values);
+    })
+  );
+
+  router.get(
+    path === '/' ? `/:${keyName}/raw` : `${path}/:${keyName}/raw`,
+    withExceptionHandler(async (req, res) => {
+      const { [keyName]: key } = req.params;
+
+      const value = await methods.getByKey(key);
+
+      res.status(200).header('Cache-Control', 'public, max-age=300').send(value);
+    })
+  );
+
   router.get(
     path === '/' ? `/:${keyName}` : `${path}/:${keyName}`,
     withExceptionHandler(async (req, res) => {
@@ -60,17 +101,17 @@ export const addObjectStorageMethodsToRouter = <V>(
 
       const value = await methods.getByKey(key);
 
-      res.status(200).send(value);
+      res.status(200).send(valueTransformFn(value, req));
     })
   );
 
   router
     .route(path)
     .get(
-      withExceptionHandler(async (_req, res) => {
+      withExceptionHandler(async (req, res) => {
         const values = await methods.getAllValues();
 
-        res.status(200).send(values);
+        res.status(200).header('Cache-Control', 'public, max-age=300').send(objectTransformFn(values, req));
       })
     )
     .post(

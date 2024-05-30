@@ -20,7 +20,7 @@ import { getNotifications } from './notifications/utils/get-notifications.util';
 import { getParsedContent } from './notifications/utils/get-parsed-content.util';
 import { getPlatforms } from './notifications/utils/get-platforms.util';
 import { redisClient } from './redis';
-import { sliseRulesRouter } from './routers/slise-ad-rules';
+import { adRulesRouter } from './routers/slise-ad-rules';
 import { getABData } from './utils/ab-test';
 import { cancelAliceBobOrder } from './utils/alice-bob/cancel-alice-bob-order';
 import { createAliceBobOrder } from './utils/alice-bob/create-alice-bob-order';
@@ -71,8 +71,6 @@ const app = express();
 app.use(pinoHttp(PINO_LOGGER));
 app.use(cors());
 app.use(bodyParser.json());
-
-const dAppsProvider = new SingleQueryDataProvider(15 * 60 * 1000, getDAppsStats);
 
 const androidApp = firebaseAdmin.initializeApp(
   {
@@ -168,7 +166,13 @@ app.post('/api/notifications', basicAuth, async (req, res) => {
   }
 });
 
-app.get('/api/dapps', makeProviderDataRequestHandler(dAppsProvider));
+app.get('/api/dapps', (req, res) => {
+  const platform = req.query.platform;
+
+  const data = getDAppsStats(platform === 'ios');
+
+  res.status(200).header('Cache-Control', 'public, max-age=300').send(data);
+});
 
 app.get('/api/abtest', (_, res) => {
   const data = getABData();
@@ -334,7 +338,7 @@ app.get('/api/advertising-info', (_req, res) => {
   }
 });
 
-app.use('/api/slise-ad-rules', sliseRulesRouter);
+app.use('/api/slise-ad-rules', adRulesRouter);
 
 app.post('/api/magic-square-quest/start', async (req, res) => {
   try {
