@@ -29,6 +29,12 @@ import { getAliceBobEstimationPayload } from './utils/alice-bob/get-alice-bob-es
 import { getAliceBobOrderInfo } from './utils/alice-bob/get-alice-bob-order-info';
 import { getAliceBobPairInfo } from './utils/alice-bob/get-alice-bob-pair-info';
 import { getAliceBobPairsInfo } from './utils/alice-bob/get-alice-bob-pairs-info';
+import {
+  getEvmCollectiblesMetadata,
+  getEvmBalances,
+  getStringifiedResponse,
+  getEvmTokensMetadata
+} from './utils/covalent';
 import { CodedError } from './utils/errors';
 import { coinGeckoTokens } from './utils/gecko-tokens';
 import { getExternalApiErrorPayload, isDefined, isNonEmptyString } from './utils/helpers';
@@ -38,6 +44,8 @@ import { getSigningNonce } from './utils/signing-nonce';
 import SingleQueryDataProvider from './utils/SingleQueryDataProvider';
 import { tezExchangeRateProvider } from './utils/tezos';
 import { getExchangeRates } from './utils/tokens';
+// import { tezExchangeRateProvider } from './utils/tezos';
+// import { getExchangeRates } from './utils/tokens';
 
 const PINO_LOGGER = {
   logger: logger.child({ name: 'web' }),
@@ -366,6 +374,68 @@ app.get('/api/signing-nonce', (req, res) => {
     if (!pkh || typeof pkh !== 'string') throw new Error('PKH is not a string');
 
     res.status(200).send(getSigningNonce(pkh));
+  } catch (error: any) {
+    console.error(error);
+
+    if (error instanceof CodedError) {
+      res.status(error.code).send(error.buildResponse());
+    } else {
+      res.status(500).send({ message: error?.message });
+    }
+  }
+});
+app.get('/api/evm-balances', async (req, res) => {
+  try {
+    const { walletAddress, chainId } = req.query;
+
+    if (typeof walletAddress !== 'string') throw new Error('walletAddress is not a string');
+    if (typeof chainId !== 'string') throw new Error('chainId is not a string');
+
+    const data = await getEvmBalances(walletAddress, chainId);
+
+    res.status(200).send(getStringifiedResponse(data));
+  } catch (error: any) {
+    console.error(error);
+
+    if (error instanceof CodedError) {
+      res.status(error.code).send(error.buildResponse());
+    } else {
+      res.status(500).send({ message: error?.message });
+    }
+  }
+});
+
+app.get('/api/evm-tokens-metadata', async (req, res) => {
+  try {
+    const { walletAddress, chainId } = req.query;
+
+    if (typeof walletAddress !== 'string') throw new Error('walletAddress is not a string');
+    if (typeof chainId !== 'string') throw new Error('chainId is not a string');
+
+    const data = await getEvmTokensMetadata(walletAddress, chainId);
+
+    res.status(200).send(getStringifiedResponse(data));
+  } catch (error: any) {
+    console.error(error);
+
+    if (error instanceof CodedError) {
+      res.status(error.code).send(error.buildResponse());
+    } else {
+      res.status(500).send({ message: error?.message });
+    }
+  }
+});
+
+app.get('/api/evm-collectibles-metadata', async (req, res) => {
+  try {
+    const { walletAddress, chainId } = req.query;
+
+    if (typeof walletAddress !== 'string') throw new Error('walletAddress is not a string');
+    if (typeof chainId !== 'string') throw new Error('chainId is not a string');
+
+    const data = await getEvmCollectiblesMetadata(walletAddress, chainId);
+
+    res.status(200).send(getStringifiedResponse(data));
   } catch (error: any) {
     console.error(error);
 

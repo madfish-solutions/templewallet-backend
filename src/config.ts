@@ -12,7 +12,8 @@ export const EnvVars = {
   THREE_ROUTE_API_AUTH_TOKEN: getEnv('THREE_ROUTE_API_AUTH_TOKEN'),
   REDIS_URL: getEnv('REDIS_URL'),
   ADMIN_USERNAME: getEnv('ADMIN_USERNAME'),
-  ADMIN_PASSWORD: getEnv('ADMIN_PASSWORD')
+  ADMIN_PASSWORD: getEnv('ADMIN_PASSWORD'),
+  COVALENT_API_KEY: getEnv('COVALENT_API_KEY')
 };
 
 for (const name in EnvVars) {
