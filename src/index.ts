@@ -44,8 +44,6 @@ import { getSigningNonce } from './utils/signing-nonce';
 import SingleQueryDataProvider from './utils/SingleQueryDataProvider';
 import { tezExchangeRateProvider } from './utils/tezos';
 import { getExchangeRates } from './utils/tokens';
-// import { tezExchangeRateProvider } from './utils/tezos';
-// import { getExchangeRates } from './utils/tokens';
 
 const PINO_LOGGER = {
   logger: logger.child({ name: 'web' }),
