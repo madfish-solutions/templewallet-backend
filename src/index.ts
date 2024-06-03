@@ -36,6 +36,7 @@ import {
   getEvmTokensMetadata
 } from './utils/covalent';
 import { CodedError } from './utils/errors';
+import { withCodedExceptionHandler, withEvmQueryValidation } from './utils/express-helpers';
 import { coinGeckoTokens } from './utils/gecko-tokens';
 import { getExternalApiErrorPayload, isDefined, isNonEmptyString } from './utils/helpers';
 import logger from './utils/logger';
@@ -386,68 +387,45 @@ app.get('/api/signing-nonce', (req, res) => {
     }
   }
 });
-app.get('/api/evm-balances', async (req, res) => {
-  try {
-    const { walletAddress, chainId } = req.query;
 
-    if (typeof walletAddress !== 'string') throw new Error('walletAddress is not a string');
-    if (typeof chainId !== 'string') throw new Error('chainId is not a string');
+app.get(
+  '/api/evm-balances',
+  withCodedExceptionHandler(
+    withEvmQueryValidation(async (_1, res, _2, evmQueryParams) => {
+      const { walletAddress, chainId } = evmQueryParams;
 
-    const data = await getEvmBalances(walletAddress, chainId);
+      const data = await getEvmBalances(walletAddress, chainId);
 
-    res.status(200).send(getStringifiedResponse(data));
-  } catch (error: any) {
-    console.error(error);
+      res.status(200).send(getStringifiedResponse(data));
+    })
+  )
+);
 
-    if (error instanceof CodedError) {
-      res.status(error.code).send(error.buildResponse());
-    } else {
-      res.status(500).send({ message: error?.message });
-    }
-  }
-});
+app.get(
+  '/api/evm-tokens-metadata',
+  withCodedExceptionHandler(
+    withEvmQueryValidation(async (_1, res, _2, evmQueryParams) => {
+      const { walletAddress, chainId } = evmQueryParams;
 
-app.get('/api/evm-tokens-metadata', async (req, res) => {
-  try {
-    const { walletAddress, chainId } = req.query;
+      const data = await getEvmTokensMetadata(walletAddress, chainId);
 
-    if (typeof walletAddress !== 'string') throw new Error('walletAddress is not a string');
-    if (typeof chainId !== 'string') throw new Error('chainId is not a string');
+      res.status(200).send(getStringifiedResponse(data));
+    })
+  )
+);
 
-    const data = await getEvmTokensMetadata(walletAddress, chainId);
+app.get(
+  '/api/evm-collectibles-metadata',
+  withCodedExceptionHandler(
+    withEvmQueryValidation(async (_1, res, _2, evmQueryParams) => {
+      const { walletAddress, chainId } = evmQueryParams;
 
-    res.status(200).send(getStringifiedResponse(data));
-  } catch (error: any) {
-    console.error(error);
+      const data = await getEvmCollectiblesMetadata(walletAddress, chainId);
 
-    if (error instanceof CodedError) {
-      res.status(error.code).send(error.buildResponse());
-    } else {
-      res.status(500).send({ message: error?.message });
-    }
-  }
-});
-
-app.get('/api/evm-collectibles-metadata', async (req, res) => {
-  try {
-    const { walletAddress, chainId } = req.query;
-
-    if (typeof walletAddress !== 'string') throw new Error('walletAddress is not a string');
-    if (typeof chainId !== 'string') throw new Error('chainId is not a string');
-
-    const data = await getEvmCollectiblesMetadata(walletAddress, chainId);
-
-    res.status(200).send(getStringifiedResponse(data));
-  } catch (error: any) {
-    console.error(error);
-
-    if (error instanceof CodedError) {
-      res.status(error.code).send(error.buildResponse());
-    } else {
-      res.status(500).send({ message: error?.message });
-    }
-  }
-});
+      res.status(200).send(getStringifiedResponse(data));
+    })
+  )
+);
 
 const swaggerOptions = {
   swaggerDefinition: {

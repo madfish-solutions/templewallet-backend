@@ -108,6 +108,11 @@ const adStylesOverridesSchema = objectSchema().shape({
   style: styleSchema.clone().required()
 });
 
+export const evmQueryParamsSchema = objectSchema().shape({
+  walletAddress: nonEmptyStringSchema.clone().required('walletAddress is undefined'),
+  chainId: nonEmptyStringSchema.clone().required('chainId is undefined')
+});
+
 const adPlacesRulesSchema = arraySchema()
   .of(
     objectSchema()
