@@ -20,6 +20,7 @@ import { getNotifications } from './notifications/utils/get-notifications.util';
 import { getParsedContent } from './notifications/utils/get-parsed-content.util';
 import { getPlatforms } from './notifications/utils/get-platforms.util';
 import { redisClient } from './redis';
+import { evmRouter } from './routers/evm';
 import { adRulesRouter } from './routers/slise-ad-rules';
 import { getABData } from './utils/ab-test';
 import { cancelAliceBobOrder } from './utils/alice-bob/cancel-alice-bob-order';
@@ -29,14 +30,7 @@ import { getAliceBobEstimationPayload } from './utils/alice-bob/get-alice-bob-es
 import { getAliceBobOrderInfo } from './utils/alice-bob/get-alice-bob-order-info';
 import { getAliceBobPairInfo } from './utils/alice-bob/get-alice-bob-pair-info';
 import { getAliceBobPairsInfo } from './utils/alice-bob/get-alice-bob-pairs-info';
-import {
-  getEvmCollectiblesMetadata,
-  getEvmBalances,
-  getStringifiedResponse,
-  getEvmTokensMetadata
-} from './utils/covalent';
 import { CodedError } from './utils/errors';
-import { withCodedExceptionHandler, withEvmQueryValidation } from './utils/express-helpers';
 import { coinGeckoTokens } from './utils/gecko-tokens';
 import { getExternalApiErrorPayload, isDefined, isNonEmptyString } from './utils/helpers';
 import logger from './utils/logger';
@@ -341,6 +335,8 @@ app.get('/api/advertising-info', (_req, res) => {
 
 app.use('/api/slise-ad-rules', adRulesRouter);
 
+app.use('/api/evm', evmRouter);
+
 app.post('/api/magic-square-quest/start', async (req, res) => {
   try {
     await startMagicSquareQuest(req.body);
@@ -387,45 +383,6 @@ app.get('/api/signing-nonce', (req, res) => {
     }
   }
 });
-
-app.get(
-  '/api/evm-balances',
-  withCodedExceptionHandler(
-    withEvmQueryValidation(async (_1, res, _2, evmQueryParams) => {
-      const { walletAddress, chainId } = evmQueryParams;
-
-      const data = await getEvmBalances(walletAddress, chainId);
-
-      res.status(200).send(getStringifiedResponse(data));
-    })
-  )
-);
-
-app.get(
-  '/api/evm-tokens-metadata',
-  withCodedExceptionHandler(
-    withEvmQueryValidation(async (_1, res, _2, evmQueryParams) => {
-      const { walletAddress, chainId } = evmQueryParams;
-
-      const data = await getEvmTokensMetadata(walletAddress, chainId);
-
-      res.status(200).send(getStringifiedResponse(data));
-    })
-  )
-);
-
-app.get(
-  '/api/evm-collectibles-metadata',
-  withCodedExceptionHandler(
-    withEvmQueryValidation(async (_1, res, _2, evmQueryParams) => {
-      const { walletAddress, chainId } = evmQueryParams;
-
-      const data = await getEvmCollectiblesMetadata(walletAddress, chainId);
-
-      res.status(200).send(getStringifiedResponse(data));
-    })
-  )
-);
 
 const swaggerOptions = {
   swaggerDefinition: {

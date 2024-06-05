@@ -1,8 +1,8 @@
 import { ChainID, CovalentClient } from '@covalenthq/client-sdk';
 import retry from 'async-retry';
 
-import { EnvVars } from '../config';
-import { CodedError } from './errors';
+import { EnvVars } from '../../config';
+import { CodedError } from '../../utils/errors';
 
 const client = new CovalentClient(EnvVars.COVALENT_API_KEY, { enableRetry: false, threadCount: 10 });
 
