@@ -20,6 +20,7 @@ import { getNotifications } from './notifications/utils/get-notifications.util';
 import { getParsedContent } from './notifications/utils/get-parsed-content.util';
 import { getPlatforms } from './notifications/utils/get-platforms.util';
 import { redisClient } from './redis';
+import { evmRouter } from './routers/evm';
 import { adRulesRouter } from './routers/slise-ad-rules';
 import { getABData } from './utils/ab-test';
 import { cancelAliceBobOrder } from './utils/alice-bob/cancel-alice-bob-order';
@@ -333,6 +334,8 @@ app.get('/api/advertising-info', (_req, res) => {
 });
 
 app.use('/api/slise-ad-rules', adRulesRouter);
+
+app.use('/api/evm', evmRouter);
 
 app.post('/api/magic-square-quest/start', async (req, res) => {
   try {
