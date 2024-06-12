@@ -1,5 +1,6 @@
 import { Router } from 'express';
 
+import { adCategoryRouter } from './ad-category';
 import { adPlacesRulesRouter } from './ad-places';
 import { adProvidersRouter } from './providers';
 import { replaceUrlsBlacklistRouter } from './replace-urls-blacklist';
@@ -40,6 +41,7 @@ import { replaceUrlsBlacklistRouter } from './replace-urls-blacklist';
 
 export const adRulesRouter = Router();
 
+adRulesRouter.use('/ad-category', adCategoryRouter);
 adRulesRouter.use('/ad-places', adPlacesRulesRouter);
 adRulesRouter.use('/providers', adProvidersRouter);
 adRulesRouter.use('/replace-urls-blacklist', replaceUrlsBlacklistRouter);
