@@ -1,0 +1,14 @@
+FROM --platform=linux/amd64 ubuntu:22.04
+WORKDIR /usr/src/app
+ARG CTWSD_FTP_URL
+ARG CTWSD_FTP_USER
+ARG CTWSD_FTP_PASS
+ARG CTWSD_SERVER_ADDRESS
+ARG CTWSD_LICENSE_KEY
+RUN mkdir -p /opt/tmp
+COPY ./setup_ctwsd.sh /usr/src/app/
+COPY ./cc_* ./CustomCategoryDefinition.ini ./CustomCategoryIndex.idx /opt/tmp/
+RUN CTWSD_FTP_URL=${CTWSD_FTP_URL} CTWSD_FTP_USER=${CTWSD_FTP_USER} CTWSD_FTP_PASS=${CTWSD_FTP_PASS} \
+  CTWSD_LICENSE_KEY=${CTWSD_LICENSE_KEY} CTWSD_SERVER_ADDRESS=${CTWSD_SERVER_ADDRESS} ./setup_ctwsd.sh
+EXPOSE 8080
+CMD [ "./ctwsd/bin/ctwsd", "-i", "-c", "./ctwsd/bin/ctwsd.conf" ]

@@ -15,12 +15,12 @@ export default class PromisifiedSemaphore {
     return this.semaphore.available(n);
   }
 
-  exec(task: () => void | Promise<void>, n = 1) {
-    return new Promise<void>((resolve, reject) => {
+  exec<T>(task: () => T | Promise<T>, n = 1) {
+    return new Promise<T>((resolve, reject) => {
       this.semaphore.take(n, async () => {
         try {
-          await task();
-          resolve();
+          const value = await task();
+          resolve(value);
         } catch (e) {
           reject(e);
         } finally {

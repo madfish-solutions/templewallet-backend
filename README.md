@@ -26,11 +26,11 @@ Use `yarn run build` for building.
 
 ## Building and running using Docker
 
-Follow the instructions on [Building your image](https://nodejs.org/en/docs/guides/nodejs-docker-webapp/#building-your-image) and [Running the image](https://nodejs.org/en/docs/guides/nodejs-docker-webapp/#run-the-image). Change the port number in both `.env` and `Dockerfile` if the webapp should be run on another port than 3000.
+Follow the instructions on [Building your image](https://nodejs.org/en/docs/guides/nodejs-docker-webapp/#building-your-image) and [Running the image](https://nodejs.org/en/docs/guides/nodejs-docker-webapp/#run-the-image). Change the port number in both `.env` and `Dockerfile` if the webapp should be run on another port than 3000. You also need to build and run a container with `ctwsd`, see "Building and running `ctwsd` host".
 
 ## Running with pm2
 
-You can run the built backend using `pm2 restart templewallet-backend.json`.
+You can run the built backend using `pm2 restart templewallet-backend.json`. You also need to build and run a container with `ctwsd`, see "Building and running `ctwsd` host".
 
 ## Upstreaming using nginx
 
@@ -67,3 +67,19 @@ location /api/exchange-rates/ {
 ```
 
 Replace 3000 with the respective port number if the backend is listening on a different one. Restart nginx using `sudo systemctl restart nginx` after changes are saved.
+
+## Building and running `ctwsd` host
+
+1. Build the image with command
+```
+docker build \
+  --build-arg CTWSD_FTP_URL=<URL to ctwsd archive for Ubuntu 22.04> \
+  --build-arg CTWSD_FTP_USER=<FTP server username> \
+  --build-arg CTWSD_FTP_PASS=<FTP server password> \
+  --build-arg CTWSD_SERVER_ADDRESS=<Cyren Datacenter server address> \
+  --build-arg CTWSD_LICENSE_KEY=<URLF License Key>:<OEM id> \
+  --file Dockerfile.ctwsd .
+```
+OEM id is an arbitrary alphanumeric string with up to 35 characters.
+2. Get image ID with command `docker image ls`
+3. Start a container with the new image using command `docker container run -d -p <destination port>:8080 <image ID>`

@@ -1,4 +1,5 @@
 import { NextFunction, Request, RequestHandler, Response, Router } from 'express';
+import { ParsedQs } from 'qs';
 import { ArraySchema as IArraySchema, ObjectSchema as IObjectSchema, Schema, ValidationError } from 'yup';
 
 import { basicAuth } from '../middlewares/basic-auth.middleware';
@@ -13,11 +14,7 @@ interface ObjectStorageMethods<V> {
   removeValues: (keys: string[]) => Promise<number>;
 }
 
-type TypedBodyRequestHandler<T> = (
-  req: Request<Record<string, string>, unknown, T>,
-  res: Response,
-  next: NextFunction
-) => void;
+type TypedBodyRequestHandler<T> = (req: Request<unknown, unknown, T>, res: Response, next: NextFunction) => void;
 
 export const withBodyValidation =
   <T>(schema: Schema<T>, handler: TypedBodyRequestHandler<T>): RequestHandler =>
@@ -33,6 +30,28 @@ export const withBodyValidation =
     }
 
     return handler(req, res, next);
+  };
+
+type TypedQueryParamsRequestHandler<T> = (
+  req: Request<unknown, unknown, unknown, ParsedQs & T>,
+  res: Response,
+  next: NextFunction
+) => void;
+
+export const withQueryParamsValidation =
+  <T>(schema: Schema<ParsedQs & T>, handler: TypedQueryParamsRequestHandler<T>): RequestHandler =>
+  async (req, res, next) => {
+    try {
+      req.query = await schema.validate(req.query);
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        return res.status(400).send({ error: error.message });
+      }
+
+      throw error;
+    }
+
+    return handler(req as Request & { query: ParsedQs & T }, res, next);
   };
 
 interface EvmQueryParams {

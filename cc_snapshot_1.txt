@@ -1,0 +1,2 @@
+i	www.ynet.co.il	503
+i	www.walla.co.il	501,502

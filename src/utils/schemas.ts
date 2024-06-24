@@ -231,3 +231,7 @@ export const replaceUrlsBlacklistDictionarySchema: IObjectSchema<Record<string, 
     nonEmptyStringSchema.clone().required(),
     arraySchema().of(replaceUrlsBlacklistEntrySchema.clone().required()).required()
   ).required();
+
+export const adCategoryQueryParamsSchema: IObjectSchema<{ url: string }> = objectSchema()
+  .shape({ url: stringSchema().url().required() })
+  .required();
