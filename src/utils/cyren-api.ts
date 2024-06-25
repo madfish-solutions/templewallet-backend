@@ -1,10 +1,14 @@
 import axios from 'axios';
+import { readFile } from 'fs/promises';
 import { StatusCodes } from 'http-status-codes';
+import path from 'path';
 import { RateLimiterMemory, RateLimiterRedis } from 'rate-limiter-flexible';
 
 import { EnvVars } from '../config';
 import { redisClient } from '../redis';
 import { CodedError } from './errors';
+import { isDefined } from './helpers';
+import logger from './logger';
 import MutexProtectedData from './MutexProtectedData';
 import SingleQueryDataProvider from './SingleQueryDataProvider';
 
@@ -20,6 +24,9 @@ interface SiteCategory {
   name: string;
   description: string;
 }
+
+const iniFileCategoryIdRegex = /^\[(\d+)\]/;
+const iniFilePropertyRegex = /^(\w+)\s*=\s*(.+)/;
 
 const isErrorResponse = (response: ParsedCyrenApiResponse): response is ParsedCyrenApiErrorResponse =>
   response[1][0].length === 1;
@@ -56,24 +63,29 @@ const getRequestId = () =>
   });
 
 const parseCyrenApiResponse = (response: string) => {
-  let remainingLines = response.split('\n').map(line => line.trim());
   const blocks: ResponseBlock[] = [];
-  while (remainingLines.length > 0) {
-    const emptyLineIndex = remainingLines.indexOf('');
-    const blockLines = emptyLineIndex === -1 ? remainingLines : remainingLines.slice(0, emptyLineIndex);
-    const block = blockLines.map((line): [string] | [string, string] => {
-      if (line.startsWith('x-ctch')) {
-        const separatorIndex = line.indexOf(':');
+  let currentBlock: ([string] | [string, string])[] = [];
 
-        return [line.slice(0, separatorIndex).trim(), line.slice(separatorIndex + 1).trim()];
-      }
+  response.split('\n').forEach(line => {
+    const trimmedLine = line.trim();
 
-      return [line];
-    }) as ResponseBlock;
-    if (block.length > 0) {
-      blocks.push(block);
+    if (trimmedLine === '' && currentBlock.length > 0) {
+      blocks.push(currentBlock as ResponseDataBlock);
+      currentBlock = [];
+    } else if (trimmedLine.startsWith('x-ctch')) {
+      const separatorIndex = trimmedLine.indexOf(':');
+      const parsedBlockLine: [string, string] = [
+        trimmedLine.slice(0, separatorIndex).trim(),
+        trimmedLine.slice(separatorIndex + 1).trim()
+      ];
+
+      currentBlock.push(parsedBlockLine);
+    } else {
+      currentBlock.push([trimmedLine]);
     }
-    remainingLines = emptyLineIndex === -1 ? [] : remainingLines.slice(emptyLineIndex + 1);
+  });
+  if (currentBlock.length > 0) {
+    blocks.push(currentBlock as ResponseDataBlock);
   }
 
   return blocks as ParsedCyrenApiResponse;
@@ -93,43 +105,95 @@ x-ctch-pver: 1.0
     throw new Error(`Failed to fetch categories: ${parsedResponse[1][0]}`);
   }
 
-  const [, defaultCategoriesBlock, customCategoriesBlock = [['x-ctch-custom-cat-count', '0']]] = parsedResponse;
+  // TODO: use the block with custom categories and remove parsing ini file after they are fixed
+  const [, defaultCategoriesBlock] = parsedResponse;
+  const [counterLine, ...restLines] = defaultCategoriesBlock;
 
-  const [defaultCategories, customCategories] = [defaultCategoriesBlock, customCategoriesBlock].map(
-    ([counterLine, ...restLines]) => {
-      const categoriesCount = Number.parseInt(counterLine[1]);
+  const categoriesCount = Number.parseInt(counterLine[1]);
 
-      const categories: SiteCategory[] = [];
-      for (let i = 0; i < categoriesCount; i++) {
-        const category = {
-          id: 0,
-          name: '',
-          description: ''
-        };
-        const dataLines = restLines.slice(i * 3, (i + 1) * 3);
-        dataLines.forEach(([name, value]) => {
-          switch (name) {
-            case 'x-ctch-cat-id':
-              category.id = Number.parseInt(value);
-              break;
-            case 'x-ctch-cat-name':
-              category.name = value;
-              break;
-            default:
-              category.description = value;
-          }
-        });
-        categories.push(category);
+  const categories: SiteCategory[] = [];
+  for (let i = 0; i < categoriesCount; i++) {
+    const category = {
+      id: 0,
+      name: '',
+      description: ''
+    };
+    const dataLines = restLines.slice(i * 3, (i + 1) * 3);
+    dataLines.forEach(([name, value]) => {
+      switch (name) {
+        case 'x-ctch-cat-id':
+          category.id = Number.parseInt(value);
+          break;
+        case 'x-ctch-cat-name':
+          category.name = value;
+          break;
+        default:
+          category.description = value;
       }
+    });
+    categories.push(category);
+  }
 
-      return Object.fromEntries(categories.map(category => [category.id, category]));
-    }
+  const defaultCategories = Object.fromEntries(categories.map(category => [category.id, category]));
+
+  const rawCustomCategoryDefinitions = await readFile(
+    path.resolve(__dirname, '../../ctwsd-config/CustomCategoryDefinition.ini'),
+    { encoding: 'utf-8' }
   );
+  const customCategories: Record<number, SiteCategory> = {};
+  let nextCategory: SiteCategory = {
+    id: -1,
+    name: '',
+    description: ''
+  };
+  rawCustomCategoryDefinitions.split('\n').forEach(line => {
+    const trimmedLine = line.trim();
+
+    if (trimmedLine === '' && nextCategory.id !== -1 && nextCategory.name !== '') {
+      customCategories[nextCategory.id] = nextCategory;
+      nextCategory = {
+        id: -1,
+        name: '',
+        description: ''
+      };
+
+      return;
+    }
+
+    const categoryIdExecResult = iniFileCategoryIdRegex.exec(trimmedLine);
+    if (isDefined(categoryIdExecResult)) {
+      nextCategory.id = Number.parseInt(categoryIdExecResult[1]);
+
+      return;
+    }
+
+    const propertyExecResult = iniFilePropertyRegex.exec(trimmedLine);
+    if (propertyExecResult) {
+      switch (propertyExecResult[1]) {
+        case 'Name':
+          nextCategory.name = propertyExecResult[2];
+          break;
+        case 'Description':
+          nextCategory.description = propertyExecResult[2];
+          break;
+        default:
+          logger.warn(`Unknown property in custom category definition: ${propertyExecResult[1]}`);
+      }
+    }
+  });
+  if (nextCategory.id !== -1 && nextCategory.name !== '') {
+    customCategories[nextCategory.id] = nextCategory;
+  }
 
   return { defaultCategories, customCategories };
 });
 
 export const getSiteCategories = async (url: string) => {
+  // TODO: remove this after the issue with HTTPS URLs is fixed
+  if (url.startsWith('https://')) {
+    url = url.slice(8);
+  }
+
   const { data: categories, error } = await categoriesProvider.getState();
 
   if (error) {
