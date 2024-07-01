@@ -117,9 +117,14 @@ export interface PermanentAdPlacesRule extends ExtVersionConstraints {
   insertBeforeSelector?: string;
   insertAfterSelector?: string;
   insertionsCount?: number;
-  shouldUseDivWrapper: boolean;
+  shouldUseDivWrapper?: boolean;
+  wrapperType?: string;
+  colsBefore?: number;
+  colspan?: number;
+  colsAfter?: number;
   elementStyle?: Record<StylePropName, string>;
   divWrapperStyle?: Record<StylePropName, string>;
+  wrapperStyle?: Record<StylePropName, string>;
   elementToMeasureSelector?: string;
   stylesOverrides?: AdStylesOverrides[];
   shouldHideOriginal?: boolean;
