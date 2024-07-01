@@ -158,7 +158,6 @@ const transformAdPlacesDictionary = <T extends ExtVersionConstraints>(rules: Rec
  *             - urlRegexes
  *             - adSelector
  *             - parentSelector
- *             - shouldUseDivWrapper
  *           properties:
  *             urlRegexes:
  *               type: array
