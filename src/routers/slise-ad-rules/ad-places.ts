@@ -108,6 +108,10 @@ const transformAdPlacesDictionary = <T extends ExtVersionConstraints>(rules: Rec
  *               type: boolean
  *               description: Whether original ads banners should be hidden but not removed
  *               default: false
+ *             isNative:
+ *               type: boolean
+ *               description: Whether the ad is native
+ *               default: false
  *           example:
  *             urlRegexes:
  *               - '^https://goerli\.etherscan\.io/?$'

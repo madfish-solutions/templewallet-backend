@@ -99,6 +99,7 @@ export interface AdPlacesRule extends ExtVersionConstraints {
   };
   stylesOverrides?: AdStylesOverrides[];
   shouldHideOriginal?: boolean;
+  isNative?: boolean;
 }
 
 export interface PermanentAdPlacesRule extends ExtVersionConstraints {

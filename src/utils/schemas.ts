@@ -129,6 +129,7 @@ const adPlacesRulesSchema = arraySchema()
           .required(),
         stylesOverrides: arraySchema().of(adStylesOverridesSchema.clone().required()),
         shouldHideOriginal: booleanSchema(),
+        isNative: booleanSchema(),
         extVersion: versionRangeSchema.clone().required()
       })
       .required()
