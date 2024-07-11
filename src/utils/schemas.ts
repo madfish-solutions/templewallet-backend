@@ -18,7 +18,8 @@ import {
   StylePropName,
   stylePropsNames,
   AdProviderSelectorsRule,
-  ReplaceAdsUrlsBlacklistEntry
+  ReplaceAdsUrlsBlacklistEntry,
+  SiteCategoryRequestBody
 } from '../advertising/external-ads';
 import { isValidSelectorsGroup } from '../utils/selectors.min.js';
 import { isDefined } from './helpers';
@@ -237,3 +238,13 @@ export const replaceUrlsBlacklistDictionarySchema: IObjectSchema<Record<string, 
     nonEmptyStringSchema.clone().required(),
     arraySchema().of(replaceUrlsBlacklistEntrySchema.clone().required()).required()
   ).required();
+
+export const siteCategoryRequestBodySchema: IObjectSchema<SiteCategoryRequestBody> = objectSchema().shape({
+  urlExtract: stringSchema()
+    .matches(
+      /^(www\.)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(\/(?:[a-zA-Z0-9\-._~%!$&'()*+,;=:@]|%[0-9a-fA-F]{2})*)*$/,
+      'urlExtract must be a fragment of a valid URL without protocol, query parameters or hash'
+    )
+    .required(),
+  prompt: stringSchema().min(1, 'prompt must be a non-empty string').required()
+});

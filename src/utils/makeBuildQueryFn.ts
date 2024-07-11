@@ -43,16 +43,7 @@ export function makeBuildQueryFn<P extends object, R>(
       };
 
       if (semaphore) {
-        return new Promise<R1>((resolve, reject) => {
-          semaphore.exec(async () => {
-            try {
-              const data = await getData();
-              resolve(data);
-            } catch (e) {
-              reject(e);
-            }
-          });
-        });
+        return await semaphore.exec<R1>(getData);
       }
 
       return getData();

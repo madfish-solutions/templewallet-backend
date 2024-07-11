@@ -1,6 +1,7 @@
 import { satisfies as versionSatisfiesRange } from 'semver';
 
 import { objectStorageMethodsFactory, redisClient } from '../redis';
+import { ItemStatus as CategoraizeItemStatus } from '../utils/categoraize';
 
 /** Style properties names that are likely to be unnecessary for banners are skipped */
 export const stylePropsNames = [
@@ -149,6 +150,17 @@ export interface ReplaceAdsUrlsBlacklistEntry extends ExtVersionConstraints {
   regexes: string[];
 }
 
+export interface SiteCategoryRequestBody {
+  prompt: string;
+  urlExtract: string;
+}
+
+interface SiteCategoryEntry {
+  itemId: string;
+  category?: string;
+  status: CategoraizeItemStatus;
+}
+
 const AD_PLACES_RULES_KEY = 'ad_places_rules';
 const AD_PROVIDERS_BY_SITES_KEY = 'ad_providers_by_sites';
 const AD_PROVIDERS_ALL_SITES_KEY = 'ad_providers_all_sites';
@@ -156,6 +168,7 @@ const AD_PROVIDERS_LIST_KEY = 'ad_providers_list';
 const PERMANENT_AD_PLACES_RULES_KEY = 'permanent_ad_places_rules';
 const PERMANENT_NATIVE_AD_PLACES_RULES_KEY = 'permanent_native_ad_places_rules';
 const REPLACE_ADS_URLS_BLACKLIST_KEY = 'replace_ads_urls_blacklist';
+const SITES_CATEGORIES_KEY = 'sites_categories';
 
 export const adPlacesRulesMethods = objectStorageMethodsFactory<AdPlacesRule[]>(AD_PLACES_RULES_KEY, []);
 
@@ -180,6 +193,8 @@ export const replaceAdsUrlsBlacklistMethods = objectStorageMethodsFactory<Replac
   REPLACE_ADS_URLS_BLACKLIST_KEY,
   []
 );
+
+export const sitesCategoriesMethods = objectStorageMethodsFactory<SiteCategoryEntry | null>(SITES_CATEGORIES_KEY, null);
 
 export const getAdProvidersForAllSites = async () => redisClient.smembers(AD_PROVIDERS_ALL_SITES_KEY);
 
