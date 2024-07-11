@@ -108,6 +108,10 @@ const transformAdPlacesDictionary = <T extends ExtVersionConstraints>(rules: Rec
  *               type: boolean
  *               description: Whether original ads banners should be hidden but not removed
  *               default: false
+ *             isNative:
+ *               type: boolean
+ *               description: Whether the ad is native
+ *               default: false
  *           example:
  *             urlRegexes:
  *               - '^https://goerli\.etherscan\.io/?$'
@@ -158,7 +162,6 @@ const transformAdPlacesDictionary = <T extends ExtVersionConstraints>(rules: Rec
  *             - urlRegexes
  *             - adSelector
  *             - parentSelector
- *             - shouldUseDivWrapper
  *           properties:
  *             urlRegexes:
  *               type: array
@@ -233,6 +236,32 @@ const transformAdPlacesDictionary = <T extends ExtVersionConstraints>(rules: Rec
  *             shouldUseDivWrapper:
  *               type: boolean
  *               description: Whether the ads banner should be wrapped in a div
+ *             wrapperType:
+ *               type: string
+ *               enum:
+ *                 - div
+ *                 - tbody
+ *             colsBefore:
+ *               type: number
+ *               integer: true
+ *               min: 0
+ *               description: >
+ *                 If `wrapperType` is `tbody`, this property describes how many table columns should be inserted before
+ *                 the new ads banner.
+ *             colspan:
+ *               type: number
+ *               integer: true
+ *               min: 1
+ *               description: >
+ *                 If `wrapperType` is `tbody`, this property describes how many table columns should be spanned by the
+ *                 new ads banner.
+ *             colsAfter:
+ *               type: number
+ *               integer: true
+ *               min: 0
+ *               description: >
+ *                 If `wrapperType` is `tbody`, this property describes how many table columns should be inserted after
+ *                 the new ads banner.
  *             elementStyle:
  *               type: object
  *               description: Style of the new ad banner
@@ -241,6 +270,11 @@ const transformAdPlacesDictionary = <T extends ExtVersionConstraints>(rules: Rec
  *             divWrapperStyle:
  *               type: object
  *               description: Style of the div wrapper
+ *               additionalProperties:
+ *                 type: string
+ *             wrapperStyle:
+ *               type: object
+ *               description: Style of the new ad banner's wrapper
  *               additionalProperties:
  *                 type: string
  *             elementToMeasureSelector:
