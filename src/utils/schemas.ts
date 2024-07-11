@@ -124,6 +124,7 @@ const adPlacesRulesSchema = arraySchema()
           .required(),
         stylesOverrides: arraySchema().of(adStylesOverridesSchema.clone().required()),
         shouldHideOriginal: booleanSchema(),
+        isNative: booleanSchema(),
         extVersion: versionRangeSchema.clone().required()
       })
       .required()
@@ -158,9 +159,14 @@ const permanentAdPlacesRulesSchema = arraySchema()
         insertBeforeSelector: cssSelectorSchema,
         insertAfterSelector: cssSelectorSchema,
         insertionsCount: numberSchema().integer().min(1),
-        shouldUseDivWrapper: booleanSchema().required(),
+        shouldUseDivWrapper: booleanSchema(),
+        wrapperType: stringSchema().oneOf(['div', 'tbody']),
+        colsBefore: numberSchema().integer().min(0),
+        colspan: numberSchema().integer().min(1),
+        colsAfter: numberSchema().integer().min(0),
         elementStyle: styleSchema,
         divWrapperStyle: styleSchema,
+        wrapperStyle: styleSchema,
         elementToMeasureSelector: cssSelectorSchema,
         stylesOverrides: arraySchema().of(adStylesOverridesSchema.clone().required()),
         shouldHideOriginal: booleanSchema(),
