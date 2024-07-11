@@ -33,6 +33,7 @@
     "pino-http": "^5.5.0",
     "pino-pretty": "^4.7.1",
     "qs": "^6.10.3",
+    "rate-limiter-flexible": "^5.0.3",
     "semaphore": "^1.1.0",
     "semver": "^7.6.0",
     "swagger-jsdoc": "^6.2.8",

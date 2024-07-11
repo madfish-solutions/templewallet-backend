@@ -7,8 +7,8 @@ export default class MutexProtectedData<T> {
     this.mutex = new PromisifiedSemaphore();
   }
 
-  exec(task: () => void | Promise<void>) {
-    return this.mutex.exec(task);
+  exec<U = void>(task: (data: T, setData: (value: T) => void) => U | Promise<U>) {
+    return this.mutex.exec(() => task(this.data, value => void (this.data = value)));
   }
 
   setData(newData: T) {

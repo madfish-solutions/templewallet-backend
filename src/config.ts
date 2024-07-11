@@ -13,7 +13,8 @@ export const EnvVars = {
   REDIS_URL: getEnv('REDIS_URL'),
   ADMIN_USERNAME: getEnv('ADMIN_USERNAME'),
   ADMIN_PASSWORD: getEnv('ADMIN_PASSWORD'),
-  COVALENT_API_KEY: getEnv('COVALENT_API_KEY')
+  COVALENT_API_KEY: getEnv('COVALENT_API_KEY'),
+  CTWSD_CONTAINER_ADDRESS: getEnv('CTWSD_CONTAINER_ADDRESS')
 };
 
 for (const name in EnvVars) {

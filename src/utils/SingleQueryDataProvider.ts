@@ -42,7 +42,9 @@ export default class SingleQueryDataProvider<T> {
   ) {
     this.fetchMutex = new PromisifiedSemaphore();
     this.readyMutex = new PromisifiedSemaphore();
-    this.state = new MutexProtectedData({ error: new Error('This error should not be displayed') });
+    this.state = new MutexProtectedData<SingleQueryDataProviderState<T>>({
+      error: new Error('This error should not be displayed')
+    });
     this.init();
   }
 

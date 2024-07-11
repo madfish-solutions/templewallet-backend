@@ -30,11 +30,14 @@ import { getAliceBobEstimationPayload } from './utils/alice-bob/get-alice-bob-es
 import { getAliceBobOrderInfo } from './utils/alice-bob/get-alice-bob-order-info';
 import { getAliceBobPairInfo } from './utils/alice-bob/get-alice-bob-pair-info';
 import { getAliceBobPairsInfo } from './utils/alice-bob/get-alice-bob-pairs-info';
+import { getSiteCategories } from './utils/cyren-api';
 import { CodedError } from './utils/errors';
+import { withCodedExceptionHandler, withQueryParamsValidation } from './utils/express-helpers';
 import { coinGeckoTokens } from './utils/gecko-tokens';
 import { getExternalApiErrorPayload, isDefined, isNonEmptyString } from './utils/helpers';
 import logger from './utils/logger';
 import { getSignedMoonPayUrl } from './utils/moonpay/get-signed-moonpay-url';
+import { adCategoryQueryParamsSchema } from './utils/schemas';
 import { getSigningNonce } from './utils/signing-nonce';
 import SingleQueryDataProvider from './utils/SingleQueryDataProvider';
 import { tezExchangeRateProvider } from './utils/tezos';
@@ -66,6 +69,7 @@ const app = express();
 app.use(pinoHttp(PINO_LOGGER));
 app.use(cors());
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 const androidApp = firebaseAdmin.initializeApp(
   {
@@ -334,6 +338,17 @@ app.get('/api/advertising-info', (_req, res) => {
 });
 
 app.use('/api/slise-ad-rules', adRulesRouter);
+
+app.get(
+  '/api/get-ad-category',
+  withCodedExceptionHandler(
+    withQueryParamsValidation(adCategoryQueryParamsSchema, async (req, res) => {
+      const categories = await getSiteCategories(req.query.url);
+
+      res.status(200).send(categories);
+    })
+  )
+);
 
 app.use('/api/evm', evmRouter);
 
