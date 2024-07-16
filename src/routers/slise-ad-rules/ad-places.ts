@@ -280,6 +280,18 @@ const transformAdPlacesDictionary = <T extends ExtVersionConstraints>(rules: Rec
  *             elementToMeasureSelector:
  *               type: string
  *               description: A selector of the element which should be measured to define banner size
+ *             elementsToMeasureSelectors:
+ *               type: object
+ *               required:
+ *                 - width
+ *                 - height
+ *               properties:
+ *                 width:
+ *                   type: string
+ *                   description: A selector of the element which should be measured to define banner width
+ *                 height:
+ *                   type: string
+ *                   description: A selector of the element which should be measured to define banner height
  *             stylesOverrides:
  *               type: array
  *               items:
@@ -288,6 +300,12 @@ const transformAdPlacesDictionary = <T extends ExtVersionConstraints>(rules: Rec
  *               type: boolean
  *               description: Whether original ads banners should be hidden but not removed
  *               default: false
+ *             displayWidth:
+ *               type: string
+ *               description: >
+ *                 A range of display widths in a semver-like format where the rule is applicable. Numbers can be only
+ *                 integers. If not specified, the rule is applicable for all display widths.
+ *               example: '>=1024 <1280'
  *           example:
  *             urlRegexes:
  *               - '^https://etherscan\.io/tx/'

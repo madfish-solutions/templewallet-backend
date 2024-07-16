@@ -127,8 +127,10 @@ export interface PermanentAdPlacesRule extends ExtVersionConstraints {
   divWrapperStyle?: Record<StylePropName, string>;
   wrapperStyle?: Record<StylePropName, string>;
   elementToMeasureSelector?: string;
+  elementsToMeasureSelectors?: Record<'width' | 'height', string>;
   stylesOverrides?: AdStylesOverrides[];
   shouldHideOriginal?: boolean;
+  displayWidth?: string;
 }
 
 export interface AdProvidersByDomainRule extends ExtVersionConstraints {
@@ -138,6 +140,7 @@ export interface AdProvidersByDomainRule extends ExtVersionConstraints {
 
 export interface AdProviderSelectorsRule extends ExtVersionConstraints {
   selectors: string[];
+  negativeSelectors?: string[];
   parentDepth?: number;
 }
 

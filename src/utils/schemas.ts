@@ -173,9 +173,35 @@ const permanentAdPlacesRulesSchema = arraySchema()
         divWrapperStyle: styleSchema,
         wrapperStyle: styleSchema,
         elementToMeasureSelector: cssSelectorSchema,
+        elementsToMeasureSelectors: objectSchema()
+          .shape({ width: cssSelectorSchema.clone(), height: cssSelectorSchema.clone() })
+          .test('all-fields-present', function (value: unknown) {
+            if (!value || typeof value !== 'object') {
+              return true;
+            }
+
+            if (typeof (value as any).width === 'string' && typeof (value as any).height === 'string') {
+              return true;
+            }
+
+            throw this.createError({ path: this.path, message: 'Both `width` and `height` fields must be specified' });
+          })
+          .default(undefined) as unknown as IObjectSchema<{ width: string; height: string } | undefined>,
         stylesOverrides: arraySchema().of(adStylesOverridesSchema.clone().required()),
         shouldHideOriginal: booleanSchema(),
-        extVersion: versionRangeSchema.clone().required()
+        extVersion: versionRangeSchema.clone().required(),
+        displayWidth: versionRangeSchema.clone().test('valid-boundary-values', (value: string | undefined) => {
+          if (!isDefined(value) || value.length === 0) {
+            return true;
+          }
+
+          const nonIntegerNumberMatches = value.match(/\d+\.\d+/g);
+          if (isDefined(nonIntegerNumberMatches)) {
+            throw new Error('Display width must be an integer');
+          }
+
+          return true;
+        })
       })
       .test('insertion-place-specified', (value: PermanentAdPlacesRule | undefined) => {
         if (!value) {
@@ -217,6 +243,7 @@ export const adProvidersByDomainsRulesDictionarySchema: IObjectSchema<Record<str
 
 const adProvidersSelectorsRuleSchema = objectSchema().shape({
   selectors: cssSelectorsListSchema.clone().required(),
+  negativeSelectors: cssSelectorsListSchema.clone(),
   extVersion: versionRangeSchema.clone().required(),
   parentDepth: numberSchema().integer().min(0).default(0)
 });

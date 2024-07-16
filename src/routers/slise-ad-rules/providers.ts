@@ -72,6 +72,11 @@ import {
  *               type: array
  *               items:
  *                 type: string
+ *             negativeSelectors:
+ *               descriptions: Selectors for the elements that should not be touched even if they match `selectors`
+ *               type: array
+ *               items:
+ *                 type: string
  *             parentDepth:
  *               type: integer
  *               minimum: 0
@@ -319,6 +324,46 @@ addObjectStorageMethodsToRouter<AdProvidersByDomainRule[]>(adProvidersRouter, {
   valueTransformFn: identity,
   objectTransformFn: identity
 });
+
+/**
+ * @swagger
+ * /api/slise-ad-rules/providers/negative-selectors:
+ *   get:
+ *     summary: Get negative selectors for all providers filtered by extension version
+ *     tags:
+ *       - Known ads providers
+ *     parameters:
+ *       - in: query
+ *         name: extVersion
+ *         schema:
+ *           type: string
+ *           default: '0.0.0'
+ *         description: The extension version for which the rules should be returned
+ *     responses:
+ *       '200':
+ *         description: Provider - selectors dictionary
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AdProvidersDictionary'
+ *       '500':
+ *         $ref: '#/components/responses/ErrorResponse'
+ */
+adProvidersRouter.get(
+  '/negative-selectors',
+  withExceptionHandler(async (req, res) => {
+    const allRules = await adProvidersMethods.getAllValues();
+
+    const entries = Object.entries(allRules).map(([providerId, providerRules]): [string, string[]] => [
+      providerId,
+      filterByVersion(providerRules, req.query.extVersion as string | undefined)
+        .map(({ negativeSelectors }) => negativeSelectors ?? [])
+        .flat()
+    ]);
+
+    res.status(200).send(Object.fromEntries(entries));
+  })
+);
 
 /**
  * @swagger
