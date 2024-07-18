@@ -1,7 +1,7 @@
 import { Request, Router } from 'express';
 
 import {
-  filterByVersion,
+  filterRules,
   permanentNativeAdPlacesMethods,
   permanentAdPlacesMethods,
   adPlacesRulesMethods,
@@ -18,7 +18,7 @@ import {
 } from '../../utils/schemas';
 
 const transformAdPlaces = <T extends ExtVersionConstraints>(value: T[], req: Request) =>
-  filterByVersion(value, req.query.extVersion as string | undefined);
+  filterRules(value, req.query.extVersion as string | undefined);
 const transformAdPlacesDictionary = <T extends ExtVersionConstraints>(rules: Record<string, T[]>, req: Request) =>
   transformValues(rules, value => transformAdPlaces(value, req));
 

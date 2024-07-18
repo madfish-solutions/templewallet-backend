@@ -1,7 +1,7 @@
 import { Router } from 'express';
 
 import {
-  filterByVersion,
+  filterRules,
   ReplaceAdsUrlsBlacklistEntry,
   replaceAdsUrlsBlacklistMethods
 } from '../../advertising/external-ads';
@@ -182,11 +182,11 @@ addObjectStorageMethodsToRouter<ReplaceAdsUrlsBlacklistEntry[], string[], string
   keysArrayValidationSchema: nonEmptyStringsListSchema,
   successfulRemovalMessage: entriesCount => `${entriesCount} blacklist entries have been removed`,
   objectTransformFn: (value, req) =>
-    filterByVersion(Object.values(value).flat(), req.query.extVersion as string | undefined)
+    filterRules(Object.values(value).flat(), req.query.extVersion as string | undefined)
       .map(({ regexes }) => regexes)
       .flat(),
   valueTransformFn: (value, req) =>
-    filterByVersion(value, req.query.extVersion as string | undefined)
+    filterRules(value, req.query.extVersion as string | undefined)
       .map(({ regexes }) => regexes)
       .flat()
 });

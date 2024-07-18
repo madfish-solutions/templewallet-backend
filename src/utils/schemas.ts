@@ -241,26 +241,25 @@ const adProvidersByDomainRulesSchema = arraySchema()
 export const adProvidersByDomainsRulesDictionarySchema: IObjectSchema<Record<string, AdProvidersByDomainRule[]>> =
   makeDictionarySchema(hostnameSchema, adProvidersByDomainRulesSchema).required();
 
-const adProvidersSelectorsRuleSchema = objectSchema().shape({
+const adProvidersSelectorsRuleSchema: IObjectSchema<AdProviderSelectorsRule> = objectSchema().shape({
   selectors: cssSelectorsListSchema.clone().required(),
   negativeSelectors: cssSelectorsListSchema.clone(),
   extVersion: versionRangeSchema.clone().required(),
-  parentDepth: numberSchema().integer().min(0).default(0)
+  parentDepth: numberSchema().integer().min(0).default(0),
+  enableForMises: booleanSchema().default(true)
 });
 
-export const adProvidersDictionarySchema: IObjectSchema<Record<string, AdProviderSelectorsRule[]>> =
-  makeDictionarySchema(
-    nonEmptyStringSchema.clone().required(),
-    arraySchema().of(adProvidersSelectorsRuleSchema.clone().required()).required()
-  ).required();
+export const adProvidersDictionarySchema = makeDictionarySchema<AdProviderSelectorsRule[]>(
+  nonEmptyStringSchema.clone().required(),
+  arraySchema().of(adProvidersSelectorsRuleSchema.clone().required()).required()
+).required();
 
-const replaceUrlsBlacklistEntrySchema = objectSchema().shape({
+const replaceUrlsBlacklistEntrySchema: IObjectSchema<ReplaceAdsUrlsBlacklistEntry> = objectSchema().shape({
   extVersion: versionRangeSchema.clone().required(),
   regexes: regexStringListSchema.clone().required()
 });
 
-export const replaceUrlsBlacklistDictionarySchema: IObjectSchema<Record<string, ReplaceAdsUrlsBlacklistEntry[]>> =
-  makeDictionarySchema(
-    nonEmptyStringSchema.clone().required(),
-    arraySchema().of(replaceUrlsBlacklistEntrySchema.clone().required()).required()
-  ).required();
+export const replaceUrlsBlacklistDictionarySchema = makeDictionarySchema<ReplaceAdsUrlsBlacklistEntry[]>(
+  nonEmptyStringSchema.clone().required(),
+  arraySchema().of(replaceUrlsBlacklistEntrySchema.clone().required()).required()
+).required();

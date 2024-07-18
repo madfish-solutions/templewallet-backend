@@ -8,7 +8,7 @@ import {
   adProvidersMethods,
   adProvidersByDomainRulesMethods,
   AdProviderSelectorsRule,
-  filterByVersion,
+  filterRules,
   AdProvidersByDomainRule
 } from '../../advertising/external-ads';
 import { basicAuth } from '../../middlewares/basic-auth.middleware';
@@ -81,6 +81,9 @@ import {
  *               type: integer
  *               minimum: 0
  *               default: 0
+ *             enableForMises:
+ *               type: boolean
+ *               default: true
  *     AdByProviderSelector:
  *       oneOf:
  *         - type: string
@@ -356,7 +359,7 @@ adProvidersRouter.get(
 
     const entries = Object.entries(allRules).map(([providerId, providerRules]): [string, string[]] => [
       providerId,
-      filterByVersion(providerRules, req.query.extVersion as string | undefined)
+      filterRules(providerRules, req.query.extVersion as string | undefined)
         .map(({ negativeSelectors }) => negativeSelectors ?? [])
         .flat()
     ]);
@@ -422,6 +425,11 @@ adProvidersRouter.get(
  *           type: string
  *           default: '0.0.0'
  *         description: The extension version for which the rules should be returned
+ *       - in: query
+ *         name: isMisesBrowser
+ *         schema:
+ *           type: boolean
+ *           default: false
  *     responses:
  *       '200':
  *         description: List of CSS selectors
@@ -451,6 +459,11 @@ adProvidersRouter.get(
  *           type: string
  *           default: '0.0.0'
  *         description: The extension version for which the rules should be returned
+ *       - in: query
+ *         name: isMisesBrowser
+ *         schema:
+ *           type: boolean
+ *           default: false
  *     responses:
  *       '200':
  *         description: Provider - selectors dictionary
@@ -511,7 +524,7 @@ adProvidersRouter.get(
 const transformAdProviderSelectorsRules = (rules: AdProviderSelectorsRule[], req: Request) =>
   Array.from(
     new Set(
-      filterByVersion(rules, req.query.extVersion as string | undefined)
+      filterRules(rules, req.query.extVersion as string | undefined, req.query.isMisesBrowser === 'true')
         .map(({ selectors, parentDepth }) =>
           isDefined(parentDepth) && parentDepth > 0 ? { selector: selectors.join(', '), parentDepth } : selectors
         )

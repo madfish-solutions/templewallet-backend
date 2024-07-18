@@ -49,6 +49,7 @@ export const stylePropsNames = [
   'min-inline-size',
   'min-width',
   'opacity',
+  'order',
   'overflow',
   'overflow-anchor',
   'overflow-wrap',
@@ -142,6 +143,7 @@ export interface AdProviderSelectorsRule extends ExtVersionConstraints {
   selectors: string[];
   negativeSelectors?: string[];
   parentDepth?: number;
+  enableForMises?: boolean;
 }
 
 export interface AdProviderForAllSitesRule extends ExtVersionConstraints {
@@ -194,5 +196,19 @@ export const removeAdProvidersForAllSites = async (providers: string[]) =>
 
 const FALLBACK_VERSION = '0.0.0';
 
-export const filterByVersion = <T extends ExtVersionConstraints>(rules: T[], version?: string) =>
-  rules.filter(({ extVersion }) => versionSatisfiesRange(version ?? FALLBACK_VERSION, extVersion));
+export function filterRules<T extends ExtVersionConstraints>(rules: T[], version: string | undefined): T[];
+export function filterRules<T extends ExtVersionConstraints & { enableForMises?: boolean }>(
+  rules: T[],
+  version: string | undefined,
+  isMisesBrowser: boolean
+): T[];
+export function filterRules<T extends ExtVersionConstraints & { enableForMises?: boolean }>(
+  rules: T[],
+  version: string | undefined,
+  isMisesBrowser = false
+) {
+  return rules.filter(
+    ({ extVersion, enableForMises = true }) =>
+      versionSatisfiesRange(version ?? FALLBACK_VERSION, extVersion) && (!isMisesBrowser || enableForMises)
+  );
+}
