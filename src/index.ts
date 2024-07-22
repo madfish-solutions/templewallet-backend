@@ -30,6 +30,7 @@ import { getAliceBobEstimationPayload } from './utils/alice-bob/get-alice-bob-es
 import { getAliceBobOrderInfo } from './utils/alice-bob/get-alice-bob-order-info';
 import { getAliceBobPairInfo } from './utils/alice-bob/get-alice-bob-pair-info';
 import { getAliceBobPairsInfo } from './utils/alice-bob/get-alice-bob-pairs-info';
+import { btcExchangeRateProvider } from './utils/bitcoin';
 import { CodedError } from './utils/errors';
 import { coinGeckoTokens } from './utils/gecko-tokens';
 import { getExternalApiErrorPayload, isDefined, isNonEmptyString } from './utils/helpers';
@@ -175,11 +176,15 @@ app.get('/api/abtest', (_, res) => {
 });
 
 app.get('/api/exchange-rates/tez', makeProviderDataRequestHandler(tezExchangeRateProvider));
+app.get('/api/exchange-rates/btc', makeProviderDataRequestHandler(btcExchangeRateProvider));
 
 app.get('/api/exchange-rates', async (_req, res) => {
   const tokensExchangeRates = await getExchangeRates();
   const { data: tezExchangeRate, error: tezExchangeRateError } = await getProviderStateWithTimeout(
     tezExchangeRateProvider
+  );
+  const { data: btcExchangeRate, error: btcExchangeRateError } = await getProviderStateWithTimeout(
+    btcExchangeRateProvider
   );
 
   if (tezExchangeRateError !== undefined) {
@@ -188,7 +193,17 @@ app.get('/api/exchange-rates', async (_req, res) => {
     });
   }
 
-  res.json([...tokensExchangeRates, { exchangeRate: tezExchangeRate.toString() }]);
+  if (btcExchangeRateError !== undefined) {
+    return res.status(500).send({
+      error: btcExchangeRateError.message
+    });
+  }
+
+  res.json([
+    ...tokensExchangeRates,
+    { tokenAddress: 'tez', exchangeRate: tezExchangeRate.toString() },
+    { tokenAddress: 'btc', exchangeRate: btcExchangeRate.toString() }
+  ]);
 });
 
 app.get('/api/moonpay-sign', async (_req, res) => {
