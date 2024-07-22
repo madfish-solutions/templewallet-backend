@@ -93,8 +93,8 @@ export const getMarketsBySymbols = async (symbols: string[]) => {
   return chunks.flat();
 };
 
-const createCoingeckoExchangeRateProvider = (tokenSymbol: string) => {
-  const getExchangeRate = async () => {
+const createCoingeckoExchangeRateProvider = (tokenSymbol: string) =>
+  new SingleQueryDataProvider(60000, async () => {
     try {
       const [market] = await getMarketsBySymbols([tokenSymbol]);
 
@@ -114,10 +114,7 @@ const createCoingeckoExchangeRateProvider = (tokenSymbol: string) => {
 
       throw e;
     }
-  };
-
-  return new SingleQueryDataProvider(60000, getExchangeRate);
-};
+  });
 
 export const tezExchangeRateProvider = createCoingeckoExchangeRateProvider('xtz');
 export const btcExchangeRateProvider = createCoingeckoExchangeRateProvider('btc');
