@@ -1,13 +1,8 @@
 import { compose, MichelCodecPacker, Signer, TezosToolkit } from '@taquito/taquito';
 import { tzip12 } from '@taquito/tzip12';
 import { tzip16 } from '@taquito/tzip16';
-import { AxiosError } from 'axios';
 import memoizee from 'memoizee';
 
-import { getMarketsBySymbols } from './coingecko';
-import { isDefined } from './helpers';
-import logger from './logger';
-import SingleQueryDataProvider from './SingleQueryDataProvider';
 import { BcdTokenData } from './tzkt';
 
 const RPC_URL = process.env.RPC_URL ?? 'https://mainnet-node.madfish.solutions';
@@ -53,30 +48,6 @@ export const getStorage = memoizee(
   },
   { promise: true, maxAge: 30000 }
 );
-
-const getTezExchangeRate = async () => {
-  try {
-    const [xtzMarket] = await getMarketsBySymbols(['xtz']);
-
-    return xtzMarket.current_price;
-  } catch (e) {
-    if (!(e instanceof AxiosError)) {
-      logger.error('Request for TEZ exchange rate failed with unknown error');
-    } else if (isDefined(e.response) && isDefined(e.response.data)) {
-      logger.error(
-        `Request for TEZ exchange rate failed with status ${e.response.status} and message ${e.response.data}`
-      );
-    } else if (isDefined(e.response) && isDefined(e.response.status)) {
-      logger.error(`Request for TEZ exchange rate failed with status ${e.response.status}`);
-    } else {
-      logger.error('Request for TEZ exchange rate failed without response');
-    }
-
-    throw e;
-  }
-};
-
-export const tezExchangeRateProvider = new SingleQueryDataProvider(60000, getTezExchangeRate);
 
 export class MetadataParseError extends Error {}
 

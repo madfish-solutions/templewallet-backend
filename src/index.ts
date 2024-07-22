@@ -30,7 +30,7 @@ import { getAliceBobEstimationPayload } from './utils/alice-bob/get-alice-bob-es
 import { getAliceBobOrderInfo } from './utils/alice-bob/get-alice-bob-order-info';
 import { getAliceBobPairInfo } from './utils/alice-bob/get-alice-bob-pair-info';
 import { getAliceBobPairsInfo } from './utils/alice-bob/get-alice-bob-pairs-info';
-import { btcExchangeRateProvider } from './utils/bitcoin';
+import { btcExchangeRateProvider, tezExchangeRateProvider } from './utils/coingecko';
 import { CodedError } from './utils/errors';
 import { coinGeckoTokens } from './utils/gecko-tokens';
 import { getExternalApiErrorPayload, isDefined, isNonEmptyString } from './utils/helpers';
@@ -38,7 +38,6 @@ import logger from './utils/logger';
 import { getSignedMoonPayUrl } from './utils/moonpay/get-signed-moonpay-url';
 import { getSigningNonce } from './utils/signing-nonce';
 import SingleQueryDataProvider from './utils/SingleQueryDataProvider';
-import { tezExchangeRateProvider } from './utils/tezos';
 import { getExchangeRates } from './utils/tokens';
 
 const PINO_LOGGER = {
@@ -183,9 +182,6 @@ app.get('/api/exchange-rates', async (_req, res) => {
   const { data: tezExchangeRate, error: tezExchangeRateError } = await getProviderStateWithTimeout(
     tezExchangeRateProvider
   );
-  const { data: btcExchangeRate, error: btcExchangeRateError } = await getProviderStateWithTimeout(
-    btcExchangeRateProvider
-  );
 
   if (tezExchangeRateError !== undefined) {
     return res.status(500).send({
@@ -193,17 +189,7 @@ app.get('/api/exchange-rates', async (_req, res) => {
     });
   }
 
-  if (btcExchangeRateError !== undefined) {
-    return res.status(500).send({
-      error: btcExchangeRateError.message
-    });
-  }
-
-  res.json([
-    ...tokensExchangeRates,
-    { tokenAddress: 'tez', exchangeRate: tezExchangeRate.toString() },
-    { tokenAddress: 'btc', exchangeRate: btcExchangeRate.toString() }
-  ]);
+  res.json([...tokensExchangeRates, { exchangeRate: tezExchangeRate.toString() }]);
 });
 
 app.get('/api/moonpay-sign', async (_req, res) => {
