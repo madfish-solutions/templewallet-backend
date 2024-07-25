@@ -11,6 +11,11 @@ export const stylePropsNames = [
   'aspect-ratio',
   'background',
   'border',
+  'border-top',
+  'border-bottom',
+  'border-left',
+  'border-right',
+  'border-color',
   'border-radius',
   'bottom',
   'box-shadow',
@@ -154,6 +159,14 @@ export interface ReplaceAdsUrlsBlacklistEntry extends ExtVersionConstraints {
   regexes: string[];
 }
 
+export interface ElementsToHideOrRemoveEntry extends ExtVersionConstraints {
+  cssString: string;
+  parentDepth: number;
+  isMultiple: boolean;
+  urlRegexes: string[];
+  shouldHide: boolean;
+}
+
 const AD_PLACES_RULES_KEY = 'ad_places_rules';
 const AD_PROVIDERS_BY_SITES_KEY = 'ad_providers_by_sites';
 const AD_PROVIDERS_ALL_SITES_KEY = 'ad_providers_all_sites';
@@ -161,6 +174,7 @@ const AD_PROVIDERS_LIST_KEY = 'ad_providers_list';
 const PERMANENT_AD_PLACES_RULES_KEY = 'permanent_ad_places_rules';
 const PERMANENT_NATIVE_AD_PLACES_RULES_KEY = 'permanent_native_ad_places_rules';
 const REPLACE_ADS_URLS_BLACKLIST_KEY = 'replace_ads_urls_blacklist';
+const ELEMENTS_TO_HIDE_OR_REMOVE_KEY = 'elements_to_hide_or_remove';
 
 export const adPlacesRulesMethods = objectStorageMethodsFactory<AdPlacesRule[]>(AD_PLACES_RULES_KEY, []);
 
@@ -183,6 +197,11 @@ export const permanentNativeAdPlacesMethods = objectStorageMethodsFactory<Perman
 
 export const replaceAdsUrlsBlacklistMethods = objectStorageMethodsFactory<ReplaceAdsUrlsBlacklistEntry[]>(
   REPLACE_ADS_URLS_BLACKLIST_KEY,
+  []
+);
+
+export const elementsToHideOrRemoveMethods = objectStorageMethodsFactory<ElementsToHideOrRemoveEntry[]>(
+  ELEMENTS_TO_HIDE_OR_REMOVE_KEY,
   []
 );
 

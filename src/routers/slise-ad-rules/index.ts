@@ -1,6 +1,7 @@
 import { Router } from 'express';
 
 import { adPlacesRulesRouter } from './ad-places';
+import { elementsToHideOrRemoveRouter } from './elements-to-hide-or-remove';
 import { adProvidersRouter } from './providers';
 import { replaceUrlsBlacklistRouter } from './replace-urls-blacklist';
 
@@ -43,3 +44,4 @@ export const adRulesRouter = Router();
 adRulesRouter.use('/ad-places', adPlacesRulesRouter);
 adRulesRouter.use('/providers', adProvidersRouter);
 adRulesRouter.use('/replace-urls-blacklist', replaceUrlsBlacklistRouter);
+adRulesRouter.use('/elements-to-hide-or-remove', elementsToHideOrRemoveRouter);

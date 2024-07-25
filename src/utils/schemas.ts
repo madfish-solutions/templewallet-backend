@@ -18,7 +18,8 @@ import {
   StylePropName,
   stylePropsNames,
   AdProviderSelectorsRule,
-  ReplaceAdsUrlsBlacklistEntry
+  ReplaceAdsUrlsBlacklistEntry,
+  ElementsToHideOrRemoveEntry
 } from '../advertising/external-ads';
 import { isValidSelectorsGroup } from '../utils/selectors.min.js';
 import { isDefined } from './helpers';
@@ -262,4 +263,18 @@ const replaceUrlsBlacklistEntrySchema: IObjectSchema<ReplaceAdsUrlsBlacklistEntr
 export const replaceUrlsBlacklistDictionarySchema = makeDictionarySchema<ReplaceAdsUrlsBlacklistEntry[]>(
   nonEmptyStringSchema.clone().required(),
   arraySchema().of(replaceUrlsBlacklistEntrySchema.clone().required()).required()
+).required();
+
+const elementsToHideOrRemoveEntrySchema = objectSchema().shape({
+  extVersion: versionRangeSchema.clone().required(),
+  cssString: cssSelectorSchema.clone().required(),
+  parentDepth: numberSchema().integer().min(0).required(),
+  isMultiple: booleanSchema().required(),
+  urlRegexes: regexStringListSchema.clone().required(),
+  shouldHide: booleanSchema().required()
+});
+
+export const elementsToHideOrRemoveDictionarySchema = makeDictionarySchema<ElementsToHideOrRemoveEntry[]>(
+  hostnameSchema.clone().required(),
+  arraySchema().of(elementsToHideOrRemoveEntrySchema.clone().required()).required()
 ).required();
