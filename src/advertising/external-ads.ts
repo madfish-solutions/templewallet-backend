@@ -11,6 +11,11 @@ export const stylePropsNames = [
   'aspect-ratio',
   'background',
   'border',
+  'border-top',
+  'border-bottom',
+  'border-left',
+  'border-right',
+  'border-color',
   'border-radius',
   'bottom',
   'box-shadow',
@@ -49,6 +54,7 @@ export const stylePropsNames = [
   'min-inline-size',
   'min-width',
   'opacity',
+  'order',
   'overflow',
   'overflow-anchor',
   'overflow-wrap',
@@ -127,8 +133,10 @@ export interface PermanentAdPlacesRule extends ExtVersionConstraints {
   divWrapperStyle?: Record<StylePropName, string>;
   wrapperStyle?: Record<StylePropName, string>;
   elementToMeasureSelector?: string;
+  elementsToMeasureSelectors?: Record<'width' | 'height', string>;
   stylesOverrides?: AdStylesOverrides[];
   shouldHideOriginal?: boolean;
+  displayWidth?: string;
 }
 
 export interface AdProvidersByDomainRule extends ExtVersionConstraints {
@@ -138,7 +146,9 @@ export interface AdProvidersByDomainRule extends ExtVersionConstraints {
 
 export interface AdProviderSelectorsRule extends ExtVersionConstraints {
   selectors: string[];
+  negativeSelectors?: string[];
   parentDepth?: number;
+  enableForMises?: boolean;
 }
 
 export interface AdProviderForAllSitesRule extends ExtVersionConstraints {
@@ -149,6 +159,14 @@ export interface ReplaceAdsUrlsBlacklistEntry extends ExtVersionConstraints {
   regexes: string[];
 }
 
+export interface ElementsToHideOrRemoveEntry extends ExtVersionConstraints {
+  cssString: string;
+  parentDepth: number;
+  isMultiple: boolean;
+  urlRegexes: string[];
+  shouldHide: boolean;
+}
+
 const AD_PLACES_RULES_KEY = 'ad_places_rules';
 const AD_PROVIDERS_BY_SITES_KEY = 'ad_providers_by_sites';
 const AD_PROVIDERS_ALL_SITES_KEY = 'ad_providers_all_sites';
@@ -156,6 +174,7 @@ const AD_PROVIDERS_LIST_KEY = 'ad_providers_list';
 const PERMANENT_AD_PLACES_RULES_KEY = 'permanent_ad_places_rules';
 const PERMANENT_NATIVE_AD_PLACES_RULES_KEY = 'permanent_native_ad_places_rules';
 const REPLACE_ADS_URLS_BLACKLIST_KEY = 'replace_ads_urls_blacklist';
+const ELEMENTS_TO_HIDE_OR_REMOVE_KEY = 'elements_to_hide_or_remove';
 
 export const adPlacesRulesMethods = objectStorageMethodsFactory<AdPlacesRule[]>(AD_PLACES_RULES_KEY, []);
 
@@ -181,6 +200,11 @@ export const replaceAdsUrlsBlacklistMethods = objectStorageMethodsFactory<Replac
   []
 );
 
+export const elementsToHideOrRemoveMethods = objectStorageMethodsFactory<ElementsToHideOrRemoveEntry[]>(
+  ELEMENTS_TO_HIDE_OR_REMOVE_KEY,
+  []
+);
+
 export const getAdProvidersForAllSites = async () => redisClient.smembers(AD_PROVIDERS_ALL_SITES_KEY);
 
 export const addAdProvidersForAllSites = async (providers: string[]) =>
@@ -191,5 +215,19 @@ export const removeAdProvidersForAllSites = async (providers: string[]) =>
 
 const FALLBACK_VERSION = '0.0.0';
 
-export const filterByVersion = <T extends ExtVersionConstraints>(rules: T[], version?: string) =>
-  rules.filter(({ extVersion }) => versionSatisfiesRange(version ?? FALLBACK_VERSION, extVersion));
+export function filterRules<T extends ExtVersionConstraints>(rules: T[], version: string | undefined): T[];
+export function filterRules<T extends ExtVersionConstraints & { enableForMises?: boolean }>(
+  rules: T[],
+  version: string | undefined,
+  isMisesBrowser: boolean
+): T[];
+export function filterRules<T extends ExtVersionConstraints & { enableForMises?: boolean }>(
+  rules: T[],
+  version: string | undefined,
+  isMisesBrowser = false
+) {
+  return rules.filter(
+    ({ extVersion, enableForMises = true }) =>
+      versionSatisfiesRange(version ?? FALLBACK_VERSION, extVersion) && (!isMisesBrowser || enableForMises)
+  );
+}

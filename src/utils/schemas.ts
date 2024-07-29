@@ -18,7 +18,8 @@ import {
   StylePropName,
   stylePropsNames,
   AdProviderSelectorsRule,
-  ReplaceAdsUrlsBlacklistEntry
+  ReplaceAdsUrlsBlacklistEntry,
+  ElementsToHideOrRemoveEntry
 } from '../advertising/external-ads';
 import { isValidSelectorsGroup } from '../utils/selectors.min.js';
 import { isDefined } from './helpers';
@@ -173,9 +174,35 @@ const permanentAdPlacesRulesSchema = arraySchema()
         divWrapperStyle: styleSchema,
         wrapperStyle: styleSchema,
         elementToMeasureSelector: cssSelectorSchema,
+        elementsToMeasureSelectors: objectSchema()
+          .shape({ width: cssSelectorSchema.clone(), height: cssSelectorSchema.clone() })
+          .test('all-fields-present', function (value: unknown) {
+            if (!value || typeof value !== 'object') {
+              return true;
+            }
+
+            if (typeof (value as any).width === 'string' && typeof (value as any).height === 'string') {
+              return true;
+            }
+
+            throw this.createError({ path: this.path, message: 'Both `width` and `height` fields must be specified' });
+          })
+          .default(undefined) as unknown as IObjectSchema<{ width: string; height: string } | undefined>,
         stylesOverrides: arraySchema().of(adStylesOverridesSchema.clone().required()),
         shouldHideOriginal: booleanSchema(),
-        extVersion: versionRangeSchema.clone().required()
+        extVersion: versionRangeSchema.clone().required(),
+        displayWidth: versionRangeSchema.clone().test('valid-boundary-values', (value: string | undefined) => {
+          if (!isDefined(value) || value.length === 0) {
+            return true;
+          }
+
+          const nonIntegerNumberMatches = value.match(/\d+\.\d+/g);
+          if (isDefined(nonIntegerNumberMatches)) {
+            throw new Error('Display width must be an integer');
+          }
+
+          return true;
+        })
       })
       .test('insertion-place-specified', (value: PermanentAdPlacesRule | undefined) => {
         if (!value) {
@@ -215,25 +242,39 @@ const adProvidersByDomainRulesSchema = arraySchema()
 export const adProvidersByDomainsRulesDictionarySchema: IObjectSchema<Record<string, AdProvidersByDomainRule[]>> =
   makeDictionarySchema(hostnameSchema, adProvidersByDomainRulesSchema).required();
 
-const adProvidersSelectorsRuleSchema = objectSchema().shape({
+const adProvidersSelectorsRuleSchema: IObjectSchema<AdProviderSelectorsRule> = objectSchema().shape({
   selectors: cssSelectorsListSchema.clone().required(),
+  negativeSelectors: cssSelectorsListSchema.clone(),
   extVersion: versionRangeSchema.clone().required(),
-  parentDepth: numberSchema().integer().min(0).default(0)
+  parentDepth: numberSchema().integer().min(0).default(0),
+  enableForMises: booleanSchema().default(true)
 });
 
-export const adProvidersDictionarySchema: IObjectSchema<Record<string, AdProviderSelectorsRule[]>> =
-  makeDictionarySchema(
-    nonEmptyStringSchema.clone().required(),
-    arraySchema().of(adProvidersSelectorsRuleSchema.clone().required()).required()
-  ).required();
+export const adProvidersDictionarySchema = makeDictionarySchema<AdProviderSelectorsRule[]>(
+  nonEmptyStringSchema.clone().required(),
+  arraySchema().of(adProvidersSelectorsRuleSchema.clone().required()).required()
+).required();
 
-const replaceUrlsBlacklistEntrySchema = objectSchema().shape({
+const replaceUrlsBlacklistEntrySchema: IObjectSchema<ReplaceAdsUrlsBlacklistEntry> = objectSchema().shape({
   extVersion: versionRangeSchema.clone().required(),
   regexes: regexStringListSchema.clone().required()
 });
 
-export const replaceUrlsBlacklistDictionarySchema: IObjectSchema<Record<string, ReplaceAdsUrlsBlacklistEntry[]>> =
-  makeDictionarySchema(
-    nonEmptyStringSchema.clone().required(),
-    arraySchema().of(replaceUrlsBlacklistEntrySchema.clone().required()).required()
-  ).required();
+export const replaceUrlsBlacklistDictionarySchema = makeDictionarySchema<ReplaceAdsUrlsBlacklistEntry[]>(
+  nonEmptyStringSchema.clone().required(),
+  arraySchema().of(replaceUrlsBlacklistEntrySchema.clone().required()).required()
+).required();
+
+const elementsToHideOrRemoveEntrySchema = objectSchema().shape({
+  extVersion: versionRangeSchema.clone().required(),
+  cssString: cssSelectorSchema.clone().required(),
+  parentDepth: numberSchema().integer().min(0).required(),
+  isMultiple: booleanSchema().required(),
+  urlRegexes: regexStringListSchema.clone().required(),
+  shouldHide: booleanSchema().required()
+});
+
+export const elementsToHideOrRemoveDictionarySchema = makeDictionarySchema<ElementsToHideOrRemoveEntry[]>(
+  hostnameSchema.clone().required(),
+  arraySchema().of(elementsToHideOrRemoveEntrySchema.clone().required()).required()
+).required();

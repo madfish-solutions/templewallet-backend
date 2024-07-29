@@ -8,7 +8,7 @@ import {
   adProvidersMethods,
   adProvidersByDomainRulesMethods,
   AdProviderSelectorsRule,
-  filterByVersion,
+  filterRules,
   AdProvidersByDomainRule
 } from '../../advertising/external-ads';
 import { basicAuth } from '../../middlewares/basic-auth.middleware';
@@ -72,10 +72,18 @@ import {
  *               type: array
  *               items:
  *                 type: string
+ *             negativeSelectors:
+ *               descriptions: Selectors for the elements that should not be touched even if they match `selectors`
+ *               type: array
+ *               items:
+ *                 type: string
  *             parentDepth:
  *               type: integer
  *               minimum: 0
  *               default: 0
+ *             enableForMises:
+ *               type: boolean
+ *               default: true
  *     AdByProviderSelector:
  *       oneOf:
  *         - type: string
@@ -322,6 +330,46 @@ addObjectStorageMethodsToRouter<AdProvidersByDomainRule[]>(adProvidersRouter, {
 
 /**
  * @swagger
+ * /api/slise-ad-rules/providers/negative-selectors:
+ *   get:
+ *     summary: Get negative selectors for all providers filtered by extension version
+ *     tags:
+ *       - Known ads providers
+ *     parameters:
+ *       - in: query
+ *         name: extVersion
+ *         schema:
+ *           type: string
+ *           default: '0.0.0'
+ *         description: The extension version for which the rules should be returned
+ *     responses:
+ *       '200':
+ *         description: Provider - selectors dictionary
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AdProvidersDictionary'
+ *       '500':
+ *         $ref: '#/components/responses/ErrorResponse'
+ */
+adProvidersRouter.get(
+  '/negative-selectors',
+  withExceptionHandler(async (req, res) => {
+    const allRules = await adProvidersMethods.getAllValues();
+
+    const entries = Object.entries(allRules).map(([providerId, providerRules]): [string, string[]] => [
+      providerId,
+      filterRules(providerRules, req.query.extVersion as string | undefined)
+        .map(({ negativeSelectors }) => negativeSelectors ?? [])
+        .flat()
+    ]);
+
+    res.status(200).send(Object.fromEntries(entries));
+  })
+);
+
+/**
+ * @swagger
  * /api/slise-ad-rules/providers/raw/all:
  *   get:
  *     summary: Get selectors for all providers and all extensions versions
@@ -377,6 +425,11 @@ addObjectStorageMethodsToRouter<AdProvidersByDomainRule[]>(adProvidersRouter, {
  *           type: string
  *           default: '0.0.0'
  *         description: The extension version for which the rules should be returned
+ *       - in: query
+ *         name: isMisesBrowser
+ *         schema:
+ *           type: boolean
+ *           default: false
  *     responses:
  *       '200':
  *         description: List of CSS selectors
@@ -406,6 +459,11 @@ addObjectStorageMethodsToRouter<AdProvidersByDomainRule[]>(adProvidersRouter, {
  *           type: string
  *           default: '0.0.0'
  *         description: The extension version for which the rules should be returned
+ *       - in: query
+ *         name: isMisesBrowser
+ *         schema:
+ *           type: boolean
+ *           default: false
  *     responses:
  *       '200':
  *         description: Provider - selectors dictionary
@@ -466,7 +524,7 @@ addObjectStorageMethodsToRouter<AdProvidersByDomainRule[]>(adProvidersRouter, {
 const transformAdProviderSelectorsRules = (rules: AdProviderSelectorsRule[], req: Request) =>
   Array.from(
     new Set(
-      filterByVersion(rules, req.query.extVersion as string | undefined)
+      filterRules(rules, req.query.extVersion as string | undefined, req.query.isMisesBrowser === 'true')
         .map(({ selectors, parentDepth }) =>
           isDefined(parentDepth) && parentDepth > 0 ? { selector: selectors.join(', '), parentDepth } : selectors
         )
