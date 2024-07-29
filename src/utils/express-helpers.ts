@@ -2,7 +2,9 @@ import { NextFunction, Request, RequestHandler, Response, Router } from 'express
 import { ArraySchema as IArraySchema, ObjectSchema as IObjectSchema, Schema, ValidationError } from 'yup';
 
 import { basicAuth } from '../middlewares/basic-auth.middleware';
+import { CodedError } from './errors';
 import logger from './logger';
+import { evmQueryParamsSchema } from './schemas';
 
 interface ObjectStorageMethods<V> {
   getByKey: (key: string) => Promise<V>;
@@ -33,6 +35,36 @@ export const withBodyValidation =
     return handler(req, res, next);
   };
 
+interface EvmQueryParams {
+  walletAddress: string;
+  chainId: string;
+}
+
+type TypedEvmQueryRequestHandler = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+  evmQueryParams: EvmQueryParams
+) => void;
+
+export const withEvmQueryValidation =
+  (handler: TypedEvmQueryRequestHandler): RequestHandler =>
+  async (req, res, next) => {
+    let evmQueryParams: EvmQueryParams;
+
+    try {
+      evmQueryParams = await evmQueryParamsSchema.validate(req.query);
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        return res.status(400).send({ error: error.message });
+      }
+
+      throw error;
+    }
+
+    return handler(req, res, next, evmQueryParams);
+  };
+
 export const withExceptionHandler =
   (handler: RequestHandler): RequestHandler =>
   async (req, res, next) => {
@@ -41,6 +73,22 @@ export const withExceptionHandler =
     } catch (error) {
       logger.error(error as object);
       res.status(500).send({ error });
+    }
+  };
+
+export const withCodedExceptionHandler =
+  (handler: RequestHandler): RequestHandler =>
+  async (req, res, next) => {
+    try {
+      await handler(req, res, next);
+    } catch (error: any) {
+      logger.error(error);
+
+      if (error instanceof CodedError) {
+        res.status(error.code).send(error.buildResponse());
+      } else {
+        res.status(500).send({ message: error?.message });
+      }
     }
   };
 
