@@ -8,7 +8,7 @@ interface CodedErrorForResponse {
 type StatusCodeNumber = (typeof StatusCodes)[keyof typeof StatusCodes];
 
 export class CodedError extends Error {
-  constructor(public code: StatusCodeNumber | number, message: string, public errorCode?: string) {
+  constructor(public code: StatusCodeNumber, message: string, public errorCode?: string) {
     super(message);
   }
 
