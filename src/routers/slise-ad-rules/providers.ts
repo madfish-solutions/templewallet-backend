@@ -9,7 +9,8 @@ import {
   adProvidersByDomainRulesMethods,
   AdProviderSelectorsRule,
   filterRules,
-  AdProvidersByDomainRule
+  AdProvidersByDomainRule,
+  adProvidersCategoriesMethods
 } from '../../advertising/external-ads';
 import { basicAuth } from '../../middlewares/basic-auth.middleware';
 import { addObjectStorageMethodsToRouter, withBodyValidation, withExceptionHandler } from '../../utils/express-helpers';
@@ -18,7 +19,8 @@ import {
   nonEmptyStringsListSchema,
   hostnamesListSchema,
   adProvidersByDomainsRulesDictionarySchema,
-  adProvidersDictionarySchema
+  adProvidersDictionarySchema,
+  adProvidersCategoriesDictionarySchema
 } from '../../utils/schemas';
 
 /**
@@ -116,6 +118,12 @@ import {
  *         type: array
  *         items:
  *           $ref: '#/components/schemas/AdProvidersInputValue'
+ *     AdProvidersCategoriesDictionary:
+ *       type: object
+ *       additionalProperties:
+ *         type: array
+ *         items:
+ *           type: string
  */
 
 export const adProvidersRouter = Router();
@@ -323,6 +331,78 @@ addObjectStorageMethodsToRouter<AdProvidersByDomainRule[]>(adProvidersRouter, {
   keyName: 'domain',
   objectValidationSchema: adProvidersByDomainsRulesDictionarySchema,
   keysArrayValidationSchema: hostnamesListSchema,
+  successfulRemovalMessage: entriesCount => `${entriesCount} entries have been removed`,
+  valueTransformFn: identity,
+  objectTransformFn: identity
+});
+
+/**
+ * @swagger
+ * /api/slise-ad-rules/providers/categories:
+ *   get:
+ *     summary: Get categories for providers
+ *     tags:
+ *       - Known ads providers
+ *     responses:
+ *       '200':
+ *         description: Provider - categories dictionary
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AdProvidersCategoriesDictionary'
+ *       '500':
+ *         $ref: '#/components/responses/ErrorResponse'
+ *   post:
+ *     summary: Upsert categories for providers
+ *     tags:
+ *       - Known ads providers
+ *     security:
+ *       - basicAuth: []
+ *     requestBody:
+ *       description: Provider - categories dictionary
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/AdProvidersCategoriesDictionary'
+ *     responses:
+ *       '200':
+ *         $ref: '#/components/responses/SuccessResponse'
+ *       '400':
+ *         $ref: '#/components/responses/ErrorResponse'
+ *       '401':
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       '500':
+ *         $ref: '#/components/responses/ErrorResponse'
+ *   delete:
+ *     summary: Delete categories for providers
+ *     tags:
+ *       - Known ads providers
+ *     security:
+ *       - basicAuth: []
+ *     requestBody:
+ *       description: List of provider IDs for which categories should be deleted
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *             items:
+ *               type: string
+ *     responses:
+ *       '200':
+ *         $ref: '#/components/responses/SuccessResponse'
+ *       '400':
+ *         $ref: '#/components/responses/ErrorResponse'
+ *       '401':
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       '500':
+ *         $ref: '#/components/responses/ErrorResponse'
+ */
+addObjectStorageMethodsToRouter<string[]>(adProvidersRouter, {
+  path: '/categories',
+  methods: adProvidersCategoriesMethods,
+  keyName: 'providerId',
+  objectValidationSchema: adProvidersCategoriesDictionarySchema,
+  keysArrayValidationSchema: nonEmptyStringsListSchema,
   successfulRemovalMessage: entriesCount => `${entriesCount} entries have been removed`,
   valueTransformFn: identity,
   objectTransformFn: identity
