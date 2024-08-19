@@ -30,6 +30,7 @@ import { getAliceBobEstimationPayload } from './utils/alice-bob/get-alice-bob-es
 import { getAliceBobOrderInfo } from './utils/alice-bob/get-alice-bob-order-info';
 import { getAliceBobPairInfo } from './utils/alice-bob/get-alice-bob-pair-info';
 import { getAliceBobPairsInfo } from './utils/alice-bob/get-alice-bob-pairs-info';
+import { btcExchangeRateProvider, tezExchangeRateProvider } from './utils/coingecko';
 import { CodedError } from './utils/errors';
 import { coinGeckoTokens } from './utils/gecko-tokens';
 import { getExternalApiErrorPayload, isDefined, isNonEmptyString } from './utils/helpers';
@@ -37,7 +38,6 @@ import logger from './utils/logger';
 import { getSignedMoonPayUrl } from './utils/moonpay/get-signed-moonpay-url';
 import { getSigningNonce } from './utils/signing-nonce';
 import SingleQueryDataProvider from './utils/SingleQueryDataProvider';
-import { tezExchangeRateProvider } from './utils/tezos';
 import { getExchangeRates } from './utils/tokens';
 
 const PINO_LOGGER = {
@@ -175,6 +175,7 @@ app.get('/api/abtest', (_, res) => {
 });
 
 app.get('/api/exchange-rates/tez', makeProviderDataRequestHandler(tezExchangeRateProvider));
+app.get('/api/exchange-rates/btc', makeProviderDataRequestHandler(btcExchangeRateProvider));
 
 app.get('/api/exchange-rates', async (_req, res) => {
   const tokensExchangeRates = await getExchangeRates();
