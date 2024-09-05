@@ -22,6 +22,7 @@ import { getPlatforms } from './notifications/utils/get-platforms.util';
 import { redisClient } from './redis';
 import { evmRouter } from './routers/evm';
 import { adRulesRouter } from './routers/slise-ad-rules';
+import { templeWalletAdsRouter } from './routers/temple-wallet-ads';
 import { getABData } from './utils/ab-test';
 import { cancelAliceBobOrder } from './utils/alice-bob/cancel-alice-bob-order';
 import { createAliceBobOrder } from './utils/alice-bob/create-alice-bob-order';
@@ -337,6 +338,8 @@ app.get('/api/advertising-info', (_req, res) => {
 app.use('/api/slise-ad-rules', adRulesRouter);
 
 app.use('/api/evm', evmRouter);
+
+app.use('/api/temple-wallet-ads', templeWalletAdsRouter);
 
 app.post('/api/magic-square-quest/start', async (req, res) => {
   try {

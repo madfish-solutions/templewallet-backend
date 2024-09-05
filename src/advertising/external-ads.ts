@@ -1,6 +1,6 @@
 import { satisfies as versionSatisfiesRange } from 'semver';
 
-import { objectStorageMethodsFactory, redisClient } from '../redis';
+import { objectStorageMethodsFactory, setStorageMethodsFactory } from '../redis';
 
 /** Style properties names that are likely to be unnecessary for banners are skipped */
 export const stylePropsNames = [
@@ -176,6 +176,7 @@ const PERMANENT_NATIVE_AD_PLACES_RULES_KEY = 'permanent_native_ad_places_rules';
 const REPLACE_ADS_URLS_BLACKLIST_KEY = 'replace_ads_urls_blacklist';
 const ELEMENTS_TO_HIDE_OR_REMOVE_KEY = 'elements_to_hide_or_remove';
 const AD_PROVIDERS_CATEGORIES_KEY = 'ad_providers_categories';
+const HYPELAB_CAMPAIGNS_BLACKLIST_KEY = 'hypelab_campaigns_blacklist';
 
 export const adPlacesRulesMethods = objectStorageMethodsFactory<AdPlacesRule[]>(AD_PLACES_RULES_KEY, []);
 
@@ -210,13 +211,8 @@ export const adProvidersCategoriesMethods = objectStorageMethodsFactory<string[]
   'crypto'
 ]);
 
-export const getAdProvidersForAllSites = async () => redisClient.smembers(AD_PROVIDERS_ALL_SITES_KEY);
-
-export const addAdProvidersForAllSites = async (providers: string[]) =>
-  redisClient.sadd(AD_PROVIDERS_ALL_SITES_KEY, ...providers);
-
-export const removeAdProvidersForAllSites = async (providers: string[]) =>
-  redisClient.srem(AD_PROVIDERS_ALL_SITES_KEY, ...providers);
+export const adProvidersForAllSitesMethods = setStorageMethodsFactory(AD_PROVIDERS_ALL_SITES_KEY);
+export const hypelabCampaignsBlacklistMethods = setStorageMethodsFactory(HYPELAB_CAMPAIGNS_BLACKLIST_KEY);
 
 const FALLBACK_VERSION = '0.0.0';
 

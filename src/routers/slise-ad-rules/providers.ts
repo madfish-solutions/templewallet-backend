@@ -2,9 +2,7 @@ import { Request, Router } from 'express';
 import { identity } from 'lodash';
 
 import {
-  addAdProvidersForAllSites,
-  getAdProvidersForAllSites,
-  removeAdProvidersForAllSites,
+  adProvidersForAllSitesMethods,
   adProvidersMethods,
   adProvidersByDomainRulesMethods,
   AdProviderSelectorsRule,
@@ -12,8 +10,11 @@ import {
   AdProvidersByDomainRule,
   adProvidersCategoriesMethods
 } from '../../advertising/external-ads';
-import { basicAuth } from '../../middlewares/basic-auth.middleware';
-import { addObjectStorageMethodsToRouter, withBodyValidation, withExceptionHandler } from '../../utils/express-helpers';
+import {
+  addObjectStorageMethodsToRouter,
+  addSetStorageMethodsToRouter,
+  withExceptionHandler
+} from '../../utils/express-helpers';
 import { isDefined, transformValues } from '../../utils/helpers';
 import {
   nonEmptyStringsListSchema,
@@ -204,35 +205,13 @@ export const adProvidersRouter = Router();
  *       '500':
  *         $ref: '#/components/responses/ErrorResponse'
  */
-adProvidersRouter
-  .route('/all-sites')
-  .get(
-    withExceptionHandler(async (_req, res) => {
-      const providers = await getAdProvidersForAllSites();
-
-      res.status(200).header('Cache-Control', 'public, max-age=300').send(providers);
-    })
-  )
-  .post(
-    basicAuth,
-    withExceptionHandler(
-      withBodyValidation(nonEmptyStringsListSchema, async (req, res) => {
-        const providersAddedCount = await addAdProvidersForAllSites(req.body);
-
-        res.status(200).send({ message: `${providersAddedCount} providers have been added` });
-      })
-    )
-  )
-  .delete(
-    basicAuth,
-    withExceptionHandler(
-      withBodyValidation(nonEmptyStringsListSchema, async (req, res) => {
-        const providersRemovedCount = await removeAdProvidersForAllSites(req.body);
-
-        res.status(200).send({ message: `${providersRemovedCount} providers have been removed` });
-      })
-    )
-  );
+addSetStorageMethodsToRouter(adProvidersRouter, {
+  path: '/all-sites',
+  methods: adProvidersForAllSitesMethods,
+  arrayValidationSchema: nonEmptyStringsListSchema,
+  successfulAdditionMessage: addedEntriesCount => `${addedEntriesCount} providers have been added`,
+  successfulRemovalMessage: removedEntriesCount => `${removedEntriesCount} providers have been removed`
+});
 
 /**
  * @swagger
