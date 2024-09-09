@@ -1,4 +1,7 @@
-import { range } from './helpers';
+import { AxiosError } from 'axios';
+
+import { isDefined, range } from './helpers';
+import logger from './logger';
 import { makeBuildQueryFn } from './makeBuildQueryFn';
 import SingleQueryDataProvider from './SingleQueryDataProvider';
 
@@ -89,3 +92,29 @@ export const getMarketsBySymbols = async (symbols: string[]) => {
 
   return chunks.flat();
 };
+
+const createCoingeckoExchangeRateProvider = (tokenSymbol: string) =>
+  new SingleQueryDataProvider(60000, async () => {
+    try {
+      const [market] = await getMarketsBySymbols([tokenSymbol]);
+
+      return market.current_price;
+    } catch (e) {
+      if (!(e instanceof AxiosError)) {
+        logger.error(`Request for ${tokenSymbol} exchange rate failed with unknown error`);
+      } else if (isDefined(e.response) && isDefined(e.response.data)) {
+        logger.error(
+          `Request for ${tokenSymbol} exchange rate failed with status ${e.response.status} and message ${e.response.data}`
+        );
+      } else if (isDefined(e.response) && isDefined(e.response.status)) {
+        logger.error(`Request for ${tokenSymbol} exchange rate failed with status ${e.response.status}`);
+      } else {
+        logger.error(`Request for ${tokenSymbol} exchange rate failed without response`);
+      }
+
+      throw e;
+    }
+  });
+
+export const tezExchangeRateProvider = createCoingeckoExchangeRateProvider('xtz');
+export const btcExchangeRateProvider = createCoingeckoExchangeRateProvider('btc');

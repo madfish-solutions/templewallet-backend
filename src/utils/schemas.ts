@@ -278,3 +278,8 @@ export const elementsToHideOrRemoveDictionarySchema = makeDictionarySchema<Eleme
   hostnameSchema.clone().required(),
   arraySchema().of(elementsToHideOrRemoveEntrySchema.clone().required()).required()
 ).required();
+
+export const adProvidersCategoriesDictionarySchema = makeDictionarySchema<string[]>(
+  nonEmptyStringSchema.clone().required(),
+  arraySchema().of(nonEmptyStringSchema.clone().required()).required()
+).required();

@@ -175,6 +175,7 @@ const PERMANENT_AD_PLACES_RULES_KEY = 'permanent_ad_places_rules';
 const PERMANENT_NATIVE_AD_PLACES_RULES_KEY = 'permanent_native_ad_places_rules';
 const REPLACE_ADS_URLS_BLACKLIST_KEY = 'replace_ads_urls_blacklist';
 const ELEMENTS_TO_HIDE_OR_REMOVE_KEY = 'elements_to_hide_or_remove';
+const AD_PROVIDERS_CATEGORIES_KEY = 'ad_providers_categories';
 
 export const adPlacesRulesMethods = objectStorageMethodsFactory<AdPlacesRule[]>(AD_PLACES_RULES_KEY, []);
 
@@ -204,6 +205,10 @@ export const elementsToHideOrRemoveMethods = objectStorageMethodsFactory<Element
   ELEMENTS_TO_HIDE_OR_REMOVE_KEY,
   []
 );
+
+export const adProvidersCategoriesMethods = objectStorageMethodsFactory<string[]>(AD_PROVIDERS_CATEGORIES_KEY, [
+  'crypto'
+]);
 
 export const getAdProvidersForAllSites = async () => redisClient.smembers(AD_PROVIDERS_ALL_SITES_KEY);
 
