@@ -22,6 +22,7 @@ import { getPlatforms } from './notifications/utils/get-platforms.util';
 import { redisClient } from './redis';
 import { evmRouter } from './routers/evm';
 import { adRulesRouter } from './routers/slise-ad-rules';
+import { getTkeyStats } from './tkey-stats';
 import { getABData } from './utils/ab-test';
 import { cancelAliceBobOrder } from './utils/alice-bob/cancel-alice-bob-order';
 import { createAliceBobOrder } from './utils/alice-bob/create-alice-bob-order';
@@ -103,6 +104,10 @@ const makeProviderDataRequestHandler = <T, U>(provider: SingleQueryDataProvider<
 
 app.get('/api/top-coins', (_req, res) => {
   res.status(200).send(coinGeckoTokens);
+});
+
+app.get('/api/tkey', async (_req, res) => {
+  res.send(await getTkeyStats());
 });
 
 app.get('/api/notifications', async (_req, res) => {
