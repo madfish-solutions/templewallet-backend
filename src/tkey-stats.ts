@@ -1,5 +1,5 @@
-import memoizee from 'memoizee';
 import axios from 'axios';
+import memoizee from 'memoizee';
 
 const CONTRACT = 'KT1VaEsVNiBoA56eToEK6n6BcPgh1tdx9eXi';
 const BURN_ADDRESS = 'tz1burnburnburnburnburnburnburjAYjjX';

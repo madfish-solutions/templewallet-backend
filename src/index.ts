@@ -22,6 +22,7 @@ import { getPlatforms } from './notifications/utils/get-platforms.util';
 import { redisClient } from './redis';
 import { evmRouter } from './routers/evm';
 import { adRulesRouter } from './routers/slise-ad-rules';
+import { getTkeyStats } from './tkey-stats';
 import { getABData } from './utils/ab-test';
 import { cancelAliceBobOrder } from './utils/alice-bob/cancel-alice-bob-order';
 import { createAliceBobOrder } from './utils/alice-bob/create-alice-bob-order';
@@ -39,7 +40,6 @@ import { getSignedMoonPayUrl } from './utils/moonpay/get-signed-moonpay-url';
 import { getSigningNonce } from './utils/signing-nonce';
 import SingleQueryDataProvider from './utils/SingleQueryDataProvider';
 import { getExchangeRates } from './utils/tokens';
-import { getTkeyStats } from './tkey-stats';
 
 const PINO_LOGGER = {
   logger: logger.child({ name: 'web' }),
