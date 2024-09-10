@@ -39,6 +39,7 @@ import { getSignedMoonPayUrl } from './utils/moonpay/get-signed-moonpay-url';
 import { getSigningNonce } from './utils/signing-nonce';
 import SingleQueryDataProvider from './utils/SingleQueryDataProvider';
 import { getExchangeRates } from './utils/tokens';
+import { getTkeyStats } from './tkey-stats';
 
 const PINO_LOGGER = {
   logger: logger.child({ name: 'web' }),
@@ -103,6 +104,10 @@ const makeProviderDataRequestHandler = <T, U>(provider: SingleQueryDataProvider<
 
 app.get('/api/top-coins', (_req, res) => {
   res.status(200).send(coinGeckoTokens);
+});
+
+app.get('/api/tkey', async (_req, res) => {
+  res.send(await getTkeyStats());
 });
 
 app.get('/api/notifications', async (_req, res) => {
