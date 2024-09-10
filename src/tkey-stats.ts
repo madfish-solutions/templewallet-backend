@@ -1,20 +1,19 @@
 import axios from 'axios';
 import memoizee from 'memoizee';
 
-const CONTRACT = 'KT1VaEsVNiBoA56eToEK6n6BcPgh1tdx9eXi';
 const BURN_ADDRESS = 'tz1burnburnburnburnburnburnburjAYjjX';
+const INCENTIVES_ADDRESS = 'tz1Ntpk55Q6AVJHVrCs1uN4HyTTxBbVMFZcb';
+const INVESTMENT_ADDRESS = 'tz1imUX3aTc4HX6KygaQUe8e1sQqYvGs6eCF';
+const DEVELOPER_REWARDS_ADDRESS = 'tz1bxHEHAtKubVy44vBDFVEZ1iqYPYdJVS9U';
+const CONTRACT = 'KT1VaEsVNiBoA56eToEK6n6BcPgh1tdx9eXi';
 const DECIMALS = 18n;
 const TOTAL_SUPPLY = 14_000_000_000_000_000_000_000_000n;
 const TOTAL_SUPPLY_WITH_DECIMALS = TOTAL_SUPPLY / 10n ** DECIMALS;
 
-const INCENTIVES = 1_000_000n;
-const INVESTMENT = 1_000_000n;
-const DEVELOPER_REWARDS = 2_000_000n;
-
-const getBurnedTokens = memoizee(
-  async () => {
+const getTkeyBalance = memoizee(
+  async (holder: string) => {
     const response = await axios.get(
-      `https://api.tzkt.io/v1/tokens/balances?account=${BURN_ADDRESS}&token.contract=${CONTRACT}`
+      `https://api.tzkt.io/v1/tokens/balances?account=${holder}&token.contract=${CONTRACT}`
     );
 
     return BigInt(response.data[0].balance) / 10n ** DECIMALS;
@@ -24,17 +23,26 @@ const getBurnedTokens = memoizee(
   }
 );
 
+const getBurnedTokens = () => getTkeyBalance(BURN_ADDRESS);
+const getInvestmentFund = () => getTkeyBalance(INVESTMENT_ADDRESS);
+const getIncentivesFund = () => getTkeyBalance(INCENTIVES_ADDRESS);
+const getDeveloperRewardsFund = () => getTkeyBalance(DEVELOPER_REWARDS_ADDRESS);
+
 export const getTkeyStats = memoizee(
   async () => {
     const burned = await getBurnedTokens();
-    const circulating = TOTAL_SUPPLY_WITH_DECIMALS - INCENTIVES - DEVELOPER_REWARDS - INVESTMENT - burned;
+    const incentives = await getIncentivesFund();
+    const investment = await getInvestmentFund();
+    const developerRewards = await getDeveloperRewardsFund();
+
+    const circulating = TOTAL_SUPPLY_WITH_DECIMALS - incentives - developerRewards - investment - burned;
 
     return {
-      incentivesFund: INCENTIVES.toString(),
-      investmentFund: INVESTMENT.toString(),
-      developerRewardsFund: DEVELOPER_REWARDS.toString(),
+      incentivesFund: incentives.toString(),
+      investmentFund: investment.toString(),
+      developerRewardsFund: developerRewards.toString(),
       totalSupply: TOTAL_SUPPLY_WITH_DECIMALS.toString(),
-      circulatingSupply: circulating.toString(),
+      circulating: circulating.toString(),
       burned: burned.toString()
     };
   },
