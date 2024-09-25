@@ -13,6 +13,12 @@ interface ObjectStorageMethods<V> {
   removeValues: (keys: string[]) => Promise<number>;
 }
 
+interface SetStorageMethods {
+  addValues: (values: string[]) => Promise<number>;
+  removeValues: (values: string[]) => Promise<number>;
+  getAllValues: () => Promise<string[]>;
+}
+
 type TypedBodyRequestHandler<T> = (
   req: Request<Record<string, string>, unknown, T>,
   res: Response,
@@ -102,6 +108,45 @@ interface ObjectStorageMethodsEntrypointsConfig<StoredValue, ObjectResponse, Val
   objectTransformFn: (value: Record<string, StoredValue>, req: Request) => ObjectResponse;
   valueTransformFn: (value: StoredValue, req: Request) => ValueResponse;
 }
+
+interface SetStorageMethodsEntrypointsConfig {
+  path: string;
+  methods: SetStorageMethods;
+  arrayValidationSchema: IArraySchema<string[], object>;
+  successfulAdditionMessage: (addedEntriesCount: number) => string;
+  successfulRemovalMessage: (removedEntriesCount: number) => string;
+}
+
+export const addSetStorageMethodsToRouter = (router: Router, config: SetStorageMethodsEntrypointsConfig) => {
+  const { path, methods, arrayValidationSchema, successfulAdditionMessage, successfulRemovalMessage } = config;
+
+  router
+    .route(path)
+    .get(
+      withExceptionHandler(async (_req, res) => {
+        res
+          .status(200)
+          .header('Cache-Control', 'public, max-age=300')
+          .send(await methods.getAllValues());
+      })
+    )
+    .post(
+      basicAuth,
+      withExceptionHandler(
+        withBodyValidation(arrayValidationSchema, async (req, res) => {
+          res.status(200).send({ message: successfulAdditionMessage(await methods.addValues(req.body)) });
+        })
+      )
+    )
+    .delete(
+      basicAuth,
+      withExceptionHandler(
+        withBodyValidation(arrayValidationSchema, async (req, res) => {
+          res.status(200).send({ message: successfulRemovalMessage(await methods.removeValues(req.body)) });
+        })
+      )
+    );
+};
 
 export const addObjectStorageMethodsToRouter = <
   StoredValue,

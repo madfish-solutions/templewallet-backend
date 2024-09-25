@@ -30,3 +30,9 @@ export const objectStorageMethodsFactory = <V, F = V>(storageKey: string, fallba
     ),
   removeValues: (keys: string[]) => redisClient.hdel(storageKey, ...keys)
 });
+
+export const setStorageMethodsFactory = (storageKey: string) => ({
+  addValues: (values: string[]) => redisClient.sadd(storageKey, ...values),
+  removeValues: (values: string[]) => redisClient.srem(storageKey, ...values),
+  getAllValues: () => redisClient.smembers(storageKey)
+});
