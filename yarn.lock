@@ -56,9 +56,9 @@
     js-tokens "^4.0.0"
 
 "@covalenthq/client-sdk@^2":
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/@covalenthq/client-sdk/-/client-sdk-2.1.0.tgz#9313c50467f1e98a4dcdebac87a135881d7aa460"
-  integrity sha512-cspUs603Xh4caBYWfKKH+59w2dG4Tgc2MF86db4Vfiol408FdBIe47x60xggTCqGCusbv1v9TND3QhTQFg8BcQ==
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/@covalenthq/client-sdk/-/client-sdk-2.1.1.tgz#d49a70f67f9f03747acbe28455240ee38b9ecc90"
+  integrity sha512-wrtb6sn5cUOTOTD+GbE1Xi92b2Q2Wd76roK2wwUMdbOQ591ucahgSPfaJEgZY29nocLc3wDV2vhR11fNX8nZxA==
   dependencies:
     big.js "^6.2.1"
 
