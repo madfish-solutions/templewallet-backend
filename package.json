@@ -6,7 +6,7 @@
   "author": "Inokentii Mazhara <keshan3262@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "@covalenthq/client-sdk": "^1.0.2",
+    "@covalenthq/client-sdk": "^2",
     "@ethersproject/address": "^5.7.0",
     "@ethersproject/hash": "^5.7.0",
     "@ethersproject/strings": "^5.7.0",
