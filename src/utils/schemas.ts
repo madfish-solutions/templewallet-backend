@@ -1,3 +1,4 @@
+import { getAddress } from '@ethersproject/address';
 import { validRange as getValidatedRange } from 'semver';
 import {
   array as arraySchema,
@@ -112,6 +113,16 @@ const adStylesOverridesSchema = objectSchema().shape({
 export const evmQueryParamsSchema = objectSchema().shape({
   walletAddress: nonEmptyStringSchema.clone().required('walletAddress is undefined'),
   chainId: nonEmptyStringSchema.clone().required('chainId is undefined')
+});
+
+export const evmQueryParamsPaginatedSchema = evmQueryParamsSchema.clone().shape({
+  page: numberSchema().integer().min(1)
+});
+
+export const evmQueryParamsTransfersSchema = evmQueryParamsPaginatedSchema.clone().shape({
+  contractAddress: stringSchema()
+    .required()
+    .test(val => getAddress(val) === val)
 });
 
 const adPlacesRulesSchema = arraySchema()

@@ -4,13 +4,18 @@ import { ArraySchema as IArraySchema, ObjectSchema as IObjectSchema, Schema, Val
 import { basicAuth } from '../middlewares/basic-auth.middleware';
 import { CodedError } from './errors';
 import logger from './logger';
-import { evmQueryParamsSchema } from './schemas';
 
 interface ObjectStorageMethods<V> {
   getByKey: (key: string) => Promise<V>;
   getAllValues: () => Promise<Record<string, V>>;
   upsertValues: (newValues: Record<string, V>) => Promise<'OK'>;
   removeValues: (keys: string[]) => Promise<number>;
+}
+
+interface SetStorageMethods {
+  addValues: (values: string[]) => Promise<number>;
+  removeValues: (values: string[]) => Promise<number>;
+  getAllValues: () => Promise<string[]>;
 }
 
 type TypedBodyRequestHandler<T> = (
@@ -35,36 +40,6 @@ export const withBodyValidation =
     return handler(req, res, next);
   };
 
-interface EvmQueryParams {
-  walletAddress: string;
-  chainId: string;
-}
-
-type TypedEvmQueryRequestHandler = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-  evmQueryParams: EvmQueryParams
-) => void;
-
-export const withEvmQueryValidation =
-  (handler: TypedEvmQueryRequestHandler): RequestHandler =>
-  async (req, res, next) => {
-    let evmQueryParams: EvmQueryParams;
-
-    try {
-      evmQueryParams = await evmQueryParamsSchema.validate(req.query);
-    } catch (error) {
-      if (error instanceof ValidationError) {
-        return res.status(400).send({ error: error.message });
-      }
-
-      throw error;
-    }
-
-    return handler(req, res, next, evmQueryParams);
-  };
-
 export const withExceptionHandler =
   (handler: RequestHandler): RequestHandler =>
   async (req, res, next) => {
@@ -86,6 +61,8 @@ export const withCodedExceptionHandler =
 
       if (error instanceof CodedError) {
         res.status(error.code).send(error.buildResponse());
+      } else if (error instanceof ValidationError) {
+        res.status(400).send({ error: error.message });
       } else {
         res.status(500).send({ message: error?.message });
       }
@@ -102,6 +79,45 @@ interface ObjectStorageMethodsEntrypointsConfig<StoredValue, ObjectResponse, Val
   objectTransformFn: (value: Record<string, StoredValue>, req: Request) => ObjectResponse;
   valueTransformFn: (value: StoredValue, req: Request) => ValueResponse;
 }
+
+interface SetStorageMethodsEntrypointsConfig {
+  path: string;
+  methods: SetStorageMethods;
+  arrayValidationSchema: IArraySchema<string[], object>;
+  successfulAdditionMessage: (addedEntriesCount: number) => string;
+  successfulRemovalMessage: (removedEntriesCount: number) => string;
+}
+
+export const addSetStorageMethodsToRouter = (router: Router, config: SetStorageMethodsEntrypointsConfig) => {
+  const { path, methods, arrayValidationSchema, successfulAdditionMessage, successfulRemovalMessage } = config;
+
+  router
+    .route(path)
+    .get(
+      withExceptionHandler(async (_req, res) => {
+        res
+          .status(200)
+          .header('Cache-Control', 'public, max-age=300')
+          .send(await methods.getAllValues());
+      })
+    )
+    .post(
+      basicAuth,
+      withExceptionHandler(
+        withBodyValidation(arrayValidationSchema, async (req, res) => {
+          res.status(200).send({ message: successfulAdditionMessage(await methods.addValues(req.body)) });
+        })
+      )
+    )
+    .delete(
+      basicAuth,
+      withExceptionHandler(
+        withBodyValidation(arrayValidationSchema, async (req, res) => {
+          res.status(200).send({ message: successfulRemovalMessage(await methods.removeValues(req.body)) });
+        })
+      )
+    );
+};
 
 export const addObjectStorageMethodsToRouter = <
   StoredValue,
