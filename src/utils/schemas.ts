@@ -213,7 +213,10 @@ const permanentAdPlacesRulesSchema = arraySchema()
           }
 
           return true;
-        })
+        }),
+        supportsTheming: booleanSchema().default(false),
+        fontSampleSelector: cssSelectorSchema.clone(),
+        enableForNonMises: booleanSchema().default(true)
       })
       .test('insertion-place-specified', (value: PermanentAdPlacesRule | undefined) => {
         if (!value) {

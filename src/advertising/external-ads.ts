@@ -94,6 +94,11 @@ export interface ExtVersionConstraints {
   extVersion: string;
 }
 
+interface BrowserConstraints {
+  enableForMises?: boolean;
+  enableForNonMises?: boolean;
+}
+
 export interface AdPlacesRule extends ExtVersionConstraints {
   urlRegexes: string[];
   selector: {
@@ -108,7 +113,7 @@ export interface AdPlacesRule extends ExtVersionConstraints {
   isNative?: boolean;
 }
 
-export interface PermanentAdPlacesRule extends ExtVersionConstraints {
+export interface PermanentAdPlacesRule extends ExtVersionConstraints, BrowserConstraints {
   urlRegexes: string[];
   adSelector: {
     isMultiple: boolean;
@@ -137,6 +142,9 @@ export interface PermanentAdPlacesRule extends ExtVersionConstraints {
   stylesOverrides?: AdStylesOverrides[];
   shouldHideOriginal?: boolean;
   displayWidth?: string;
+  supportsTheming?: boolean;
+  fontSampleSelector?: string;
+  enableForNonMises?: boolean;
 }
 
 export interface AdProvidersByDomainRule extends ExtVersionConstraints {
@@ -217,18 +225,19 @@ export const hypelabCampaignsBlacklistMethods = setStorageMethodsFactory(HYPELAB
 const FALLBACK_VERSION = '0.0.0';
 
 export function filterRules<T extends ExtVersionConstraints>(rules: T[], version: string | undefined): T[];
-export function filterRules<T extends ExtVersionConstraints & { enableForMises?: boolean }>(
+export function filterRules<T extends ExtVersionConstraints & BrowserConstraints>(
   rules: T[],
   version: string | undefined,
   isMisesBrowser: boolean
 ): T[];
-export function filterRules<T extends ExtVersionConstraints & { enableForMises?: boolean }>(
+export function filterRules<T extends ExtVersionConstraints & BrowserConstraints>(
   rules: T[],
   version: string | undefined,
   isMisesBrowser = false
 ) {
   return rules.filter(
-    ({ extVersion, enableForMises = true }) =>
-      versionSatisfiesRange(version ?? FALLBACK_VERSION, extVersion) && (!isMisesBrowser || enableForMises)
+    ({ extVersion, enableForMises = true, enableForNonMises = true }) =>
+      versionSatisfiesRange(version ?? FALLBACK_VERSION, extVersion) &&
+      (isMisesBrowser ? enableForMises : enableForNonMises)
   );
 }

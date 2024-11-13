@@ -18,7 +18,7 @@ import {
 } from '../../utils/schemas';
 
 const transformAdPlaces = <T extends ExtVersionConstraints>(value: T[], req: Request) =>
-  filterRules(value, req.query.extVersion as string | undefined);
+  filterRules(value, req.query.extVersion as string | undefined, req.query.isMisesBrowser === 'true');
 const transformAdPlacesDictionary = <T extends ExtVersionConstraints>(rules: Record<string, T[]>, req: Request) =>
   transformValues(rules, value => transformAdPlaces(value, req));
 
@@ -306,6 +306,18 @@ const transformAdPlacesDictionary = <T extends ExtVersionConstraints>(rules: Rec
  *                 A range of display widths in a semver-like format where the rule is applicable. Numbers can be only
  *                 integers. If not specified, the rule is applicable for all display widths.
  *               example: '>=1024 <1280'
+ *             supportsTheming:
+ *               type: boolean
+ *               description: Whether our banner that is inserted supports theming
+ *               default: false
+ *             fontSampleSelector:
+ *               type: string
+ *               description: >
+ *                 A selector of the element which should be measured to define font size and line height.
+ *                 If not specified, the font size and line height will be taken from the page body.
+ *             enableForNonMises:
+ *               type: boolean
+ *               default: true
  *           example:
  *             urlRegexes:
  *               - '^https://etherscan\.io/tx/'
@@ -402,6 +414,11 @@ export const adPlacesRulesRouter = Router();
  *           type: string
  *           default: '0.0.0'
  *         description: The extension version for which the rules should be returned
+ *       - in: query
+ *         name: isMisesBrowser
+ *         schema:
+ *           type: boolean
+ *           default: false
  *     responses:
  *       '200':
  *         description: Rules list
@@ -425,6 +442,11 @@ export const adPlacesRulesRouter = Router();
  *           type: string
  *           default: '0.0.0'
  *         description: The extension version for which the rules should be returned
+ *       - in: query
+ *         name: isMisesBrowser
+ *         schema:
+ *           type: boolean
+ *           default: false
  *     responses:
  *       '200':
  *         description: Domain - rules list dictionary
