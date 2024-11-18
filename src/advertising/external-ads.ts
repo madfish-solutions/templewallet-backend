@@ -144,7 +144,6 @@ export interface PermanentAdPlacesRule extends ExtVersionConstraints, BrowserCon
   displayWidth?: string;
   supportsTheming?: boolean;
   fontSampleSelector?: string;
-  enableForNonMises?: boolean;
 }
 
 export interface AdProvidersByDomainRule extends ExtVersionConstraints {
