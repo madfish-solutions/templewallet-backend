@@ -151,11 +151,10 @@ export interface AdProvidersByDomainRule extends ExtVersionConstraints {
   providers: string[];
 }
 
-export interface AdProviderSelectorsRule extends ExtVersionConstraints {
+export interface AdProviderSelectorsRule extends ExtVersionConstraints, BrowserConstraints {
   selectors: string[];
   negativeSelectors?: string[];
   parentDepth?: number;
-  enableForMises?: boolean;
 }
 
 export interface AdProviderForAllSitesRule extends ExtVersionConstraints {

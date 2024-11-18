@@ -153,93 +153,91 @@ export const adPlacesRulesDictionarySchema: IObjectSchema<Record<string, AdPlace
   adPlacesRulesSchema
 ).required();
 
-const permanentAdPlacesRulesSchema = arraySchema()
-  .of(
-    objectSchema()
+const permanentAdPlacesRuleSchema: IObjectSchema<PermanentAdPlacesRule> = objectSchema()
+  .shape({
+    urlRegexes: arraySchema().of(regexStringSchema.clone().required()).required(),
+    adSelector: objectSchema()
       .shape({
-        urlRegexes: arraySchema().of(regexStringSchema.clone().required()).required(),
-        adSelector: objectSchema()
-          .shape({
-            isMultiple: booleanSchema().required(),
-            cssString: cssSelectorSchema.clone().required(),
-            parentDepth: numberSchema().integer().min(0).required()
-          })
-          .required(),
-        parentSelector: objectSchema()
-          .shape({
-            isMultiple: booleanSchema().required(),
-            cssString: cssSelectorSchema.clone().required(),
-            parentDepth: numberSchema().integer().min(0).required()
-          })
-          .required(),
-        insertionIndex: numberSchema().integer(),
-        insertBeforeSelector: cssSelectorSchema,
-        insertAfterSelector: cssSelectorSchema,
-        insertionsCount: numberSchema().integer().min(1),
-        shouldUseDivWrapper: booleanSchema(),
-        wrapperType: stringSchema().oneOf(['div', 'tbody']),
-        colsBefore: numberSchema().integer().min(0),
-        colspan: numberSchema().integer().min(1),
-        colsAfter: numberSchema().integer().min(0),
-        elementStyle: styleSchema,
-        divWrapperStyle: styleSchema,
-        wrapperStyle: styleSchema,
-        elementToMeasureSelector: cssSelectorSchema,
-        elementsToMeasureSelectors: objectSchema()
-          .shape({ width: cssSelectorSchema.clone(), height: cssSelectorSchema.clone() })
-          .test('all-fields-present', function (value: unknown) {
-            if (!value || typeof value !== 'object') {
-              return true;
-            }
-
-            if (typeof (value as any).width === 'string' && typeof (value as any).height === 'string') {
-              return true;
-            }
-
-            throw this.createError({ path: this.path, message: 'Both `width` and `height` fields must be specified' });
-          })
-          .default(undefined) as unknown as IObjectSchema<{ width: string; height: string } | undefined>,
-        stylesOverrides: arraySchema().of(adStylesOverridesSchema.clone().required()),
-        shouldHideOriginal: booleanSchema(),
-        extVersion: versionRangeSchema.clone().required(),
-        displayWidth: versionRangeSchema.clone().test('valid-boundary-values', (value: string | undefined) => {
-          if (!isDefined(value) || value.length === 0) {
-            return true;
-          }
-
-          const nonIntegerNumberMatches = value.match(/\d+\.\d+/g);
-          if (isDefined(nonIntegerNumberMatches)) {
-            throw new Error('Display width must be an integer');
-          }
-
-          return true;
-        }),
-        supportsTheming: booleanSchema().default(false),
-        fontSampleSelector: cssSelectorSchema.clone(),
-        enableForNonMises: booleanSchema().default(true)
+        isMultiple: booleanSchema().required(),
+        cssString: cssSelectorSchema.clone().required(),
+        parentDepth: numberSchema().integer().min(0).required()
       })
-      .test('insertion-place-specified', (value: PermanentAdPlacesRule | undefined) => {
-        if (!value) {
+      .required(),
+    parentSelector: objectSchema()
+      .shape({
+        isMultiple: booleanSchema().required(),
+        cssString: cssSelectorSchema.clone().required(),
+        parentDepth: numberSchema().integer().min(0).required()
+      })
+      .required(),
+    insertionIndex: numberSchema().integer(),
+    insertBeforeSelector: cssSelectorSchema,
+    insertAfterSelector: cssSelectorSchema,
+    insertionsCount: numberSchema().integer().min(1),
+    shouldUseDivWrapper: booleanSchema(),
+    wrapperType: stringSchema().oneOf(['div', 'tbody']),
+    colsBefore: numberSchema().integer().min(0),
+    colspan: numberSchema().integer().min(1),
+    colsAfter: numberSchema().integer().min(0),
+    elementStyle: styleSchema,
+    divWrapperStyle: styleSchema,
+    wrapperStyle: styleSchema,
+    elementToMeasureSelector: cssSelectorSchema,
+    elementsToMeasureSelectors: objectSchema()
+      .shape({ width: cssSelectorSchema.clone(), height: cssSelectorSchema.clone() })
+      .test('all-fields-present', function (value: unknown) {
+        if (!value || typeof value !== 'object') {
           return true;
         }
 
-        const { insertionIndex, insertBeforeSelector, insertAfterSelector } = value;
-        const definedValuesCount = [insertionIndex, insertBeforeSelector, insertAfterSelector].filter(isDefined).length;
-
-        if (definedValuesCount !== 1) {
-          throw new Error(
-            'Exactly one of insertionIndex, insertBeforeSelector and insertAfterSelector must be specified'
-          );
+        if (typeof (value as any).width === 'string' && typeof (value as any).height === 'string') {
+          return true;
         }
 
+        throw this.createError({ path: this.path, message: 'Both `width` and `height` fields must be specified' });
+      })
+      .default(undefined) as unknown as IObjectSchema<{ width: string; height: string } | undefined>,
+    stylesOverrides: arraySchema().of(adStylesOverridesSchema.clone().required()),
+    shouldHideOriginal: booleanSchema(),
+    extVersion: versionRangeSchema.clone().required(),
+    displayWidth: versionRangeSchema.clone().test('valid-boundary-values', (value: string | undefined) => {
+      if (!isDefined(value) || value.length === 0) {
         return true;
-      })
-      .required()
-  )
+      }
+
+      const nonIntegerNumberMatches = value.match(/\d+\.\d+/g);
+      if (isDefined(nonIntegerNumberMatches)) {
+        throw new Error('Display width must be an integer');
+      }
+
+      return true;
+    }),
+    supportsTheming: booleanSchema().default(false),
+    fontSampleSelector: cssSelectorSchema.clone(),
+    enableForMises: booleanSchema().default(true),
+    enableForNonMises: booleanSchema().default(true)
+  })
+  .test('insertion-place-specified', (value: PermanentAdPlacesRule | undefined) => {
+    if (!value) {
+      return true;
+    }
+
+    const { insertionIndex, insertBeforeSelector, insertAfterSelector } = value;
+    const definedValuesCount = [insertionIndex, insertBeforeSelector, insertAfterSelector].filter(isDefined).length;
+
+    if (definedValuesCount !== 1) {
+      throw new Error('Exactly one of insertionIndex, insertBeforeSelector and insertAfterSelector must be specified');
+    }
+
+    return true;
+  })
   .required();
 
 export const permanentAdPlacesRulesDictionarySchema: IObjectSchema<Record<string, PermanentAdPlacesRule[]>> =
-  makeDictionarySchema(hostnameSchema, permanentAdPlacesRulesSchema).required();
+  makeDictionarySchema(
+    hostnameSchema,
+    arraySchema().of(permanentAdPlacesRuleSchema.clone().required()).required()
+  ).required();
 
 const adProvidersByDomainRulesSchema = arraySchema()
   .of(
@@ -261,7 +259,8 @@ const adProvidersSelectorsRuleSchema: IObjectSchema<AdProviderSelectorsRule> = o
   negativeSelectors: cssSelectorsListSchema.clone(),
   extVersion: versionRangeSchema.clone().required(),
   parentDepth: numberSchema().integer().min(0).default(0),
-  enableForMises: booleanSchema().default(true)
+  enableForMises: booleanSchema().default(true),
+  enableForNonMises: booleanSchema().default(true)
 });
 
 export const adProvidersDictionarySchema = makeDictionarySchema<AdProviderSelectorsRule[]>(

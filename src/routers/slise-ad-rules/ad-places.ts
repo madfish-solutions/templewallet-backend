@@ -318,6 +318,9 @@ const transformAdPlacesDictionary = <T extends ExtVersionConstraints>(rules: Rec
  *             enableForNonMises:
  *               type: boolean
  *               default: true
+ *             enableForMises:
+ *               type: boolean
+ *               default: true
  *           example:
  *             urlRegexes:
  *               - '^https://etherscan\.io/tx/'
