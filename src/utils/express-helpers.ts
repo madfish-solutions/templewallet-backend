@@ -2,6 +2,7 @@ import { NextFunction, Request, RequestHandler, Response, Router } from 'express
 import { ArraySchema as IArraySchema, ObjectSchema as IObjectSchema, Schema, ValidationError } from 'yup';
 
 import { basicAuth } from '../middlewares/basic-auth.middleware';
+
 import { CodedError } from './errors';
 import logger from './logger';
 
