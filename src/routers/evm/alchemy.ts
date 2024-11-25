@@ -32,10 +32,10 @@ export async function fetchTransactions(
           alchemy,
           accAddress,
           contractAddress,
-          olderThanBlockHeight,
+          transfers.at(0)!.blockNum,
           // Loading approvals withing the gap of received transfers.
           // TODO: Mind the case of reaching response items number limit & not reaching block heights gap.
-          transfers.at(-1)?.blockNum
+          transfers.at(-1)!.blockNum
         );
 
   return { transfers, approvals };
@@ -178,31 +178,38 @@ function sortPredicate(
 ) {
   if (aTs < bTs) return 1;
   if (aTs > bTs) return -1;
-  // return aTs < bTs ? 1 : -1;
 
   return 0;
 }
 
-function fetchApprovals(
+async function fetchApprovals(
   alchemy: Alchemy,
   accAddress: string,
-  contractAddress?: string,
-  olderThanBlockHeight?: `${number}`,
+  contractAddress: string | undefined,
   /** Hex string. Including said block. */
-  fromBlock?: string
+  toBlock: string,
+  /** Hex string. Including said block. */
+  fromBlock: string
 ) {
-  return alchemy.core.getLogs({
-    address: contractAddress,
-    topics: [
-      [
-        '0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925', // Approval
-        '0x17307eab39ab6107e8899845ad3d59bd9653f200f220920489ca2b5937696c31' // ApprovalForAll
+  try {
+    return await alchemy.core.getLogs({
+      address: contractAddress,
+      topics: [
+        [
+          '0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925', // Approval
+          '0x17307eab39ab6107e8899845ad3d59bd9653f200f220920489ca2b5937696c31' // ApprovalForAll
+        ],
+        `0x${accAddress.slice(2).padStart(64, '0')}`
       ],
-      `0x000000000000000000000000${accAddress.slice(2)}`
-    ],
-    toBlock: olderThanBlockToToBlockValue(olderThanBlockHeight),
-    fromBlock
-  });
+      toBlock,
+      fromBlock
+    });
+  } catch (error: any) {
+    // For 'query exceeds max block range 100000'
+    if (error?.error?.code === -32602) return [];
+
+    throw error;
+  }
 }
 
 function olderThanBlockToToBlockValue(olderThanBlockHeight: `${number}` | undefined) {
@@ -218,7 +225,39 @@ const ASSET_CATEGORIES = [
 ];
 
 /** If included, response fails with message about category not being supported. */
-const EXCLUDED_INTERNAL_CATEGORY = new Set([Network.OPT_MAINNET, Network.OPT_SEPOLIA, Network.MATIC_AMOY]);
+const EXCLUDED_INTERNAL_CATEGORY = new Set([
+  Network.OPT_MAINNET,
+  Network.OPT_SEPOLIA,
+  Network.MATIC_AMOY,
+  Network.BNB_MAINNET,
+  Network.BLAST_SEPOLIA,
+  Network.ARB_SEPOLIA,
+  Network.SCROLL_SEPOLIA,
+  Network.BASE_SEPOLIA,
+  Network.BLAST_MAINNET,
+  Network.LINEA_SEPOLIA,
+  Network.SCROLL_MAINNET,
+  Network.AVAX_FUJI,
+  Network.ARBNOVA_MAINNET,
+  Network.ZKSYNC_MAINNET,
+  Network.WORLDCHAIN_MAINNET,
+  Network.GNOSIS_MAINNET,
+  Network.SONEIUM_MINATO,
+  Network.ZETACHAIN_TESTNET,
+  Network.ZETACHAIN_MAINNET,
+  Network.GNOSIS_CHIADO,
+  Network.AVAX_MAINNET,
+  Network.SHAPE_SEPOLIA,
+  Network.SHAPE_MAINNET,
+  Network.ZKSYNC_SEPOLIA,
+  Network.ROOTSTOCK_MAINNET,
+  Network.ROOTSTOCK_TESTNET,
+  Network.BNB_TESTNET,
+  Network.LINEA_MAINNET,
+  Network.BASE_MAINNET,
+  Network.ARB_MAINNET,
+  Network.WORLDCHAIN_SEPOLIA
+]);
 
 /** TODO: Verify this mapping */
 const CHAINS_NAMES: Record<number, Network> = {
