@@ -23,6 +23,7 @@ import {
   ElementsToHideOrRemoveEntry
 } from '../advertising/external-ads';
 import { isValidSelectorsGroup } from '../utils/selectors.min.js';
+
 import { isDefined } from './helpers';
 
 type nullish = null | undefined;
@@ -117,6 +118,14 @@ export const evmQueryParamsSchema = objectSchema().shape({
 
 export const evmQueryParamsPaginatedSchema = evmQueryParamsSchema.clone().shape({
   page: numberSchema().integer().min(1)
+});
+
+export const evmQueryParamsTransactionsSchema = objectSchema().shape({
+  chainId: numberSchema().integer().min(1).required('chainId is undefined'),
+  walletAddress: nonEmptyStringSchema.clone().required('walletAddress is undefined'),
+  /** Without token ID means ERC-20 tokens only */
+  contractAddress: nonEmptyStringSchema.clone(),
+  olderThanBlockHeight: nonEmptyStringSchema.clone().test(v => v === undefined || Number(v) > 0)
 });
 
 export const evmQueryParamsTransfersSchema = evmQueryParamsPaginatedSchema.clone().shape({
