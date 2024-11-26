@@ -12,7 +12,7 @@ import memoizee from 'memoizee';
 import { EnvVars } from '../../config';
 import { CodedError } from '../../utils/errors';
 
-const EVM_TOKEN_SLUG = 'eth' as const;
+const ETH_TOKEN_SLUG = 'eth' as const;
 const TR_PSEUDO_LIMIT = 50;
 
 export async function fetchTransactions(
@@ -26,7 +26,7 @@ export async function fetchTransactions(
   const transfers = await fetchTransfers(alchemy, accAddress, contractAddress, olderThanBlockHeight);
 
   const approvals =
-    !transfers.length || contractAddress === EVM_TOKEN_SLUG
+    !transfers.length || contractAddress === ETH_TOKEN_SLUG
       ? []
       : await fetchApprovals(
           alchemy,
@@ -34,7 +34,7 @@ export async function fetchTransactions(
           contractAddress,
           transfers.at(0)!.blockNum,
           // Loading approvals withing the gap of received transfers.
-          // TODO: Mind the case of reaching response items number limit & not reaching block heights gap.
+          // TODO: Mind the case of reaching response items number limit & not reaching block range.
           transfers.at(-1)!.blockNum
         );
 
@@ -48,9 +48,11 @@ async function fetchTransfers(
   contractAddress?: string,
   olderThanBlockHeight?: `${number}`
 ): Promise<AssetTransfersWithMetadataResult[]> {
+  const toBlock = olderThanBlockToToBlockValue(olderThanBlockHeight);
+
   const [transfersFrom, transfersTo] = await Promise.all([
-    _fetchTransfers(alchemy, accAddress, contractAddress, false, olderThanBlockHeight),
-    _fetchTransfers(alchemy, accAddress, contractAddress, true, olderThanBlockHeight)
+    _fetchTransfers(alchemy, accAddress, contractAddress, false, toBlock),
+    _fetchTransfers(alchemy, accAddress, contractAddress, true, toBlock)
   ]);
 
   const allTransfers = mergeFetchedTransfers(transfersFrom, transfersTo);
@@ -128,10 +130,10 @@ async function _fetchTransfers(
   accAddress: string,
   contractAddress: string | undefined,
   toAcc: boolean,
-  olderThanBlockHeight?: `${number}`
+  toBlock: string | undefined
 ) {
   const categories = new Set(
-    contractAddress === EVM_TOKEN_SLUG
+    contractAddress === ETH_TOKEN_SLUG
       ? GAS_CATEGORIES
       : contractAddress
       ? ASSET_CATEGORIES // (!) Won't have gas transfer operations in batches this way; no other way found
@@ -140,7 +142,7 @@ async function _fetchTransfers(
 
   if (EXCLUDED_INTERNAL_CATEGORY.has(alchemy.config.network)) categories.delete(AssetTransfersCategory.INTERNAL);
 
-  if (contractAddress === EVM_TOKEN_SLUG) contractAddress = undefined;
+  if (contractAddress === ETH_TOKEN_SLUG) contractAddress = undefined;
 
   const reqOptions: AssetTransfersWithMetadataParams = {
     contractAddresses: contractAddress ? [contractAddress] : undefined,
@@ -148,7 +150,7 @@ async function _fetchTransfers(
     category: Array.from(categories),
     excludeZeroValue: true,
     withMetadata: true,
-    toBlock: olderThanBlockToToBlockValue(olderThanBlockHeight),
+    toBlock,
     maxCount: TR_PSEUDO_LIMIT
   };
 
@@ -205,7 +207,7 @@ async function fetchApprovals(
       fromBlock
     });
   } catch (error: any) {
-    // For 'query exceeds max block range 100000'
+    // For 'query exceeds max block range ...' // Range may differ for different chains
     if (error?.error?.code === -32602) return [];
 
     throw error;
