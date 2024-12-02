@@ -1,6 +1,7 @@
 import { BigNumber } from 'bignumber.js';
 
 import { redisClient } from '../redis';
+
 import { tezExchangeRateProvider } from './coingecko';
 import { isDefined } from './helpers';
 import logger from './logger';

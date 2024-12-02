@@ -4,8 +4,11 @@ import { withCodedExceptionHandler } from '../../utils/express-helpers';
 import {
   evmQueryParamsSchema,
   evmQueryParamsPaginatedSchema,
-  evmQueryParamsTransfersSchema
+  evmQueryParamsTransfersSchema,
+  evmQueryParamsTransactionsSchema
 } from '../../utils/schemas';
+
+import { fetchTransactions } from './alchemy';
 import {
   getEvmBalances,
   getEvmCollectiblesMetadata,
@@ -63,6 +66,22 @@ evmRouter
       const { walletAddress, chainId, contractAddress, page } = await evmQueryParamsTransfersSchema.validate(req.query);
 
       const data = await getEvmAccountERC20Transfers(walletAddress, chainId, contractAddress, page);
+
+      res.status(200).send(data);
+    })
+  )
+  .get(
+    '/transactions/v2',
+    withCodedExceptionHandler(async (req, res) => {
+      const { walletAddress, chainId, contractAddress, olderThanBlockHeight } =
+        await evmQueryParamsTransactionsSchema.validate(req.query);
+
+      const data = await fetchTransactions(
+        chainId,
+        walletAddress,
+        contractAddress,
+        olderThanBlockHeight as `${number}` | undefined
+      );
 
       res.status(200).send(data);
     })

@@ -87,6 +87,9 @@ import {
  *             enableForMises:
  *               type: boolean
  *               default: true
+ *             enableForNonMises:
+ *               type: boolean
+ *               default: true
  *     AdByProviderSelector:
  *       oneOf:
  *         - type: string
