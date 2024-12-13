@@ -34,6 +34,7 @@ import { getAliceBobPairInfo } from './utils/alice-bob/get-alice-bob-pair-info';
 import { getAliceBobPairsInfo } from './utils/alice-bob/get-alice-bob-pairs-info';
 import { btcExchangeRateProvider, tezExchangeRateProvider } from './utils/coingecko';
 import { CodedError } from './utils/errors';
+import { exolixNetworksMap } from './utils/exolix-networks-map';
 import { coinGeckoTokens } from './utils/gecko-tokens';
 import { getExternalApiErrorPayload, isDefined, isNonEmptyString } from './utils/helpers';
 import logger from './utils/logger';
@@ -105,6 +106,10 @@ const makeProviderDataRequestHandler = <T, U>(provider: SingleQueryDataProvider<
 
 app.get('/api/top-coins', (_req, res) => {
   res.status(200).send(coinGeckoTokens);
+});
+
+app.get('/api/exolix-networks-map', (_req, res) => {
+  res.status(200).send(exolixNetworksMap);
 });
 
 app.get('/api/tkey', async (_req, res) => {
