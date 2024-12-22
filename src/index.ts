@@ -10,7 +10,7 @@ import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 
 import { getAdvertisingInfo } from './advertising/advertising';
-import { MIN_ANDROID_APP_VERSION, MIN_IOS_APP_VERSION } from './config';
+import { EnvVars, MIN_ANDROID_APP_VERSION, MIN_IOS_APP_VERSION } from './config';
 import getDAppsStats from './getDAppsStats';
 import { getMagicSquareQuestParticipants, startMagicSquareQuest } from './magic-square';
 import { basicAuth } from './middlewares/basic-auth.middleware';
@@ -395,6 +395,33 @@ app.get('/api/signing-nonce', (req, res) => {
     } else {
       res.status(500).send({ message: error?.message });
     }
+  }
+});
+
+app.post('/api/temple-tap/confirm-airdrop-username', async (req, res) => {
+  try {
+    const response = await fetch(new URL('/v1/confirm-airdrop-address', EnvVars.TEMPLE_TAP_API_URL), {
+      method: 'POST',
+      body: JSON.stringify(req.body),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const statusCode = String(response.status);
+    const responseBody = await response.text();
+
+    if (statusCode.startsWith('2') || statusCode.startsWith('4')) {
+      res.status(response.status).send(responseBody);
+
+      return;
+    }
+
+    throw new Error(responseBody);
+  } catch (error) {
+    console.error('Temple Tap API proxy endpoint exception:', error);
+
+    res.status(500).send({ message: 'Unknown error' });
   }
 });
 
