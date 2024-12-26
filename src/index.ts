@@ -400,7 +400,7 @@ app.get('/api/signing-nonce', (req, res) => {
 
 app.post('/api/temple-tap/confirm-airdrop-username', async (req, res) => {
   try {
-    const response = await fetch(new URL('/v1/confirm-airdrop-address', EnvVars.TEMPLE_TAP_API_URL), {
+    const response = await fetch(new URL('v1/confirm-airdrop-address', EnvVars.TEMPLE_TAP_API_URL + '/'), {
       method: 'POST',
       body: JSON.stringify(req.body),
       headers: {
