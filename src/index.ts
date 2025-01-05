@@ -23,6 +23,7 @@ import { redisClient } from './redis';
 import { evmRouter } from './routers/evm';
 import { adRulesRouter } from './routers/slise-ad-rules';
 import { templeWalletAdsRouter } from './routers/temple-wallet-ads';
+import { getSigningNonce, tezosSigAuthMiddleware } from './sig-auth';
 import { getTkeyStats } from './tkey-stats';
 import { getABData } from './utils/ab-test';
 import { cancelAliceBobOrder } from './utils/alice-bob/cancel-alice-bob-order';
@@ -39,7 +40,6 @@ import { coinGeckoTokens } from './utils/gecko-tokens';
 import { getExternalApiErrorPayload, isDefined, isNonEmptyString } from './utils/helpers';
 import logger from './utils/logger';
 import { getSignedMoonPayUrl } from './utils/moonpay/get-signed-moonpay-url';
-import { getSigningNonce } from './utils/signing-nonce';
 import SingleQueryDataProvider from './utils/SingleQueryDataProvider';
 import { getExchangeRates } from './utils/tokens';
 
@@ -398,7 +398,7 @@ app.get('/api/signing-nonce', (req, res) => {
   }
 });
 
-app.post('/api/temple-tap/confirm-airdrop-username', async (req, res) => {
+app.post('/api/temple-tap/confirm-airdrop-username', tezosSigAuthMiddleware, async (req, res) => {
   try {
     const response = await fetch(new URL('v1/confirm-airdrop-address', EnvVars.TEMPLE_TAP_API_URL + '/'), {
       method: 'POST',
