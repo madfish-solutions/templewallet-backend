@@ -10,7 +10,7 @@ import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 
 import { getAdvertisingInfo } from './advertising/advertising';
-import { EnvVars, MIN_ANDROID_APP_VERSION, MIN_IOS_APP_VERSION } from './config';
+import { MIN_ANDROID_APP_VERSION, MIN_IOS_APP_VERSION } from './config';
 import getDAppsStats from './getDAppsStats';
 import { getMagicSquareQuestParticipants, startMagicSquareQuest } from './magic-square';
 import { basicAuth } from './middlewares/basic-auth.middleware';
@@ -24,6 +24,7 @@ import { evmRouter } from './routers/evm';
 import { adRulesRouter } from './routers/slise-ad-rules';
 import { templeWalletAdsRouter } from './routers/temple-wallet-ads';
 import { getSigningNonce, tezosSigAuthMiddleware } from './sig-auth';
+import { handleTempleTapApiProxyRequest } from './temple-tap';
 import { getTkeyStats } from './tkey-stats';
 import { getABData } from './utils/ab-test';
 import { cancelAliceBobOrder } from './utils/alice-bob/cancel-alice-bob-order';
@@ -398,32 +399,13 @@ app.get('/api/signing-nonce', (req, res) => {
   }
 });
 
-app.post('/api/temple-tap/confirm-airdrop-username', tezosSigAuthMiddleware, async (req, res) => {
-  try {
-    const response = await fetch(new URL('v1/confirm-airdrop-address', EnvVars.TEMPLE_TAP_API_URL + '/'), {
-      method: 'POST',
-      body: JSON.stringify(req.body),
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
+app.post('/api/temple-tap/confirm-airdrop-username', tezosSigAuthMiddleware, (req, res) =>
+  handleTempleTapApiProxyRequest(req, res, 'v1/confirm-airdrop-address')
+);
 
-    const statusCode = String(response.status);
-    const responseBody = await response.text();
-
-    if (statusCode.startsWith('2') || statusCode.startsWith('4')) {
-      res.status(response.status).send(responseBody);
-
-      return;
-    }
-
-    throw new Error(responseBody);
-  } catch (error) {
-    console.error('Temple Tap API proxy endpoint exception:', error);
-
-    res.status(500).send({ message: 'Unknown error' });
-  }
-});
+app.post('/api/temple-tap/check-airdrop-confirmation', tezosSigAuthMiddleware, (req, res) =>
+  handleTempleTapApiProxyRequest(req, res, 'v1/check-airdrop-address-confirmation')
+);
 
 const swaggerOptions = {
   swaggerDefinition: {
