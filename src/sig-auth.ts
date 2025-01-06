@@ -9,6 +9,12 @@ import { CodedError } from './utils/errors';
 
 const SIGNING_NONCE_TTL = 5 * 60_000;
 
+/** Result for packing (via `import('@taquito/michel-codec').packDataBytes({ string })`) in bytes for message:
+ * `Tezos Signed Message: Confirming my identity as ${Account PKH}.\n\nNonce: ${nonce}`
+ */
+const TEZ_SIG_AUTH_MSG_PATTERN =
+  /^0501[a-f0-9]{8}54657a6f73205369676e6564204d6573736167653a20436f6e6669726d696e67206d79206964656e7469747920617320[a-f0-9]{72}2e0a0a4e6f6e63653a20[a-f0-9]{16,40}$/;
+
 export const getSigningNonce = memoizee(
   (pkh: string) => {
     if (validateAddress(pkh) !== ValidationResult.VALID) throw new CodedError(400, 'Invalid address');
@@ -28,7 +34,11 @@ export function removeSigningNonce(pkh: string) {
 export async function tezosSigAuthMiddleware(req: Request, res: Response, next: NextFunction) {
   const sigHeaders = await sigAuthHeadersSchema.validate(req.headers).catch(() => null);
 
-  if (!sigHeaders) return void res.status(StatusCodes.UNAUTHORIZED).send();
+  if (!sigHeaders) {
+    logInvalidSigAuthValues('values (empty)', req.headers);
+
+    return void res.status(StatusCodes.UNAUTHORIZED).send();
+  }
 
   const {
     'tw-sig-auth-tez-pk': publicKey,
@@ -49,13 +59,24 @@ export async function tezosSigAuthMiddleware(req: Request, res: Response, next: 
   const { value: nonce } = getSigningNonce(pkh);
   const nonceBytes = Buffer.from(nonce, 'utf-8').toString('hex');
 
-  if (!messageBytes.includes(nonceBytes))
-    return void res.status(StatusCodes.UNAUTHORIZED).send({ code: 'INVALID_NONCE', message: 'Invalid message nonce' });
+  if (!messageBytes.endsWith(nonceBytes)) {
+    logInvalidSigAuthValues('nonce', req.headers);
+
+    return void res.status(StatusCodes.UNAUTHORIZED).send({ code: 'INVALID_NONCE', message: 'Invalid nonce' });
+  }
+
+  // Message
+  if (!TEZ_SIG_AUTH_MSG_PATTERN.test(messageBytes)) {
+    logInvalidSigAuthValues('pattern', req.headers);
+
+    return void res.status(StatusCodes.UNAUTHORIZED).send({ code: 'INVALID_MSG', message: 'Invalid message' });
+  }
 
   // Signature
   try {
     verifySignature(messageBytes, publicKey, signature);
   } catch (error) {
+    logInvalidSigAuthValues('signature', req.headers);
     console.error(error);
 
     return void res
@@ -81,4 +102,10 @@ function buildNonce() {
   const expiresAt = new Date(Date.now() + SIGNING_NONCE_TTL).toISOString();
 
   return { value, expiresAt };
+}
+
+function logInvalidSigAuthValues(title: string, reqHeaders: Record<string, unknown>) {
+  console.error(`[SIG-AUTH] Received invalid message ${title}. Request headers:`);
+
+  console.info(JSON.stringify(reqHeaders, null, 2));
 }
