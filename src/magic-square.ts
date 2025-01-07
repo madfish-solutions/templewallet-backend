@@ -6,9 +6,9 @@ import { verifySignature, getPkhfromPk } from '@taquito/utils';
 import { StatusCodes } from 'http-status-codes';
 
 import { objectStorageMethodsFactory } from './redis';
+import { getSigningNonce, removeSigningNonce } from './sig-auth';
 import { CodedError } from './utils/errors';
 import { safeCheck } from './utils/helpers';
-import { getSigningNonce, removeSigningNonce } from './utils/signing-nonce';
 
 interface Participant {
   pkh: string;
