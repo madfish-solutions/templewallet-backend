@@ -74,7 +74,8 @@ export async function tezosSigAuthMiddleware(req: Request, res: Response, next: 
 
   // Signature
   try {
-    verifySignature(messageBytes, publicKey, signature);
+    const verified = verifySignature(messageBytes, publicKey, signature);
+    if (!verified) throw new Error('Signature not verified');
   } catch (error) {
     logInvalidSigAuthValues('signature', req.headers);
     console.error(error);
