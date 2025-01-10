@@ -23,6 +23,8 @@ import { redisClient } from './redis';
 import { evmRouter } from './routers/evm';
 import { adRulesRouter } from './routers/slise-ad-rules';
 import { templeWalletAdsRouter } from './routers/temple-wallet-ads';
+import { getSigningNonce, tezosSigAuthMiddleware } from './sig-auth';
+import { handleTempleTapApiProxyRequest } from './temple-tap';
 import { getTkeyStats } from './tkey-stats';
 import { getABData } from './utils/ab-test';
 import { cancelAliceBobOrder } from './utils/alice-bob/cancel-alice-bob-order';
@@ -34,11 +36,11 @@ import { getAliceBobPairInfo } from './utils/alice-bob/get-alice-bob-pair-info';
 import { getAliceBobPairsInfo } from './utils/alice-bob/get-alice-bob-pairs-info';
 import { btcExchangeRateProvider, tezExchangeRateProvider } from './utils/coingecko';
 import { CodedError } from './utils/errors';
+import { exolixNetworksMap } from './utils/exolix-networks-map';
 import { coinGeckoTokens } from './utils/gecko-tokens';
 import { getExternalApiErrorPayload, isDefined, isNonEmptyString } from './utils/helpers';
 import logger from './utils/logger';
 import { getSignedMoonPayUrl } from './utils/moonpay/get-signed-moonpay-url';
-import { getSigningNonce } from './utils/signing-nonce';
 import SingleQueryDataProvider from './utils/SingleQueryDataProvider';
 import { getExchangeRates } from './utils/tokens';
 
@@ -105,6 +107,10 @@ const makeProviderDataRequestHandler = <T, U>(provider: SingleQueryDataProvider<
 
 app.get('/api/top-coins', (_req, res) => {
   res.status(200).send(coinGeckoTokens);
+});
+
+app.get('/api/exolix-networks-map', (_req, res) => {
+  res.status(200).send(exolixNetworksMap);
 });
 
 app.get('/api/tkey', async (_req, res) => {
@@ -392,6 +398,14 @@ app.get('/api/signing-nonce', (req, res) => {
     }
   }
 });
+
+app.post('/api/temple-tap/confirm-airdrop-username', tezosSigAuthMiddleware, (req, res) =>
+  handleTempleTapApiProxyRequest(req, res, 'v1/confirm-airdrop-address')
+);
+
+app.post('/api/temple-tap/check-airdrop-confirmation', tezosSigAuthMiddleware, (req, res) =>
+  handleTempleTapApiProxyRequest(req, res, 'v1/check-airdrop-address-confirmation')
+);
 
 const swaggerOptions = {
   swaggerDefinition: {
