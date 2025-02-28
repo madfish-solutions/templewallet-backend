@@ -1,14 +1,14 @@
 import { Router } from 'express';
 
-import { getExternalApiErrorPayload, isDefined } from '../../utils/helpers';
+import { getExternalApiErrorPayload, isDefined } from '../../../utils/helpers';
 
-import { cancelAliceBobOrder } from './utils/cancel-alice-bob-order';
-import { createAliceBobOrder } from './utils/create-alice-bob-order';
-import { estimateAliceBobOutput } from './utils/estimate-alice-bob-output';
-import { getAliceBobEstimationPayload } from './utils/get-alice-bob-estimation-payload';
-import { getAliceBobOrderInfo } from './utils/get-alice-bob-order-info';
-import { getAliceBobPairInfo } from './utils/get-alice-bob-pair-info';
-import { getAliceBobPairsInfo } from './utils/get-alice-bob-pairs-info';
+import { cancelOrder } from './utils/cancel-order';
+import { createOrder } from './utils/create-order';
+import { estimateOutput } from './utils/estimate-output';
+import { getEstimationPayload } from './utils/get-estimation-payload';
+import { getOrderInfo } from './utils/get-order-info';
+import { getPairInfo } from './utils/get-pair-info';
+import { getPairsInfo } from './utils/get-pairs-info';
 
 export const aliceBobRouter = Router();
 
@@ -17,7 +17,7 @@ aliceBobRouter
     const { isWithdraw } = _req.query;
 
     try {
-      const pairsInfo = await getAliceBobPairsInfo(isWithdraw === 'true');
+      const pairsInfo = await getPairsInfo(isWithdraw === 'true');
 
       res.status(200).send({ pairsInfo });
     } catch (error) {
@@ -29,7 +29,7 @@ aliceBobRouter
     const { isWithdraw } = _req.query;
 
     try {
-      const pairInfo = await getAliceBobPairInfo(isWithdraw === 'true');
+      const pairInfo = await getPairInfo(isWithdraw === 'true');
 
       res.status(200).send({ pairInfo });
     } catch (error) {
@@ -41,9 +41,9 @@ aliceBobRouter
     const { isWithdraw, amount, from, to } = _req.query;
 
     try {
-      const payload = getAliceBobEstimationPayload(isWithdraw, from, to, amount);
+      const payload = getEstimationPayload(isWithdraw, from, to, amount);
 
-      const outputAmount = await estimateAliceBobOutput(payload);
+      const outputAmount = await estimateOutput(payload);
 
       res.status(200).send({ outputAmount });
     } catch (error) {
@@ -55,7 +55,7 @@ aliceBobRouter
     const { orderId } = _req.query;
 
     try {
-      const orderInfo = await getAliceBobOrderInfo(String(orderId));
+      const orderInfo = await getOrderInfo(String(orderId));
 
       res.status(200).send({ orderInfo });
     } catch (error) {
@@ -68,13 +68,13 @@ aliceBobRouter
 
     try {
       const payload = {
-        ...getAliceBobEstimationPayload(isWithdraw, from, to, amount),
+        ...getEstimationPayload(isWithdraw, from, to, amount),
         userId: String(userId),
         toPaymentDetails: isDefined(cardNumber) ? String(cardNumber) : String(walletAddress),
         redirectUrl: 'https://templewallet.com/mobile'
       };
 
-      const orderInfo = await createAliceBobOrder(payload);
+      const orderInfo = await createOrder(payload);
 
       res.status(200).send({ orderInfo });
     } catch (error) {
@@ -86,7 +86,7 @@ aliceBobRouter
     const { orderId } = _req.query;
 
     try {
-      await cancelAliceBobOrder({ id: String(orderId) });
+      await cancelOrder({ id: String(orderId) });
 
       res.status(200);
     } catch (error) {

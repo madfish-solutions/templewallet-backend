@@ -20,7 +20,8 @@ import { getNotifications } from './notifications/utils/get-notifications.util';
 import { getParsedContent } from './notifications/utils/get-parsed-content.util';
 import { getPlatforms } from './notifications/utils/get-platforms.util';
 import { redisClient } from './redis';
-import { aliceBobRouter } from './routers/alice-bob';
+import { aliceBobRouter } from './routers/alice-bob/v1';
+import { aliceBobV2Router } from './routers/alice-bob/v2';
 import { evmRouter } from './routers/evm';
 import { adRulesRouter } from './routers/slise-ad-rules';
 import { templeWalletAdsRouter } from './routers/temple-wallet-ads';
@@ -259,6 +260,7 @@ app.use('/api/evm', evmRouter);
 app.use('/api/temple-wallet-ads', templeWalletAdsRouter);
 
 app.use('/api/alice-bob', aliceBobRouter);
+app.use('/api/alice-bob/v2', aliceBobV2Router);
 
 app.post('/api/magic-square-quest/start', async (req, res) => {
   try {

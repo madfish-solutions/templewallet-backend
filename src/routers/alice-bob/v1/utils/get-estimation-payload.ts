@@ -1,15 +1,10 @@
 import { ParsedQs } from 'qs';
 
-import { isDefined } from '../../../utils/helpers';
+import { isDefined } from '../../../../utils/helpers';
 
 type QueryParam = string | ParsedQs | string[] | ParsedQs[] | undefined;
 
-export const getAliceBobEstimationPayload = (
-  isWithdraw: QueryParam,
-  from: QueryParam,
-  to: QueryParam,
-  amount: QueryParam
-) => {
+export const getEstimationPayload = (isWithdraw: QueryParam, from: QueryParam, to: QueryParam, amount: QueryParam) => {
   const booleanIsWithdraw = isWithdraw === 'true';
 
   return {
