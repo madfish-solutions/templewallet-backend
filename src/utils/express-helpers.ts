@@ -1,3 +1,4 @@
+import { AxiosError } from 'axios';
 import { NextFunction, Request, RequestHandler, Response, Router } from 'express';
 import { ArraySchema as IArraySchema, ObjectSchema as IObjectSchema, Schema, ValidationError } from 'yup';
 
@@ -39,6 +40,26 @@ export const withBodyValidation =
     }
 
     return handler(req, res, next);
+  };
+
+const getExternalApiErrorPayload = (error: unknown) => {
+  const response = error instanceof AxiosError ? error.response : undefined;
+  const status = response?.status ?? 500;
+  const data = response?.data ?? { error: error instanceof Error ? error.message : error };
+
+  return { status, data };
+};
+
+export const withExternalApiExceptionHandler =
+  (handler: RequestHandler): RequestHandler =>
+  async (req, res, next) => {
+    try {
+      await handler(req, res, next);
+    } catch (error) {
+      logger.error(error as object);
+      const { status, data } = getExternalApiErrorPayload(error);
+      res.status(status).send({ error: data });
+    }
   };
 
 export const withExceptionHandler =
