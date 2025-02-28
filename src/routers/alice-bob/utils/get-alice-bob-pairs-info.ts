@@ -1,5 +1,5 @@
-import { AliceBobPairInfo } from '../../interfaces/alice-bob.interfaces';
-import { aliceBobApi } from '../api.sevice';
+import { aliceBobApi } from '../api';
+import { AliceBobPairInfo } from '../interfaces';
 
 import { getAliceBobRequestHeaders } from './get-alice-bob-request-headers';
 import { getAliceBobSignature } from './get-alice-bob-signature';

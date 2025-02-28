@@ -1,6 +1,6 @@
 import { ParsedQs } from 'qs';
 
-import { isDefined } from '../helpers';
+import { isDefined } from '../../../utils/helpers';
 
 type QueryParam = string | ParsedQs | string[] | ParsedQs[] | undefined;
 

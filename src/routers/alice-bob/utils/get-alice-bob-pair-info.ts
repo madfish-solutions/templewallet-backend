@@ -1,4 +1,4 @@
-import { aliceBobApi } from '../api.sevice';
+import { aliceBobApi } from '../api';
 
 import { getAliceBobRequestHeaders } from './get-alice-bob-request-headers';
 import { getAliceBobSignature } from './get-alice-bob-signature';
