@@ -1,88 +1,44 @@
+import axios, { AxiosError } from 'axios';
 import { Router } from 'express';
 
-import { withCodedExceptionHandler } from '../../utils/express-helpers';
-import {
-  evmQueryParamsSchema,
-  evmQueryParamsPaginatedSchema,
-  evmQueryParamsTransfersSchema,
-  evmQueryParamsTransactionsSchema
-} from '../../utils/schemas';
+import { EnvVars } from '../../config';
 
-import { fetchTransactions } from './alchemy';
-import {
-  getEvmBalances,
-  getEvmCollectiblesMetadata,
-  getEvmTokensMetadata,
-  getEvmAccountTransactions,
-  getEvmAccountERC20Transfers
-} from './covalent';
+const evmApi = axios.create({ baseURL: EnvVars.EVM_API_URL });
 
 export const evmRouter = Router();
 
-evmRouter
-  .get(
-    '/balances',
-    withCodedExceptionHandler(async (req, res) => {
-      const { walletAddress, chainId } = await evmQueryParamsSchema.validate(req.query);
+evmRouter.use(async (req, res, next) => {
+  if (req.method.toLowerCase() !== 'get') {
+    next();
 
-      const data = await getEvmBalances(walletAddress, chainId);
+    return;
+  }
 
-      res.status(200).send(data);
-    })
-  )
-  .get(
-    '/tokens-metadata',
-    withCodedExceptionHandler(async (req, res) => {
-      const { walletAddress, chainId } = await evmQueryParamsSchema.validate(req.query);
+  try {
+    const response = await evmApi.get(`/api${req.path}`, {
+      params: req.query,
+      headers: Object.fromEntries(
+        Object.entries(req.headers)
+          .map(([key, value]): [string, string | undefined] => [key, Array.isArray(value) ? value.join(',') : value])
+          .filter((entry): entry is [string, string] => entry[1] !== undefined)
+      )
+    });
 
-      const data = await getEvmTokensMetadata(walletAddress, chainId);
+    res
+      .setHeaders(new Map(Object.entries(response.headers)))
+      .status(response.status)
+      .send(response.data);
+  } catch (e) {
+    if (e instanceof AxiosError && e.response) {
+      const response = e.response;
+      res
+        .setHeaders(new Map(Object.entries(response.headers)))
+        .status(response.status)
+        .send(response.data);
 
-      res.status(200).send(data);
-    })
-  )
-  .get(
-    '/collectibles-metadata',
-    withCodedExceptionHandler(async (req, res) => {
-      const { walletAddress, chainId } = await evmQueryParamsSchema.validate(req.query);
+      return;
+    }
 
-      const data = await getEvmCollectiblesMetadata(walletAddress, chainId);
-
-      res.status(200).send(data);
-    })
-  )
-  .get(
-    '/transactions',
-    withCodedExceptionHandler(async (req, res) => {
-      const { walletAddress, chainId, page } = await evmQueryParamsPaginatedSchema.validate(req.query);
-
-      const data = await getEvmAccountTransactions(walletAddress, chainId, page);
-
-      res.status(200).send(data);
-    })
-  )
-  .get(
-    '/erc20-transfers',
-    withCodedExceptionHandler(async (req, res) => {
-      const { walletAddress, chainId, contractAddress, page } = await evmQueryParamsTransfersSchema.validate(req.query);
-
-      const data = await getEvmAccountERC20Transfers(walletAddress, chainId, contractAddress, page);
-
-      res.status(200).send(data);
-    })
-  )
-  .get(
-    '/transactions/v2',
-    withCodedExceptionHandler(async (req, res) => {
-      const { walletAddress, chainId, contractAddress, olderThanBlockHeight } =
-        await evmQueryParamsTransactionsSchema.validate(req.query);
-
-      const data = await fetchTransactions(
-        chainId,
-        walletAddress,
-        contractAddress,
-        olderThanBlockHeight as `${number}` | undefined
-      );
-
-      res.status(200).send(data);
-    })
-  );
+    res.status(500).json({ error: 'Could not get response' });
+  }
+});
