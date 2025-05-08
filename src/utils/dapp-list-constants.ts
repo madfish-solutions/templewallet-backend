@@ -154,38 +154,3 @@ export const DAPPS_LIST: DappListItem[] = [
     categories: [DappType.DeFi]
   }
 ];
-
-export const IOS_DAPPS_LIST: DappListItem[] = [
-  {
-    name: 'Tezos Projects',
-    dappUrl: 'https://ecosystem.tezos.com',
-    logo: 'https://temple-wallet-stage-bucket.nyc3.cdn.digitaloceanspaces.com/dapps/tezos.png',
-    slug: 'ecosystem.tezos.com',
-    type: DappType.Other,
-    categories: []
-  },
-  {
-    name: 'Mad.Fish',
-    dappUrl: 'https://mad.fish/products',
-    logo: 'https://temple-wallet-stage-bucket.nyc3.cdn.digitaloceanspaces.com/dapps/madfish.png',
-    slug: 'mad.fish/products',
-    type: DappType.Other,
-    categories: []
-  },
-  {
-    name: 'Temple Wallet',
-    dappUrl: 'https://templewallet.com/download?platform=extension',
-    logo: 'https://temple-wallet-stage-bucket.nyc3.cdn.digitaloceanspaces.com/dapps/temple.png',
-    slug: 'download-tw-extension',
-    type: DappType.Other,
-    categories: []
-  },
-  {
-    name: 'TZKT',
-    dappUrl: 'https://tzkt.io/dapps',
-    logo: 'https://temple-wallet-stage-bucket.nyc3.cdn.digitaloceanspaces.com/dapps/tzkt.png',
-    slug: 'tzkt.io/dapps',
-    type: DappType.Other,
-    categories: []
-  }
-];
