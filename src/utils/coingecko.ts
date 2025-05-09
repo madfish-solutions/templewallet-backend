@@ -68,9 +68,9 @@ const getMarkets = buildQuery<MarketsParams, Market[]>(
   })
 );
 
-export const coinsListProvider = new SingleQueryDataProvider(24 * 3600 * 1000, () => getCoins({}));
+const coinsListProvider = new SingleQueryDataProvider(24 * 3600 * 1000, () => getCoins({}));
 
-export const getMarketsBySymbols = async (symbols: string[]) => {
+const getMarketsBySymbols = async (symbols: string[]) => {
   const { data: coins, error: coinsError } = await coinsListProvider.getState();
   if (coinsError) {
     throw coinsError;

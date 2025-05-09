@@ -3,7 +3,6 @@ import { ArraySchema as IArraySchema, ObjectSchema as IObjectSchema, Schema, Val
 
 import { basicAuth } from '../middlewares/basic-auth.middleware';
 
-import { CodedError } from './errors';
 import logger from './logger';
 
 interface ObjectStorageMethods<V> {
@@ -25,7 +24,7 @@ type TypedBodyRequestHandler<T> = (
   next: NextFunction
 ) => void;
 
-export const withBodyValidation =
+const withBodyValidation =
   <T>(schema: Schema<T>, handler: TypedBodyRequestHandler<T>): RequestHandler =>
   async (req, res, next) => {
     try {
@@ -49,24 +48,6 @@ export const withExceptionHandler =
     } catch (error) {
       logger.error(error as object);
       res.status(500).send({ error });
-    }
-  };
-
-export const withCodedExceptionHandler =
-  (handler: RequestHandler): RequestHandler =>
-  async (req, res, next) => {
-    try {
-      await handler(req, res, next);
-    } catch (error: any) {
-      logger.error(error);
-
-      if (error instanceof CodedError) {
-        res.status(error.code).send(error.buildResponse());
-      } else if (error instanceof ValidationError) {
-        res.status(400).send({ error: error.message });
-      } else {
-        res.status(500).send({ message: error?.message });
-      }
     }
   };
 

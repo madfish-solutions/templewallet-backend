@@ -157,10 +157,6 @@ export interface AdProviderSelectorsRule extends ExtVersionConstraints, BrowserC
   parentDepth?: number;
 }
 
-export interface AdProviderForAllSitesRule extends ExtVersionConstraints {
-  providers: string[];
-}
-
 export interface ReplaceAdsUrlsBlacklistEntry extends ExtVersionConstraints {
   regexes: string[];
 }
