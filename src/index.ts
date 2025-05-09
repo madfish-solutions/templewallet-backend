@@ -174,9 +174,8 @@ app.post('/api/notifications', basicAuth, async (req, res) => {
 });
 
 app.get('/api/dapps', (req, res) => {
-  const platform = req.query.platform;
-
-  const data = getDAppsStats(platform === 'ios');
+  // This request has 'platform' query parameter for the case we need to filter dapps by the client platform
+  const data = getDAppsStats();
 
   res.status(200).header('Cache-Control', 'public, max-age=300').send(data);
 });
