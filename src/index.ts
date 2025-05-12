@@ -43,6 +43,7 @@ import logger from './utils/logger';
 import { getSignedMoonPayUrl } from './utils/moonpay/get-signed-moonpay-url';
 import SingleQueryDataProvider from './utils/SingleQueryDataProvider';
 import { getExchangeRates } from './utils/tokens';
+import { getWertSessionId } from './utils/wert';
 
 const PINO_LOGGER = {
   logger: logger.child({ name: 'web' }),
@@ -388,6 +389,20 @@ app.get('/api/signing-nonce', (req, res) => {
     if (!pkh || typeof pkh !== 'string') throw new Error('PKH is not a string');
 
     res.status(200).send(getSigningNonce(pkh));
+  } catch (error: any) {
+    console.error(error);
+
+    if (error instanceof CodedError) {
+      res.status(error.code).send(error.buildResponse());
+    } else {
+      res.status(500).send({ message: error?.message });
+    }
+  }
+});
+
+app.get('/api/wert-session-id', async (_, res) => {
+  try {
+    res.status(200).send(await getWertSessionId());
   } catch (error: any) {
     console.error(error);
 
