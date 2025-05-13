@@ -1,4 +1,3 @@
-import { getAddress } from '@ethersproject/address';
 import { validRange as getValidatedRange } from 'semver';
 import {
   array as arraySchema,
@@ -63,7 +62,7 @@ const regexStringSchema = stringSchema().test('is-regex', function (value: strin
   }
 });
 
-export const regexStringListSchema = arraySchema().of(regexStringSchema.clone().required());
+const regexStringListSchema = arraySchema().of(regexStringSchema.clone().required());
 
 const versionRangeSchema = stringSchema().test('is-version-range', function (value: string | undefined) {
   return !isDefined(value) || isDefined(getValidatedRange(value));
@@ -109,29 +108,6 @@ const styleSchema: IObjectSchema<Record<StylePropName, string>> = makeDictionary
 const adStylesOverridesSchema = objectSchema().shape({
   parentDepth: numberSchema().integer().min(0).required(),
   style: styleSchema.clone().required()
-});
-
-export const evmQueryParamsSchema = objectSchema().shape({
-  walletAddress: nonEmptyStringSchema.clone().required('walletAddress is undefined'),
-  chainId: nonEmptyStringSchema.clone().required('chainId is undefined')
-});
-
-export const evmQueryParamsPaginatedSchema = evmQueryParamsSchema.clone().shape({
-  page: numberSchema().integer().min(1)
-});
-
-export const evmQueryParamsTransactionsSchema = objectSchema().shape({
-  chainId: numberSchema().integer().min(1).required('chainId is undefined'),
-  walletAddress: nonEmptyStringSchema.clone().required('walletAddress is undefined'),
-  /** Without token ID means ERC-20 tokens only */
-  contractAddress: nonEmptyStringSchema.clone(),
-  olderThanBlockHeight: nonEmptyStringSchema.clone().test(v => v === undefined || Number(v) > 0)
-});
-
-export const evmQueryParamsTransfersSchema = evmQueryParamsPaginatedSchema.clone().shape({
-  contractAddress: stringSchema()
-    .required()
-    .test(val => getAddress(val) === val)
 });
 
 const adPlacesRulesSchema = arraySchema()
