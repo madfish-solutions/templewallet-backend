@@ -74,14 +74,6 @@ export const DAPPS_LIST: DappListItem[] = [
     categories: [DappType.Other]
   },
   {
-    name: 'DNS.xyz',
-    dappUrl: 'https://dns.xyz/',
-    type: DappType.DeFi,
-    logo: 'https://pbs.twimg.com/profile_images/1586824458651590656/C-r5Veh3_200x200.png',
-    slug: 'dnsxyz',
-    categories: [DappType.Marketplaces, DappType.Collectibles]
-  },
-  {
     name: 'Plenty',
     dappUrl: 'https://plenty.network/',
     type: DappType.DeFi,
@@ -151,6 +143,14 @@ export const DAPPS_LIST: DappListItem[] = [
     type: DappType.DeFi,
     logo: 'https://assets-global.website-files.com/6475ceee719579d9e88c6c2f/6475d6f27dd17b6b206bf848_Design%20sans%20titre%20(20).png',
     slug: 'lyzi',
+    categories: [DappType.DeFi]
+  },
+  {
+    name: 'Skurpy',
+    dappUrl: 'https://skurpy.com/',
+    type: DappType.DeFi,
+    logo: 'https://dashboard-assets.dappradar.com/document/52092/skurpy-project-marketplaces-52092-logo-166x166_b7ae64645e94a9be064bf530f624d4fd.png',
+    slug: 'skurpy',
     categories: [DappType.DeFi]
   }
 ];
