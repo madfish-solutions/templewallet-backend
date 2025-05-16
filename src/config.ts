@@ -15,7 +15,8 @@ export const EnvVars = {
   ADMIN_PASSWORD: getEnv('ADMIN_PASSWORD'),
   TEMPLE_TAP_API_URL: getEnv('TEMPLE_TAP_API_URL'),
   EVM_API_URL: getEnv('EVM_API_URL'),
-  WERT_API_KEY: getEnv('WERT_API_KEY')
+  WERT_API_KEY: getEnv('WERT_API_KEY'),
+  GOOGLE_DRIVE_API_KEY: getEnv('GOOGLE_DRIVE_API_KEY')
 };
 
 for (const name in EnvVars) {
