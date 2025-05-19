@@ -1,8 +1,12 @@
 import axios, { AxiosRequestHeaders, AxiosResponse, AxiosResponseHeaders } from 'axios';
 import { Router } from 'express';
 import { IncomingHttpHeaders } from 'http';
+import { omit } from 'lodash';
+import { object as objectSchema, mixed as mixedSchema, string as stringSchema } from 'yup';
 
 import { EnvVars } from '../config';
+import { isDefined } from '../utils/helpers';
+import logger from '../utils/logger';
 
 export const googleDriveRouter = Router();
 
@@ -10,9 +14,12 @@ const googleDriveApi = axios.create({
   baseURL: 'https://www.googleapis.com'
 });
 
-const allowedBodyMethods = ['post', 'patch', 'delete'] as const;
-const isAllowedBodyMethod = (method: string): method is (typeof allowedBodyMethods)[number] =>
-  allowedBodyMethods.includes(method as (typeof allowedBodyMethods)[number]);
+type AllowedBodyMethod = 'post' | 'patch';
+const allowedBodyMethods = ['post', 'patch'];
+const isAllowedBodyMethod = (method: string): method is AllowedBodyMethod => allowedBodyMethods.includes(method);
+type AllowedNoBodyMethod = 'get' | 'delete';
+const allowedNoBodyMethods = ['get', 'delete'];
+const isAllowedNoBodyMethod = (method: string): method is AllowedNoBodyMethod => allowedNoBodyMethods.includes(method);
 
 const toAxiosRequestHeaders = (headers: IncomingHttpHeaders): AxiosRequestHeaders => {
   const axiosHeaders: AxiosRequestHeaders = {};
@@ -37,32 +44,43 @@ const fromAxiosResponseHeaders = (headers: AxiosResponseHeaders): Headers => {
   return responseHeaders;
 };
 
+const wrappedBodySchema = objectSchema({
+  body: mixedSchema(),
+  contentType: stringSchema().required()
+}).required();
+
 googleDriveRouter.use(async (req, res) => {
   const methodName = req.method.toLowerCase();
   try {
     const commonRequestConfig = {
       params: {
         ...req.query,
-        key: req.url.startsWith('/oauth2') ? undefined : EnvVars.GOOGLE_DRIVE_API_KEY
+        key: req.path.startsWith('/oauth2') ? undefined : EnvVars.GOOGLE_DRIVE_API_KEY
       },
-      headers: {
-        ...toAxiosRequestHeaders(req.headers),
-        'Content-Type': 'application/json'
-      }
+      headers: omit(toAxiosRequestHeaders(req.headers), 'connection', 'Connection', 'content-length', 'Content-Length')
     };
 
     let response: AxiosResponse;
-    if (methodName === 'get') {
-      response = await googleDriveApi.get(req.url, commonRequestConfig);
+    if (isAllowedNoBodyMethod(methodName)) {
+      response = await googleDriveApi[methodName](req.path, commonRequestConfig);
     } else if (isAllowedBodyMethod(methodName)) {
-      response = await googleDriveApi[methodName](req.url, req.body, commonRequestConfig);
+      const requestConfig = { ...commonRequestConfig };
+      let body = req.body;
+      try {
+        const { body: newBody, contentType } = await wrappedBodySchema.validate(req.body);
+        body = newBody;
+        const headersContentTypeKey = isDefined(req.headers['content-type']) ? 'content-type' : 'Content-Type';
+        requestConfig.headers[headersContentTypeKey] = contentType;
+      } catch {}
+      response = await googleDriveApi[methodName](req.path, body, requestConfig);
     } else {
       throw new Error('Method Not Allowed');
     }
 
     res.status(response.status).setHeaders(fromAxiosResponseHeaders(response.headers)).send(response.data);
   } catch (error) {
-    if (methodName !== 'get' && !isAllowedBodyMethod(methodName)) {
+    logger.error('Google Drive API error', error);
+    if (!isAllowedNoBodyMethod(methodName) && !isAllowedBodyMethod(methodName)) {
       return res.status(405).json({ error: 'Method Not Allowed' });
     }
 
