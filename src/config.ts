@@ -13,9 +13,9 @@ export const EnvVars = {
   REDIS_URL: getEnv('REDIS_URL'),
   ADMIN_USERNAME: getEnv('ADMIN_USERNAME'),
   ADMIN_PASSWORD: getEnv('ADMIN_PASSWORD'),
-  COVALENT_API_KEY: getEnv('COVALENT_API_KEY'),
-  ALCHEMY_API_KEY: getEnv('ALCHEMY_API_KEY'),
-  TEMPLE_TAP_API_URL: getEnv('TEMPLE_TAP_API_URL')
+  TEMPLE_TAP_API_URL: getEnv('TEMPLE_TAP_API_URL'),
+  EVM_API_URL: getEnv('EVM_API_URL'),
+  WERT_API_KEY: getEnv('WERT_API_KEY')
 };
 
 for (const name in EnvVars) {

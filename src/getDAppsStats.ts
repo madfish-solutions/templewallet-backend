@@ -1,11 +1,11 @@
-import { DAPPS_LIST, IOS_DAPPS_LIST } from './utils/dapp-list-constants';
+import { DAPPS_LIST } from './utils/dapp-list-constants';
 import logger from './utils/logger';
 
-const getDAppsStats = (forIOs: boolean) => {
+const getDAppsStats = () => {
   logger.info('Getting dApps list...');
 
   return {
-    dApps: forIOs ? IOS_DAPPS_LIST : DAPPS_LIST
+    dApps: DAPPS_LIST
   };
 };
 

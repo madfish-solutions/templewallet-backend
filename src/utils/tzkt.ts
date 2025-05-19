@@ -48,7 +48,7 @@ type TokensMetadataParams = {
   tokenId?: number;
 };
 
-export type DAppsListItem = {
+type DAppsListItem = {
   name: string;
   dappUrl: string;
   type: string;
@@ -57,7 +57,7 @@ export type DAppsListItem = {
   categories: string[];
 };
 
-export type DAppDetails = DAppsListItem & {
+type DAppDetails = DAppsListItem & {
   contracts?: {
     network: string;
     address: string;
@@ -73,7 +73,7 @@ type AccountTokenBalancesResponse = {
   total: number;
 };
 
-export type TzktTokenData = {
+type TzktTokenData = {
   contract: {
     address: string;
     alias?: string;
@@ -92,31 +92,9 @@ export type TzktTokenData = {
   totalSupply?: string;
 };
 
-interface TzktBlockQueryParams {
-  level: number;
-  operations: boolean;
-}
-
-interface TzktBlockOperationsResponse {
-  transactions:
-    | {
-        type: string;
-        target: {
-          alias: string | null;
-          address: string | null;
-        } | null;
-      }[]
-    | null;
-}
-
 const buildTzktQuery = makeBuildQueryFn<
-  SeriesParams | object | { slug: string } | AccountTokenBalancesParams | ContractTokensParams | TzktBlockQueryParams,
-  | [number, number][]
-  | DAppsListItem[]
-  | DAppDetails
-  | AccountTokenBalancesResponse
-  | TzktTokenData[]
-  | TzktBlockOperationsResponse
+  SeriesParams | object | { slug: string } | AccountTokenBalancesParams | ContractTokensParams,
+  [number, number][] | DAppsListItem[] | DAppDetails | AccountTokenBalancesResponse | TzktTokenData[]
 >(TZKT_BASE_URL, 5);
 
 const makeTokensQuery = buildTzktQuery<TokensMetadataParams, TzktTokenData[]>(
@@ -124,27 +102,11 @@ const makeTokensQuery = buildTzktQuery<TokensMetadataParams, TzktTokenData[]>(
   ['limit', 'offset', 'contract', 'tokenId']
 );
 
-export const makeBlockQuery = buildTzktQuery<TzktBlockQueryParams, TzktBlockOperationsResponse>(
-  ({ level }) => `/blocks/${level}`,
-  ['operations']
-);
-
 export const tokensMetadataProvider = new DataProvider(24 * 3600 * 1000, async (address?: string, token_id?: number) =>
   makeTokensQuery({
     contract: address,
     tokenId: token_id
   })
-);
-
-export const contractTokensProvider = new DataProvider(
-  24 * 3600 * 1000,
-  async (address: string, token_id?: number, size?: number, offset?: number) =>
-    makeTokensQuery({
-      contract: address,
-      limit: size,
-      offset,
-      tokenId: token_id
-    })
 );
 
 export const mapTzktTokenDataToBcdTokenData = (x?: TzktTokenData): BcdTokenData | undefined =>

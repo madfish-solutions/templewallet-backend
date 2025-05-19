@@ -43,6 +43,7 @@ import logger from './utils/logger';
 import { getSignedMoonPayUrl } from './utils/moonpay/get-signed-moonpay-url';
 import SingleQueryDataProvider from './utils/SingleQueryDataProvider';
 import { getExchangeRates } from './utils/tokens';
+import { getWertSessionId } from './utils/wert';
 
 const PINO_LOGGER = {
   logger: logger.child({ name: 'web' }),
@@ -174,9 +175,8 @@ app.post('/api/notifications', basicAuth, async (req, res) => {
 });
 
 app.get('/api/dapps', (req, res) => {
-  const platform = req.query.platform;
-
-  const data = getDAppsStats(platform === 'ios');
+  // This request has 'platform' query parameter for the case we need to filter dapps by the client platform
+  const data = getDAppsStats();
 
   res.status(200).header('Cache-Control', 'public, max-age=300').send(data);
 });
@@ -388,6 +388,20 @@ app.get('/api/signing-nonce', (req, res) => {
     if (!pkh || typeof pkh !== 'string') throw new Error('PKH is not a string');
 
     res.status(200).send(getSigningNonce(pkh));
+  } catch (error: any) {
+    console.error(error);
+
+    if (error instanceof CodedError) {
+      res.status(error.code).send(error.buildResponse());
+    } else {
+      res.status(500).send({ message: error?.message });
+    }
+  }
+});
+
+app.get('/api/wert-session-id', async (_, res) => {
+  try {
+    res.status(200).send(await getWertSessionId());
   } catch (error: any) {
     console.error(error);
 

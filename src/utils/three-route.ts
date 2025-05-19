@@ -14,17 +14,6 @@ export enum ThreeRouteStandardEnum {
   fa2 = 'fa2'
 }
 
-export interface ThreeRouteHop {
-  dex: number;
-  forward: boolean;
-}
-
-export interface ThreeRouteChain {
-  input: number;
-  output: number;
-  hops: ThreeRouteHop[];
-}
-
 interface ThreeRouteTokenCommon {
   id: number;
   symbol: string;
@@ -34,7 +23,7 @@ interface ThreeRouteTokenCommon {
   decimals: number;
 }
 
-export interface ThreeRouteTezosToken extends ThreeRouteTokenCommon {
+interface ThreeRouteTezosToken extends ThreeRouteTokenCommon {
   standard: ThreeRouteStandardEnum.xtz;
   contract: null;
   tokenId: null;
@@ -52,43 +41,12 @@ export interface ThreeRouteFa2Token extends ThreeRouteTokenCommon {
   contract: string;
 }
 
-export type ThreeRouteToken = ThreeRouteTezosToken | ThreeRouteFa12Token | ThreeRouteFa2Token;
-
-export enum ThreeRouteDexTypeEnum {
-  PlentyTokenToToken = 'PlentyTokenToToken',
-  PlentyTokenToTokenStable = 'PlentyTokenToTokenStable',
-  PlentyTokenToTokenVolatile = 'PlentyTokenToTokenVolatile',
-  PlentyCtezStable = 'PlentyCtezStable',
-  QuipuSwapTokenToTokenStable = 'QuipuSwapTokenToTokenStable',
-  QuipuSwapTezToTokenFa12 = 'QuipuSwapTezToTokenFa12',
-  QuipuSwapTezToTokenFa2 = 'QuipuSwapTezToTokenFa2',
-  QuipuSwapTokenToToken = 'QuipuSwapTokenToToken',
-  QuipuSwapDex2 = 'QuipuSwapDex2',
-  DexterLb = 'DexterLb',
-  FlatYouvesStable = 'FlatYouvesStable',
-  VortexTokenToTokenFa12 = 'VortexTokenToTokenFa12',
-  VortexTokenToTokenFa2 = 'VortexTokenToTokenFa2',
-  SpicyTokenToToken = 'SpicyTokenToToken',
-  WTZSwap = 'WTZSwap',
-  CtezToXtz = 'CtezToXtz',
-  PlentyWrappedTokenBridgeSwap = 'PlentyWrappedTokenBridgeSwap',
-  FlatYouvesStableUXTZ = 'FlatYouvesStableUXTZ'
-}
-
-export interface ThreeRouteDex {
-  id: number;
-  type: ThreeRouteDexTypeEnum;
-  contract: string;
-  token1: ThreeRouteToken;
-  token2: ThreeRouteToken;
-}
+type ThreeRouteToken = ThreeRouteTezosToken | ThreeRouteFa12Token | ThreeRouteFa2Token;
 
 type ThreeRouteExchangeRates = Record<string, { ask: number; bid: number }>;
 
 type ThreeRouteQueryParams = object | SwapQueryParams;
 type ThreeRouteQueryResponse = ThreeRouteExchangeRates | ThreeRouteToken[];
-
-export const THREE_ROUTE_SIRS_SYMBOL = 'SIRS';
 
 const threeRouteBuildQueryFn = makeBuildQueryFn<ThreeRouteQueryParams, ThreeRouteQueryResponse>(
   EnvVars.THREE_ROUTE_API_URL,
