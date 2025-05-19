@@ -14,12 +14,17 @@ const googleDriveApi = axios.create({
   baseURL: 'https://www.googleapis.com'
 });
 
-type AllowedBodyMethod = 'post' | 'patch';
+class NotAllowedMethodError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'NotAllowedMethodError';
+  }
+}
+
 const allowedBodyMethods = ['post', 'patch'];
-const isAllowedBodyMethod = (method: string): method is AllowedBodyMethod => allowedBodyMethods.includes(method);
-type AllowedNoBodyMethod = 'get' | 'delete';
+const isAllowedBodyMethod = (method: string): method is 'post' | 'patch' => allowedBodyMethods.includes(method);
 const allowedNoBodyMethods = ['get', 'delete'];
-const isAllowedNoBodyMethod = (method: string): method is AllowedNoBodyMethod => allowedNoBodyMethods.includes(method);
+const isAllowedNoBodyMethod = (method: string): method is 'get' | 'delete' => allowedNoBodyMethods.includes(method);
 
 const toAxiosRequestHeaders = (headers: IncomingHttpHeaders): AxiosRequestHeaders => {
   const axiosHeaders: AxiosRequestHeaders = {};
@@ -74,13 +79,14 @@ googleDriveRouter.use(async (req, res) => {
       } catch {}
       response = await googleDriveApi[methodName](req.path, body, requestConfig);
     } else {
-      throw new Error('Method Not Allowed');
+      throw new NotAllowedMethodError('Method Not Allowed');
     }
 
     res.status(response.status).setHeaders(fromAxiosResponseHeaders(response.headers)).send(response.data);
   } catch (error) {
     logger.error('Google Drive API error', error);
-    if (!isAllowedNoBodyMethod(methodName) && !isAllowedBodyMethod(methodName)) {
+
+    if (error instanceof NotAllowedMethodError) {
       return res.status(405).json({ error: 'Method Not Allowed' });
     }
 
