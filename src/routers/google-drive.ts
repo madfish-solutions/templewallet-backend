@@ -1,4 +1,4 @@
-import axios, { AxiosRequestHeaders, AxiosResponse, AxiosResponseHeaders } from 'axios';
+import axios, { AxiosRequestHeaders, AxiosResponse } from 'axios';
 import { Router } from 'express';
 import { IncomingHttpHeaders } from 'http';
 import { omit } from 'lodash';
@@ -40,15 +40,6 @@ const toAxiosRequestHeaders = (headers: IncomingHttpHeaders): AxiosRequestHeader
   return axiosHeaders;
 };
 
-const fromAxiosResponseHeaders = (headers: AxiosResponseHeaders): Headers => {
-  const responseHeaders = new Headers();
-  for (const key in headers) {
-    responseHeaders.append(key, headers[key]);
-  }
-
-  return responseHeaders;
-};
-
 const wrappedBodySchema = objectSchema({
   body: mixedSchema(),
   contentType: stringSchema().required()
@@ -82,7 +73,8 @@ googleDriveRouter.use(async (req, res) => {
       throw new NotAllowedMethodError('Method Not Allowed');
     }
 
-    res.status(response.status).setHeaders(fromAxiosResponseHeaders(response.headers)).send(response.data);
+    // TODO: add setting headers to response if needed
+    res.status(response.status).send(response.data);
   } catch (error) {
     logger.error('Google Drive API error', error);
 
@@ -91,10 +83,8 @@ googleDriveRouter.use(async (req, res) => {
     }
 
     if (axios.isAxiosError(error) && error.response) {
-      res
-        .status(error.response.status)
-        .setHeaders(fromAxiosResponseHeaders(error.response.headers))
-        .send(error.response.data);
+      // TODO: add setting headers to response if needed
+      res.status(error.response.status).send(error.response.data);
     } else {
       res.status(500).json({ error: 'Internal Server Error' });
     }
