@@ -21,6 +21,7 @@ import { getParsedContent } from './notifications/utils/get-parsed-content.util'
 import { getPlatforms } from './notifications/utils/get-platforms.util';
 import { redisClient } from './redis';
 import { evmRouter } from './routers/evm';
+import { googleDriveRouter } from './routers/google-drive';
 import { adRulesRouter } from './routers/slise-ad-rules';
 import { templeWalletAdsRouter } from './routers/temple-wallet-ads';
 import { getSigningNonce, tezosSigAuthMiddleware } from './sig-auth';
@@ -349,6 +350,8 @@ app.get('/api/advertising-info', (_req, res) => {
 app.use('/api/slise-ad-rules', adRulesRouter);
 
 app.use('/api/evm', evmRouter);
+
+app.use('/api/google-drive', googleDriveRouter);
 
 app.use('/api/temple-wallet-ads', templeWalletAdsRouter);
 
