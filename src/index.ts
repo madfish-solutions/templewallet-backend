@@ -6,10 +6,7 @@ import express, { Request, Response } from 'express';
 import firebaseAdmin from 'firebase-admin';
 import { stdSerializers } from 'pino';
 import pinoHttp from 'pino-http';
-import swaggerJSDoc from 'swagger-jsdoc';
-import swaggerUi from 'swagger-ui-express';
 
-import { getAdvertisingInfo } from './advertising/advertising';
 import { MIN_ANDROID_APP_VERSION, MIN_IOS_APP_VERSION } from './config';
 import getDAppsStats from './getDAppsStats';
 import { getMagicSquareQuestParticipants, startMagicSquareQuest } from './magic-square';
@@ -337,16 +334,6 @@ app.get('/api/mobile-check', async (_req, res) => {
   }
 });
 
-app.get('/api/advertising-info', (_req, res) => {
-  try {
-    const data = getAdvertisingInfo();
-
-    res.status(200).send({ data });
-  } catch (error) {
-    res.status(500).send({ error });
-  }
-});
-
 app.use('/api/slise-ad-rules', adRulesRouter);
 
 app.use('/api/evm', evmRouter);
@@ -423,19 +410,6 @@ app.post('/api/temple-tap/confirm-airdrop-username', tezosSigAuthMiddleware, (re
 app.post('/api/temple-tap/check-airdrop-confirmation', tezosSigAuthMiddleware, (req, res) =>
   handleTempleTapApiProxyRequest(req, res, 'v1/check-airdrop-address-confirmation')
 );
-
-const swaggerOptions = {
-  swaggerDefinition: {
-    openapi: '3.0.0',
-    info: {
-      title: 'Temple Wallet backend',
-      version: '1.0.0'
-    }
-  },
-  apis: ['./src/index.ts', './src/routers/**/*.ts']
-};
-const swaggerSpec = swaggerJSDoc(swaggerOptions);
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // start the server listening for requests
 const port = Boolean(process.env.PORT) ? process.env.PORT : 3000;
