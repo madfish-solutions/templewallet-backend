@@ -74,22 +74,6 @@ export const DAPPS_LIST: DappListItem[] = [
     categories: [DappType.Other]
   },
   {
-    name: 'Plenty',
-    dappUrl: 'https://plenty.network/',
-    type: DappType.DeFi,
-    logo: 'https://pbs.twimg.com/profile_images/1571173076334772224/hZ-puodZ_400x400.jpg',
-    slug: 'plenty',
-    categories: [DappType.DeFi, DappType.Exchanges]
-  },
-  {
-    name: 'Kalamint',
-    dappUrl: 'https://kalamint.io',
-    type: DappType.Marketplaces,
-    logo: 'https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/kalamint/kalamint_logo.png',
-    slug: 'kalamint',
-    categories: [DappType.Marketplaces]
-  },
-  {
     name: 'Smartlink',
     dappUrl: 'https://www.smartlink.so',
     type: DappType.DeFi,
@@ -106,14 +90,6 @@ export const DAPPS_LIST: DappListItem[] = [
     categories: [DappType.DeFi, DappType.Exchanges]
   },
   {
-    name: 'Crunchy',
-    dappUrl: 'https://app.crunchy.network',
-    type: DappType.DeFi,
-    logo: 'https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/crunchy/crunchy_logo.jpg',
-    slug: 'crunchy',
-    categories: [DappType.DeFi]
-  },
-  {
     name: 'Kolibri',
     dappUrl: 'https://kolibri.finance',
     type: DappType.DeFi,
@@ -128,14 +104,6 @@ export const DAPPS_LIST: DappListItem[] = [
     logo: 'https://pbs.twimg.com/profile_images/1578001954026016768/aYYGtOsL_200x200.jpg',
     slug: 'signum',
     categories: [DappType.DeFi, DappType.Collectibles]
-  },
-  {
-    name: 'Kord.Fi',
-    dappUrl: 'https://kord.fi/',
-    type: DappType.DeFi,
-    logo: 'https://pbs.twimg.com/profile_images/1538616711536156672/eRwz1uNE_400x400.jpg',
-    slug: 'kordfi',
-    categories: [DappType.DeFi]
   },
   {
     name: 'Lyzi',
