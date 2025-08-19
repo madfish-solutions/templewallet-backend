@@ -12,10 +12,12 @@ export const addTempleAdsRedirection = (
     const { extVersion: rawExtVersion, isMisesBrowser: rawIsMisesBrowser } = req.query;
     const extVersion = typeof rawExtVersion === 'string' ? rawExtVersion : '0.0.0';
     const isMisesBrowser = rawIsMisesBrowser === 'true';
-    res.redirect(
-      `${EnvVars.TEMPLE_ADS_API_URL}/v1/api/ads-rules/${extVersion}${templeAdsPathMainPart}${
-        isMisesVariable ? (isMisesBrowser ? '/mises' : '/no-mises') : ''
-      }`
-    );
+    res
+      .header('Cache-Control', 'public, max-age=300')
+      .redirect(
+        `${EnvVars.TEMPLE_ADS_API_URL}/v1/api/ads-rules/${extVersion}${templeAdsPathMainPart}${
+          isMisesVariable ? (isMisesBrowser ? '/mises' : '/no-mises') : ''
+        }`
+      );
   });
 };
