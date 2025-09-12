@@ -1,5 +1,8 @@
 import { AxiosError } from 'axios';
 
+/** From lodash */
+type Truthy<T> = T extends null | undefined | false | '' | 0 | 0n ? never : T;
+
 export const range = (start: number, end: number, step = 1) =>
   Array(Math.ceil((end - start) / step))
     .fill(0)
@@ -27,6 +30,8 @@ export const isAbsoluteURL = (url: string) => {
 export const emptyFn = () => {};
 
 export const isDefined = <T>(value: T | undefined | null): value is T => value !== undefined && value !== null;
+
+export const isTruthy = <T>(value: T): value is Truthy<T> => Boolean(value);
 
 export const isNonEmptyString = (str: unknown): str is string => typeof str === 'string' && str.length !== 0;
 

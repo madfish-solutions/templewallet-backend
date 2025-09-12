@@ -1,6 +1,6 @@
 import { Redis } from 'ioredis';
 
-import { isNonEmptyString } from '../../utils/helpers';
+import { isNonEmptyString, isTruthy } from '../../utils/helpers';
 import { Notification, PlatformType } from '../notification.interface';
 
 export const getNotifications = async (client: Redis, platform: PlatformType, startFromTime: number) => {
@@ -21,10 +21,11 @@ export const getNotifications = async (client: Redis, platform: PlatformType, st
       continue;
     }
 
-    if (
-      platforms.includes(platform) &&
-      (isMandatory === true || (createdAtTimestamp > startFromTime && createdAtTimestamp < now))
-    ) {
+    const platformMatch = platforms.includes(platform);
+    const mandatoryTimeMatch = isTruthy(isMandatory) && createdAtTimestamp < now;
+    const timeScopeMatch = createdAtTimestamp > startFromTime && createdAtTimestamp < now;
+
+    if (platformMatch && (mandatoryTimeMatch || timeScopeMatch)) {
       result.push(notifications[i]);
     }
   }
