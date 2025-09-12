@@ -36,7 +36,7 @@ import { btcExchangeRateProvider, tezExchangeRateProvider } from './utils/coinge
 import { CodedError } from './utils/errors';
 import { exolixNetworksMap } from './utils/exolix-networks-map';
 import { coinGeckoTokens } from './utils/gecko-tokens';
-import { getExternalApiErrorPayload, isDefined, isNonEmptyString } from './utils/helpers';
+import { getExternalApiErrorPayload, isDefined, isNonEmptyString, isTruthy } from './utils/helpers';
 import logger from './utils/logger';
 import { getSignedMoonPayUrl } from './utils/moonpay/get-signed-moonpay-url';
 import SingleQueryDataProvider from './utils/SingleQueryDataProvider';
@@ -161,7 +161,7 @@ app.post('/api/notifications', basicAuth, async (req, res) => {
         : getImageFallback(PlatformType.Extension, type),
       mobileImageUrl: isNonEmptyString(mobileImageUrl) ? mobileImageUrl : getImageFallback(PlatformType.Mobile, type),
       expirationDate,
-      isMandatory: isDefined(isMandatory)
+      isMandatory: isTruthy(isMandatory)
     };
 
     await redisClient.lpush('notifications', JSON.stringify(newNotification));
