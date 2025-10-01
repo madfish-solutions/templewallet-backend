@@ -1,5 +1,3 @@
-type Platform = 'mobile' | 'extension';
-
 interface DappListItem {
   name: string;
   dappUrl: string;
@@ -7,7 +5,6 @@ interface DappListItem {
   logo: string;
   slug: string;
   categories: DappType[];
-  platform?: Platform;
 }
 
 enum DappType {
