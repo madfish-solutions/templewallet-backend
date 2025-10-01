@@ -1,3 +1,5 @@
+type Platform = 'mobile' | 'extension';
+
 interface DappListItem {
   name: string;
   dappUrl: string;
@@ -5,6 +7,7 @@ interface DappListItem {
   logo: string;
   slug: string;
   categories: DappType[];
+  platform?: Platform;
 }
 
 enum DappType {
@@ -40,6 +43,14 @@ export const DAPPS_LIST: DappListItem[] = [
     logo: 'https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/objkt/objkt_logo.png',
     slug: 'objkt.com',
     categories: [DappType.Marketplaces]
+  },
+  {
+    name: 'LetsExchange',
+    dappUrl: 'https://letsexchange.io/?ref_id=CtN9tIep5v36D2mb',
+    type: DappType.Exchanges,
+    logo: 'https://dashboard-assets.dappradar.com/document/48775/letsexchangeio-project-non_dapps-48775-logo-166x166_31500902ab0bbc612276e8d0899bdd03.png',
+    slug: 'letsexchange',
+    categories: [DappType.Exchanges]
   },
   {
     name: 'PixelPotus',
