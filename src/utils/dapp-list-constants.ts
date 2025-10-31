@@ -42,6 +42,14 @@ export const DAPPS_LIST: DappListItem[] = [
     categories: [DappType.Marketplaces]
   },
   {
+    name: 'LetsExchange',
+    dappUrl: 'https://letsexchange.io/?ref_id=CtN9tIep5v36D2mb',
+    type: DappType.Exchanges,
+    logo: 'https://dashboard-assets.dappradar.com/document/48775/letsexchangeio-project-non_dapps-48775-logo-166x166_31500902ab0bbc612276e8d0899bdd03.png',
+    slug: 'letsexchange',
+    categories: [DappType.Exchanges]
+  },
+  {
     name: 'PixelPotus',
     dappUrl: 'https://www.pixelpotus.com',
     type: DappType.Collectibles,
