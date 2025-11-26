@@ -19,6 +19,7 @@ import { getPlatforms } from './notifications/utils/get-platforms.util';
 import { redisClient } from './redis';
 import { evmRouter } from './routers/evm';
 import { googleDriveRouter } from './routers/google-drive';
+import { koloRouter } from './routers/kolo';
 import { adRulesRouter } from './routers/slise-ad-rules';
 import { templeWalletAdsRouter } from './routers/temple-wallet-ads';
 import { getSigningNonce, tezosSigAuthMiddleware } from './sig-auth';
@@ -103,6 +104,8 @@ const makeProviderDataRequestHandler = <T, U>(provider: SingleQueryDataProvider<
     }
   };
 };
+
+app.use('/api/kolo', koloRouter);
 
 app.get('/api/top-coins', (_req, res) => {
   res.status(200).send(coinGeckoTokens);
