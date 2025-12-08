@@ -11,7 +11,6 @@ import {
   mainnetNetworkConstants
 } from '@temple-wallet/youves-sdk';
 import BigNumber from 'bignumber.js';
-import memoizee from 'memoizee';
 
 import SingleQueryDataProvider from './SingleQueryDataProvider';
 import { tezosToolkit as tezos } from './tezos';
@@ -47,19 +46,16 @@ class MemoryStorage implements Storage {
 const unifiedStaking = new UnifiedStaking(tezos, INDEXER_CONFIG, mainnetNetworkConstants);
 const bailoutPool = new BailoutPool(tezos, INDEXER_CONFIG, mainnetNetworkConstants);
 
-const createEngineMemoized = memoizee(
-  (token: AssetDefinition) =>
-    createEngine({
-      tezos,
-      contracts: token,
-      storage: new MemoryStorage(),
-      indexerConfig: INDEXER_CONFIG,
-      tokens: mainnetTokens,
-      activeCollateral: token.collateralOptions[0],
-      networkConstants: mainnetNetworkConstants
-    }),
-  { normalizer: ([token]) => token.id }
-);
+const createLocalEngine = (token: AssetDefinition) =>
+  createEngine({
+    tezos,
+    contracts: token,
+    storage: new MemoryStorage(),
+    indexerConfig: INDEXER_CONFIG,
+    tokens: mainnetTokens,
+    activeCollateral: token.collateralOptions[0],
+    networkConstants: mainnetNetworkConstants
+  });
 
 const withToPercentage =
   <A extends unknown[]>(fn: (...args: A) => Promise<BigNumber>) =>
@@ -76,7 +72,7 @@ const getV2YOUTokenApr = withToPercentage((assetToUsdExchangeRate: BigNumber, go
 const getV3YOUTokenApr = withToPercentage(() => bailoutPool.getAPR());
 
 const getYouvesTokenApr = withToPercentage((token: AssetDefinition) =>
-  createEngineMemoized(token).getSavingsPoolV3YearlyInterestRate()
+  createLocalEngine(token).getSavingsPoolV3YearlyInterestRate()
 );
 
 export const youvesStatsProvider = new SingleQueryDataProvider(60000, async () => {
