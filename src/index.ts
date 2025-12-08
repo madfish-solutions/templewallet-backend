@@ -42,6 +42,7 @@ import { getSignedMoonPayUrl } from './utils/moonpay/get-signed-moonpay-url';
 import SingleQueryDataProvider from './utils/SingleQueryDataProvider';
 import { getExchangeRates } from './utils/tokens';
 import { getWertSessionId } from './utils/wert';
+import { youvesStatsProvider } from './utils/youves';
 
 const PINO_LOGGER = {
   logger: logger.child({ name: 'web' }),
@@ -410,6 +411,8 @@ app.post('/api/temple-tap/confirm-airdrop-username', tezosSigAuthMiddleware, (re
 app.post('/api/temple-tap/check-airdrop-confirmation', tezosSigAuthMiddleware, (req, res) =>
   handleTempleTapApiProxyRequest(req, res, 'v1/check-airdrop-address-confirmation')
 );
+
+app.get('/api/youves/stats', makeProviderDataRequestHandler(youvesStatsProvider));
 
 // start the server listening for requests
 const port = Boolean(process.env.PORT) ? process.env.PORT : 3000;

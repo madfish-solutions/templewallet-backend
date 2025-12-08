@@ -11,12 +11,13 @@
     "@ethersproject/strings": "^5.7.0",
     "@ethersproject/transactions": "^5.7.0",
     "@stablelib/random": "^1.0.2",
-    "@taquito/rpc": "14.0.0",
-    "@taquito/taquito": "14.0.0",
-    "@taquito/tzip12": "14.0.0",
-    "@taquito/tzip16": "14.0.0",
-    "@taquito/utils": "14.0.0",
-    "axios": "^0.27.2",
+    "@taquito/rpc": "^23.0.0",
+    "@taquito/taquito": "^23.0.0",
+    "@taquito/tzip12": "^23.0.0",
+    "@taquito/tzip16": "^23.0.0",
+    "@taquito/utils": "^23.0.0",
+    "@temple-wallet/youves-sdk": "1.0.0-beta.3",
+    "axios": "^0.30.0",
     "bignumber.js": "^9.1.0",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
@@ -70,5 +71,8 @@
     "ts-prune": "^0.10.3",
     "typescript": "^5",
     "typescript-eslint": "^7"
+  },
+  "resolutions": {
+    "bignumber.js": "9.1.0"
   }
 }
