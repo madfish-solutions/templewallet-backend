@@ -15,12 +15,6 @@ export interface KoloRequestConfig<TRequest = any> {
   body?: TRequest;
 }
 
-/**
- * Generic KOLO API request helper that applies required headers:
- * - Api-Key
- * - Signature
- * - Timestamp
- */
 export async function koloRequest<TResponse = any, TRequest = any>(
   config: KoloRequestConfig<TRequest>
 ): Promise<TResponse> {
