@@ -14,7 +14,7 @@ export const generateKoloRequestSignature = (params: {
 
   const target = Buffer.concat([toBytes(path), toBytes(queryString), toBytes(body), toBytes(String(timestamp))]);
 
-  const hmac = crypto.createHmac('sha512', EnvVars.KOLO_API_SECRET);
+  const hmac = crypto.createHmac('sha512', EnvVars.KOLO_API_PRIVATE_KEY);
   hmac.update(target);
 
   return hmac.digest('hex');

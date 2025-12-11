@@ -5,7 +5,7 @@ import { EnvVars } from '../../../config';
 import { generateKoloRequestSignature } from './sign-request';
 
 export const koloApi = axios.create({
-  baseURL: EnvVars.KOLO_API_BASE_URL
+  baseURL: EnvVars.KOLO_BASE_URL
 });
 
 export interface KoloRequestConfig<TRequest = any> {
@@ -51,7 +51,7 @@ export async function koloRequest<TResponse = any, TRequest = any>(
     data: bodyString || undefined,
     headers: {
       'Content-Type': 'application/json',
-      'X-Api-Key': EnvVars.KOLO_API_KEY,
+      'X-Api-Key': EnvVars.KOLO_API_PUBLIC_KEY,
       'X-Signature': signature,
       'X-Timestamp': String(timestamp)
     }
