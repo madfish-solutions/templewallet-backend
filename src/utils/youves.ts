@@ -12,6 +12,7 @@ import {
 } from '@temple-wallet/youves-sdk';
 import BigNumber from 'bignumber.js';
 
+import { withErrorLogging } from './helpers';
 import SingleQueryDataProvider from './SingleQueryDataProvider';
 import { tezosToolkit as tezos } from './tezos';
 import { getExchangeRates } from './tokens';
@@ -75,32 +76,37 @@ const getYouvesTokenApr = withToPercentage((token: AssetDefinition) =>
   createLocalEngine(token).getSavingsPoolV3YearlyInterestRate()
 );
 
-export const youvesStatsProvider = new SingleQueryDataProvider(60000, async () => {
-  const exchangeRates = await getExchangeRates();
-  const youToUsdExchangeRate = exchangeRates.find(
-    rate => rate.tokenAddress === youToken.contractAddress && rate.tokenId === youToken.tokenId
-  )!.exchangeRate;
+export const youvesStatsProvider = new SingleQueryDataProvider(
+  60000,
+  withErrorLogging(async () => {
+    const exchangeRates = await getExchangeRates();
+    const youToUsdExchangeRate = exchangeRates.find(
+      rate => rate.tokenAddress === youToken.contractAddress && rate.tokenId === youToken.tokenId
+    )!.exchangeRate;
 
-  const aprResults = await Promise.all([
-    Promise.all([
-      getV2YOUTokenApr(youToUsdExchangeRate, youToUsdExchangeRate).then(value => ({ v2: value })),
-      getV3YOUTokenApr().then(value => ({ v3: value }))
-    ]),
-    getYouvesTokenApr(ubtcToken),
-    getYouvesTokenApr(uusdToken)
-  ]);
+    const aprResults = await Promise.all([
+      Promise.all([
+        getV2YOUTokenApr(youToUsdExchangeRate, youToUsdExchangeRate).then(value => ({ v2: value })),
+        getV3YOUTokenApr().then(value => ({ v3: value }))
+      ]),
+      getYouvesTokenApr(ubtcToken),
+      getYouvesTokenApr(uusdToken)
+    ]);
 
-  return {
-    apr: Object.fromEntries(
-      [youToken, ubtcToken, uusdToken].map((asset, index) => {
-        const rawResult = aprResults[index];
-        const { contractAddress, tokenId } = 'token' in asset ? asset.token : asset;
+    return {
+      apr: Object.fromEntries(
+        [youToken, ubtcToken, uusdToken].map((asset, index) => {
+          const rawResult = aprResults[index];
+          const { contractAddress, tokenId } = 'token' in asset ? asset.token : asset;
 
-        return [
-          `${contractAddress}_${tokenId}`,
-          typeof rawResult === 'number' ? rawResult : Object.assign(...rawResult)
-        ];
-      })
-    )
-  };
-});
+          return [
+            `${contractAddress}_${tokenId}`,
+            typeof rawResult === 'number' ? rawResult : Object.assign(...rawResult)
+          ];
+        })
+      )
+    };
+  }, 'Failed to fetch Youves stats'),
+  undefined,
+  300000
+);
