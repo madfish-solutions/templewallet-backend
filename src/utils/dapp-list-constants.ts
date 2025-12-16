@@ -26,14 +26,6 @@ export const DAPPS_LIST: DappListItem[] = [
     categories: [DappType.Exchanges, DappType.DeFi]
   },
   {
-    name: 'Yupana',
-    dappUrl: 'https://app.yupana.finance',
-    type: DappType.DeFi,
-    logo: 'https://pbs.twimg.com/profile_images/1450382829062393859/NSu06S5C_400x400.png',
-    slug: 'yupana',
-    categories: [DappType.DeFi]
-  },
-  {
     name: 'Objkt.com',
     dappUrl: 'https://objkt.com',
     type: DappType.Marketplaces,
