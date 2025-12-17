@@ -1,5 +1,7 @@
 import { AxiosError } from 'axios';
 
+import logger from './logger';
+
 /** From lodash */
 type Truthy<T> = T extends null | undefined | false | '' | 0 | 0n ? never : T;
 
@@ -51,4 +53,16 @@ export function safeCheck(check: () => boolean, def = false) {
 
     return def;
   }
+}
+
+export function withErrorLogging<A extends unknown[], T>(fn: (...args: A) => Promise<T>, errorMsg: string) {
+  return async function (...args: A) {
+    try {
+      return await fn(...args);
+    } catch (e) {
+      logger.error(errorMsg, e);
+
+      throw e;
+    }
+  };
 }

@@ -28,6 +28,7 @@ class LambdaViewSigner implements Signer {
 
 const lambdaSigner = new LambdaViewSigner();
 const michelEncoder = new MichelCodecPacker();
-const tezosToolkit = new TezosToolkit(RPC_URL);
+
+export const tezosToolkit = new TezosToolkit(RPC_URL);
 tezosToolkit.setSignerProvider(lambdaSigner);
 tezosToolkit.setPackerProvider(michelEncoder);
