@@ -37,6 +37,7 @@ import { CodedError } from './utils/errors';
 import { exolixNetworksMap } from './utils/exolix-networks-map';
 import { coinGeckoTokens } from './utils/gecko-tokens';
 import { getExternalApiErrorPayload, isDefined, isNonEmptyString, isTruthy } from './utils/helpers';
+import { liquidityBakingStatsProvider } from './utils/liquidity-baking';
 import logger from './utils/logger';
 import { getSignedMoonPayUrl } from './utils/moonpay/get-signed-moonpay-url';
 import SingleQueryDataProvider from './utils/SingleQueryDataProvider';
@@ -413,6 +414,8 @@ app.post('/api/temple-tap/check-airdrop-confirmation', tezosSigAuthMiddleware, (
 );
 
 app.get('/api/youves/stats', makeProviderDataRequestHandler(youvesStatsProvider));
+
+app.get('/api/liquidity-baking/stats', makeProviderDataRequestHandler(liquidityBakingStatsProvider));
 
 // start the server listening for requests
 const port = Boolean(process.env.PORT) ? process.env.PORT : 3000;
