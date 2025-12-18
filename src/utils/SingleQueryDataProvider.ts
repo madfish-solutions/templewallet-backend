@@ -38,7 +38,8 @@ export default class SingleQueryDataProvider<T> {
   constructor(
     private refreshParams: number,
     private fetchFn: () => Promise<T>,
-    private shouldGiveUp = defaultShouldGiveUp
+    private shouldGiveUp = defaultShouldGiveUp,
+    private maxRetryTimeout = Infinity
   ) {
     this.fetchMutex = new PromisifiedSemaphore();
     this.readyMutex = new PromisifiedSemaphore();
@@ -68,7 +69,7 @@ export default class SingleQueryDataProvider<T> {
           this.refetchRetryTimeout = setTimeout(async () => {
             await this.makeFetchAttempt(c + 1);
             resolve();
-          }, Math.round((timeSlot * (2 ** c - 1)) / 2));
+          }, Math.min(Math.round((timeSlot * (2 ** c - 1)) / 2), this.maxRetryTimeout));
         });
       }
     }
