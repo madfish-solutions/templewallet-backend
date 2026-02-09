@@ -146,7 +146,7 @@ function parseLLMResponse(content: string): LLMAnalysisResult {
       hasTradingSignal: Boolean(parsed.hasTradingSignal),
       sentiment: ['bullish', 'bearish', 'neutral'].includes(parsed.sentiment) ? parsed.sentiment : 'neutral',
       confidence: typeof parsed.confidence === 'number' ? Math.min(1, Math.max(0, parsed.confidence)) : 0.5,
-      summary: String(Boolean(parsed.summary) || 'Unable to analyze content'),
+      summary: typeof parsed.summary === 'string' && parsed.summary ? parsed.summary : 'Unable to analyze content',
       assets: Array.isArray(parsed.assets) ? parsed.assets : []
     };
   } catch (error) {
