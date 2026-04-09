@@ -94,14 +94,21 @@ const getProviderStateWithTimeout = <T>(provider: SingleQueryDataProvider<T>) =>
     )
   ]);
 
-const makeProviderDataRequestHandler = <T, U>(provider: SingleQueryDataProvider<T>, transformFn?: (data: T) => U) => {
+const makeProviderDataRequestHandler = <T, U>(
+  provider: SingleQueryDataProvider<T>,
+  transformFn?: (data: T) => U,
+  cacheControl = 'public, max-age=60'
+) => {
   return async (_req: Request, res: Response) => {
     const { data, error } = await getProviderStateWithTimeout(provider);
     if (error) {
       res.status(500).send({ error: error.message });
     } else {
       if (data !== undefined) {
-        res.json(transformFn ? transformFn(data) : data);
+        res
+          .status(200)
+          .header('Cache-Control', cacheControl)
+          .json(transformFn ? transformFn(data) : data);
       }
     }
   };
@@ -204,7 +211,10 @@ app.get('/api/exchange-rates', async (_req, res) => {
     });
   }
 
-  res.json([...tokensExchangeRates, { exchangeRate: tezExchangeRate.toString() }]);
+  res
+    .status(200)
+    .header('Cache-Control', 'public, max-age=60')
+    .json([...tokensExchangeRates, { exchangeRate: tezExchangeRate.toString() }]);
 });
 
 app.get('/api/moonpay-sign', async (_req, res) => {
