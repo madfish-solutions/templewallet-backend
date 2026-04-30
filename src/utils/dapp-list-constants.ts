@@ -50,14 +50,6 @@ export const DAPPS_LIST: DappListItem[] = [
     categories: [DappType.Collectibles, DappType.Games]
   },
   {
-    name: 'DOGAMÍ',
-    dappUrl: 'https://dogami.com',
-    type: DappType.Games,
-    logo: 'https://dashboard-assets.dappradar.com/document/13974/dogam-dapp-games-tezos-logo-166x166_b7394b584e1bfd58e7d5ef8a654fae0c.png',
-    slug: 'dogami',
-    categories: [DappType.Games, DappType.Collectibles]
-  },
-  {
     name: 'Tezotopia',
     dappUrl: 'https://tezotop.io',
     type: DappType.Games,
@@ -96,14 +88,6 @@ export const DAPPS_LIST: DappListItem[] = [
     logo: 'https://bcd-static-assets.fra1.digitaloceanspaces.com/dapps/kolibri/kolibri_logo.png',
     slug: 'kolibri',
     categories: [DappType.DeFi, DappType.Other]
-  },
-  {
-    name: 'signum',
-    dappUrl: 'https://signum.loans',
-    type: DappType.DeFi,
-    logo: 'https://pbs.twimg.com/profile_images/1578001954026016768/aYYGtOsL_200x200.jpg',
-    slug: 'signum',
-    categories: [DappType.DeFi, DappType.Collectibles]
   },
   {
     name: 'Lyzi',
