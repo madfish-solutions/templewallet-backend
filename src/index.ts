@@ -20,6 +20,7 @@ import { redisClient } from './redis';
 import { evmRouter } from './routers/evm';
 import { googleDriveRouter } from './routers/google-drive';
 import { koloRouter } from './routers/kolo';
+import { pageAnalysisRouter } from './routers/page-analysis';
 import { adRulesRouter } from './routers/slise-ad-rules';
 import { templeWalletAdsRouter } from './routers/temple-wallet-ads';
 import { getSigningNonce, tezosSigAuthMiddleware } from './sig-auth';
@@ -356,6 +357,8 @@ app.use('/api/evm', evmRouter);
 app.use('/api/google-drive', googleDriveRouter);
 
 app.use('/api/temple-wallet-ads', templeWalletAdsRouter);
+
+app.use('/api/page-analysis', pageAnalysisRouter);
 
 app.post('/api/magic-square-quest/start', async (req, res) => {
   try {
