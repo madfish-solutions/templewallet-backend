@@ -21,7 +21,7 @@ export const DAPPS_LIST: DappListItem[] = [
     name: 'QuipuSwap',
     dappUrl: 'https://quipuswap.com',
     type: DappType.Exchanges,
-    logo: 'https://dashboard-assets.dappradar.com/document/7360/quipuswap-dapp-exchanges-tezos-logo-166x166_ebde5a0933878146d43d79b2cdd754f8.png',
+    logo: 'https://pbs.twimg.com/profile_images/1491744744455782403/MughfxNS_400x400.jpg',
     slug: 'quipuswap',
     categories: [DappType.Exchanges, DappType.DeFi]
   },
@@ -37,9 +37,17 @@ export const DAPPS_LIST: DappListItem[] = [
     name: 'LetsExchange',
     dappUrl: 'https://letsexchange.io/?ref_id=CtN9tIep5v36D2mb',
     type: DappType.Exchanges,
-    logo: 'https://dashboard-assets.dappradar.com/document/48775/letsexchangeio-project-non_dapps-48775-logo-166x166_31500902ab0bbc612276e8d0899bdd03.png',
+    logo: 'https://pbs.twimg.com/profile_images/1774777048839454720/aAHa9Xlt_400x400.jpg',
     slug: 'letsexchange',
     categories: [DappType.Exchanges]
+  },
+  {
+    name: 'Opensea',
+    dappUrl: 'https://opensea.io',
+    type: DappType.Marketplaces,
+    logo: 'https://pbs.twimg.com/profile_images/2014958165050507264/dvbOLNLL_400x400.jpg',
+    slug: 'opensea',
+    categories: [DappType.Marketplaces]
   },
   {
     name: 'PixelPotus',
@@ -66,14 +74,6 @@ export const DAPPS_LIST: DappListItem[] = [
     categories: [DappType.Other]
   },
   {
-    name: 'Smartlink',
-    dappUrl: 'https://www.smartlink.so',
-    type: DappType.DeFi,
-    logo: 'https://dashboard-assets.dappradar.com/document/7516/smartlink-dapp-marketplaces-tezos-logo-166x166_68ee1ea922aabc1934817dcdb49b07db.png',
-    slug: 'smartlink',
-    categories: [DappType.DeFi, DappType.Exchanges]
-  },
-  {
     name: 'Youves',
     dappUrl: 'https://app.youves.com/?ref=tz1UbRzhYjQKTtWYvGUWcRtVT4fN3NESDVYT',
     type: DappType.DeFi,
@@ -90,19 +90,11 @@ export const DAPPS_LIST: DappListItem[] = [
     categories: [DappType.DeFi, DappType.Other]
   },
   {
-    name: 'Lyzi',
-    dappUrl: 'https://dapp.lyzi.fr/',
+    name: 'Stacyfi',
+    dappUrl: 'https://stacy.fi',
     type: DappType.DeFi,
-    logo: 'https://assets-global.website-files.com/6475ceee719579d9e88c6c2f/6475d6f27dd17b6b206bf848_Design%20sans%20titre%20(20).png',
-    slug: 'lyzi',
-    categories: [DappType.DeFi]
-  },
-  {
-    name: 'Skurpy',
-    dappUrl: 'https://skurpy.com/',
-    type: DappType.DeFi,
-    logo: 'https://dashboard-assets.dappradar.com/document/52092/skurpy-project-marketplaces-52092-logo-166x166_b7ae64645e94a9be064bf530f624d4fd.png',
-    slug: 'skurpy',
-    categories: [DappType.DeFi]
+    logo: 'https://docs.youves.com/img/stXTZ_48px.png',
+    slug: 'stacyfi',
+    categories: [DappType.DeFi, DappType.Other]
   }
 ];
