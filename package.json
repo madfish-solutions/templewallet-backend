@@ -5,6 +5,7 @@
   "repository": "https://github.com/madfish-solutions/dapps-list-backend",
   "author": "Inokentii Mazhara <keshan3262@gmail.com>",
   "license": "MIT",
+  "packageManager": "yarn@4.15.0",
   "dependencies": {
     "@ethersproject/address": "^5.7.0",
     "@ethersproject/hash": "^5.7.0",
