@@ -1,9 +1,12 @@
 import { AxiosError } from 'axios';
+import { inspect } from 'util';
 
 import logger from './logger';
 
 /** From lodash */
 type Truthy<T> = T extends null | undefined | false | '' | 0 | 0n ? never : T;
+
+type AwaitedTuple<T extends readonly unknown[] | []> = { -readonly [K in keyof T]: Awaited<T[K]> };
 
 export const range = (start: number, end: number, step = 1) =>
   Array(Math.ceil((end - start) / step))
@@ -54,6 +57,37 @@ export function safeCheck(check: () => boolean, def = false) {
     return def;
   }
 }
+
+/**
+ * A fail-fast `Promise.all` that cannot abort the process. Plain `Promise.all` rejects on the first error and stops
+ * observing inputs still in flight, so their later rejections arrive unhandled and terminate Node. Each input gets a
+ * handler that propagates only the first failure (tracked with an internal `AbortController`); later sibling failures
+ * are logged and swallowed so they never become unhandled.
+ */
+// The `| []` in the constraint is what makes TS infer a tuple rather than an array, as `Promise.all` itself declares
+export const safePromiseAll = async <T extends readonly unknown[] | []>(values: T) => {
+  const abortController = new AbortController();
+
+  // Widened so that the settled results get a concrete element type, without which the cast below would not typecheck
+  const inputs: readonly unknown[] = values;
+
+  // The assertion restores the tuple shape, which is unavailable while `T` is still generic
+  return (await Promise.all(
+    inputs.map(value =>
+      Promise.resolve(value).catch(reason => {
+        logger.error(`Parallel job rejected: ${inspect(reason)}`);
+
+        if (!abortController.signal.aborted) {
+          abortController.abort();
+          throw reason;
+        }
+
+        // Already aborted: keep this slot pending so a swallowed rejection cannot fulfill Promise.all with undefined
+        return new Promise<never>(() => undefined);
+      })
+    )
+  )) as AwaitedTuple<T>;
+};
 
 export function withErrorLogging<A extends unknown[], T>(fn: (...args: A) => Promise<T>, errorMsg: string) {
   return async function (...args: A) {
