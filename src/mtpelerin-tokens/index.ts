@@ -1,13 +1,14 @@
-import { parse } from 'node-html-parser';
+import path from 'node:path';
+import { Worker } from 'node:worker_threads';
 
 import { redisClient } from '../redis';
+import { getEnv } from '../utils/env';
 import { safePromiseAll } from '../utils/helpers';
-import logger from '../utils/logger';
 import SingleQueryDataProvider from '../utils/SingleQueryDataProvider';
 
 import { mtPelerinCurrenciesUrl } from './common';
-import { fetchCryptoTokenMetadata, MtPelerinToken, parseCryptoTokens } from './crypto';
-import { MtPelerinFiatCurrency, parseFiatCurrencies } from './fiat';
+import { fetchCryptoTokenMetadata, MtPelerinToken } from './crypto';
+import { MtPelerinFiatCurrency } from './fiat';
 
 const MTPelerinCurrenciesStorageKey = 'mtpelerin-currencies';
 const MTPelerinTokensRefreshInterval = 60 * 60 * 1000;
@@ -28,13 +29,23 @@ const fetchAssets = async (): Promise<Omit<MtPelerinAssetsResponse, 'timestamp'>
     throw new Error(`Mt Pelerin returned status ${currenciesResponse.status}`);
   }
 
-  logger.info('Parsing HTML');
-  const root = parse(await currenciesResponse.text());
-  const assets = {
-    cryptoTokens: parseCryptoTokens(root, cryptoTokenMetadata),
-    fiatCurrencies: parseFiatCurrencies(root)
-  };
-  logger.info('Assets parsed');
+  const html = await currenciesResponse.text();
+  const assets = await new Promise<{ cryptoTokens: MtPelerinToken[]; fiatCurrencies: MtPelerinFiatCurrency[] }>(
+    (res, rej) => {
+      const worker = new Worker(
+        path.join(__dirname, `parse-worker.${getEnv('NODE_ENV') === 'development' ? 'ts' : 'js'}`),
+        { workerData: { html, cryptoTokenMetadata } }
+      );
+
+      worker.on('message', res);
+      worker.on('error', rej);
+      worker.on('exit', code => {
+        if (code !== 0) {
+          rej(new Error(`Parse worker exited with code ${code}`));
+        }
+      });
+    }
+  );
 
   return assets;
 };
