@@ -2,7 +2,7 @@ import { Schema } from '@taquito/michelson-encoder';
 import BigNumber from 'bignumber.js';
 
 import { tezExchangeRateProvider } from './coingecko';
-import { isDefined, withErrorLogging } from './helpers';
+import { isDefined, safePromiseAll, withErrorLogging } from './helpers';
 import SingleQueryDataProvider from './SingleQueryDataProvider';
 import { tezosToolkit } from './tezos';
 import { getExchangeRates } from './tokens';
@@ -43,7 +43,7 @@ export const liquidityBakingStatsProvider = new SingleQueryDataProvider(
       ({ metadata }) => metadata?.contract === 'KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn'
     );
     const { data: tezExchangeRate } = await tezExchangeRateProvider.getState();
-    const [rawContractStorage, { liquidity_baking_subsidy }, { hash, level, timestamp }] = await Promise.all([
+    const [rawContractStorage, { liquidity_baking_subsidy }, { hash, level, timestamp }] = await safePromiseAll([
       tezosToolkit.rpc.getStorage(LIQUIDITY_BAKING_DEX_ADDRESS),
       tezosToolkit.rpc.getConstants(),
       tezosToolkit.rpc.getBlockHeader()

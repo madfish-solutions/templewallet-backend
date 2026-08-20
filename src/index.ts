@@ -1,4 +1,6 @@
 require('./configure');
+// Must precede the imports below, since some of them start data providers as an import side effect
+require('./process-safety');
 
 import bodyParser from 'body-parser';
 import cors from 'cors';
@@ -11,6 +13,7 @@ import { MIN_ANDROID_APP_VERSION, MIN_IOS_APP_VERSION } from './config';
 import getDAppsStats from './getDAppsStats';
 import { getMagicSquareQuestParticipants, startMagicSquareQuest } from './magic-square';
 import { basicAuth } from './middlewares/basic-auth.middleware';
+import { getMTPelerinAssets, startMTPelerinAssetsUpdater } from './mtpelerin-tokens';
 import { Notification, PlatformType } from './notifications/notification.interface';
 import { getImageFallback } from './notifications/utils/get-image-fallback.util';
 import { getNotifications } from './notifications/utils/get-notifications.util';
@@ -72,6 +75,15 @@ const app = express();
 app.use(pinoHttp(PINO_LOGGER));
 app.use(cors());
 app.use(bodyParser.json());
+/** Enabled for correct IP tracing through proxies & load-balancers.
+ *
+ * Currently, there are available headers:
+ * - `['do-connecting-ip']`: `string`
+ * - `['x-forwarded-for']`: `${string},${string}`
+ *
+ * This approach is gonna be more agnostic to the environment.
+ */
+app.set('trust proxy', true);
 
 const androidApp = firebaseAdmin.initializeApp(
   {
@@ -122,6 +134,16 @@ app.get('/api/top-coins', (_req, res) => {
 
 app.get('/api/exolix-networks-map', (_req, res) => {
   res.status(200).send(exolixNetworksMap);
+});
+
+app.get('/api/mtpelerin-assets', async (_req, res) => {
+  try {
+    const data = await getMTPelerinAssets();
+
+    res.status(200).header('Cache-Control', 'public, max-age=60').send(data);
+  } catch {
+    res.status(500).send({ error: 'Unable to retrieve supported tokens' });
+  }
 });
 
 app.get('/api/tkey', async (_req, res) => {
@@ -217,12 +239,12 @@ app.get('/api/exchange-rates', async (_req, res) => {
     .json([...tokensExchangeRates, { exchangeRate: tezExchangeRate.toString() }]);
 });
 
-app.get('/api/moonpay-sign', async (_req, res) => {
+app.get('/api/moonpay-sign', async (req, res) => {
   try {
-    const url = _req.query.url;
+    const url = req.query.url;
 
     if (typeof url === 'string') {
-      const signedUrl = getSignedMoonPayUrl(url);
+      const signedUrl = getSignedMoonPayUrl(url, req.ip);
 
       return res.status(200).send({ signedUrl });
     }
@@ -429,6 +451,8 @@ app.post('/api/temple-tap/check-airdrop-confirmation', tezosSigAuthMiddleware, (
 app.get('/api/youves/stats', makeProviderDataRequestHandler(youvesStatsProvider));
 
 app.get('/api/liquidity-baking/stats', makeProviderDataRequestHandler(liquidityBakingStatsProvider));
+
+startMTPelerinAssetsUpdater();
 
 // start the server listening for requests
 const port = Boolean(process.env.PORT) ? process.env.PORT : 3000;

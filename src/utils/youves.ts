@@ -12,7 +12,7 @@ import {
 } from '@temple-wallet/youves-sdk';
 import BigNumber from 'bignumber.js';
 
-import { withErrorLogging } from './helpers';
+import { safePromiseAll, withErrorLogging } from './helpers';
 import SingleQueryDataProvider from './SingleQueryDataProvider';
 import { tezosToolkit as tezos } from './tezos';
 import { getExchangeRates } from './tokens';
@@ -84,8 +84,8 @@ export const youvesStatsProvider = new SingleQueryDataProvider(
       rate => rate.tokenAddress === youToken.contractAddress && rate.tokenId === youToken.tokenId
     )!.exchangeRate;
 
-    const aprResults = await Promise.all([
-      Promise.all([
+    const aprResults = await safePromiseAll([
+      safePromiseAll([
         getV2YOUTokenApr(youToUsdExchangeRate, youToUsdExchangeRate).then(value => ({ v2: value })),
         getV3YOUTokenApr().then(value => ({ v3: value }))
       ]),

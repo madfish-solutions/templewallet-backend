@@ -1,6 +1,6 @@
 import { AxiosError } from 'axios';
 
-import { isDefined, range } from './helpers';
+import { isDefined, range, safePromiseAll } from './helpers';
 import logger from './logger';
 import { makeBuildQueryFn } from './makeBuildQueryFn';
 import SingleQueryDataProvider from './SingleQueryDataProvider';
@@ -81,7 +81,7 @@ const getMarketsBySymbols = async (symbols: string[]) => {
     ) ?? [];
   const pagesNumbers = range(1, matchingCoins.length + 1, 100);
   const ids = matchingCoins.map(({ id }) => id);
-  const chunks = await Promise.all(
+  const chunks = await safePromiseAll(
     pagesNumbers.map(pageNumber =>
       getMarkets({
         ids,
