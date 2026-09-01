@@ -44,9 +44,10 @@ const createRateLimitMiddleware = (limiter: RateLimiterRedis) => {
 
 export const ipfsGatewayRequestsRateLimitMiddleware = createRateLimitMiddleware(ipfsGatewayRequestsRateLimiter);
 
-/** Cheap blocked-IP probe; pair with `assertFitsBandwidth` and `consumeBandwidth`. */
+/** Cheap blocked-IP probe; actual bytes are consumed atomically in `pipeGatewayBody`. */
 export const ipfsGatewayBandwidthRateLimitMiddleware = createRateLimitMiddleware(ipfsGatewayBandwidthRateLimiter);
 
+/** Fast-fail oversized `Content-Length`. Concurrent transfers are enforced by `consumeBandwidth`. */
 export const assertFitsBandwidth = async (req: Request, bytes: number) => {
   const limiterRes = await ipfsGatewayBandwidthRateLimiter.get(getIp(req));
   const available = limiterRes === null ? ipfsGatewayBandwidthRateLimiter.points : limiterRes.remainingPoints + 1;
@@ -56,16 +57,19 @@ export const assertFitsBandwidth = async (req: Request, bytes: number) => {
     throw limiterRes ?? new RateLimiterRes(0, msBeforeNext);
   }
 
-  return { available, msBeforeNext };
+  return msBeforeNext;
 };
 
-/** Replace the 1-point probe with the number of bytes actually transferred. */
+/** Undo the 1-byte middleware probe once we decide to serve the body. */
+export const refundBandwidthProbe = async (req: Request) => {
+  await ipfsGatewayBandwidthRateLimiter.reward(getIp(req), 1);
+};
+
+/** Atomically charge `bytes` against the shared per-IP quota. */
 export const consumeBandwidth = async (req: Request, bytes: number) => {
-  const ip = getIp(req);
-
-  await ipfsGatewayBandwidthRateLimiter.reward(ip, 1);
-
-  if (bytes > 0) {
-    await ipfsGatewayBandwidthRateLimiter.consume(ip, bytes);
+  if (bytes <= 0) {
+    return;
   }
+
+  await ipfsGatewayBandwidthRateLimiter.consume(getIp(req), bytes);
 };

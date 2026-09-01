@@ -10,7 +10,8 @@ import {
   assertFitsBandwidth,
   consumeBandwidth,
   ipfsGatewayBandwidthRateLimitMiddleware,
-  ipfsGatewayRequestsRateLimitMiddleware
+  ipfsGatewayRequestsRateLimitMiddleware,
+  refundBandwidthProbe
 } from '../utils/rate-limiters';
 
 export const ipfsRouter = Router();
@@ -64,8 +65,7 @@ const rejectIfNotOk = async (response: globalThis.Response, res: Response, abort
 const handleProxyError = (
   error: unknown,
   res: Response,
-  streamState: { bandwidthExceeded: boolean },
-  msBeforeNext: number,
+  streamState: { bandwidthExceeded: boolean; msBeforeNext: number },
   abortUpstream: () => void
 ) => {
   abortUpstream();
@@ -77,7 +77,7 @@ const handleProxyError = (
       return;
     }
 
-    sendTooManyRequests(res, error instanceof RateLimiterRes ? error.msBeforeNext : msBeforeNext);
+    sendTooManyRequests(res, error instanceof RateLimiterRes ? error.msBeforeNext : streamState.msBeforeNext);
 
     return;
   }
@@ -92,12 +92,14 @@ const handleProxyError = (
   }
 };
 
+const toWritableError = (error: unknown) => (error instanceof Error ? error : new Error('Bandwidth limit exceeded'));
+
 const pipeGatewayBody = async (
+  req: Request,
   body: ReadableStream<Uint8Array>,
   res: Response,
-  availableBandwidth: number,
   abortController: AbortController,
-  streamState: { transferred: number; bandwidthExceeded: boolean }
+  streamState: { bandwidthExceeded: boolean; msBeforeNext: number }
 ) => {
   await body.pipeTo(
     Writable.toWeb(
@@ -105,16 +107,20 @@ const pipeGatewayBody = async (
         objectMode: false,
         write(chunk, _enc, cb) {
           const chunkSize = Buffer.byteLength(chunk);
-          if (streamState.transferred + chunkSize > availableBandwidth) {
-            streamState.bandwidthExceeded = true;
-            abortController.abort();
-            cb(new Error('Bandwidth limit exceeded'));
 
-            return;
-          }
+          void consumeBandwidth(req, chunkSize)
+            .then(() => {
+              res.write(chunk, cb);
+            })
+            .catch((error: unknown) => {
+              if (error instanceof RateLimiterRes) {
+                streamState.bandwidthExceeded = true;
+                streamState.msBeforeNext = error.msBeforeNext;
+                abortController.abort();
+              }
 
-          streamState.transferred += chunkSize;
-          res.write(chunk, cb);
+              cb(toWritableError(error));
+            });
         }
       })
     ),
@@ -147,9 +153,7 @@ ipfsRouter.get(
     const abortUpstream = () => abortController.abort();
     res.once('close', abortUpstream);
 
-    const streamState = { transferred: 0, bandwidthExceeded: false };
-    let startedStreaming = false;
-    let msBeforeNext = 0;
+    const streamState = { bandwidthExceeded: false, msBeforeNext: 0 };
 
     try {
       const response = await fetch(buildGatewayUrl(req).toString(), { signal: abortController.signal });
@@ -159,8 +163,8 @@ ipfsRouter.get(
       }
 
       const contentLength = parseContentLength(response);
-      const bandwidth = await assertFitsBandwidth(req, contentLength ?? 1);
-      msBeforeNext = bandwidth.msBeforeNext;
+      streamState.msBeforeNext = await assertFitsBandwidth(req, contentLength ?? 1);
+      await refundBandwidthProbe(req);
 
       res
         .status(200)
@@ -171,30 +175,15 @@ ipfsRouter.get(
         .setHeader('Cache-Control', 'public, max-age=31536000, immutable');
 
       if (!response.body) {
-        startedStreaming = true;
-
         return res.send();
       }
 
-      startedStreaming = true;
-      await pipeGatewayBody(response.body, res, bandwidth.available, abortController, streamState);
+      await pipeGatewayBody(req, response.body, res, abortController, streamState);
       res.end();
     } catch (error) {
-      handleProxyError(error, res, streamState, msBeforeNext, abortUpstream);
+      handleProxyError(error, res, streamState, abortUpstream);
     } finally {
       res.off('close', abortUpstream);
-
-      if (!startedStreaming) {
-        return;
-      }
-
-      try {
-        await consumeBandwidth(req, streamState.transferred);
-      } catch (error) {
-        if (!(error instanceof RateLimiterRes)) {
-          logger.error(error as Error);
-        }
-      }
     }
   }
 );
