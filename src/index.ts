@@ -22,6 +22,7 @@ import { getPlatforms } from './notifications/utils/get-platforms.util';
 import { redisClient } from './redis';
 import { evmRouter } from './routers/evm';
 import { googleDriveRouter } from './routers/google-drive';
+import { ipfsRouter } from './routers/ipfs';
 import { koloRouter } from './routers/kolo';
 import { adRulesRouter } from './routers/slise-ad-rules';
 import { templeWalletAdsRouter } from './routers/temple-wallet-ads';
@@ -451,6 +452,8 @@ app.post('/api/temple-tap/check-airdrop-confirmation', tezosSigAuthMiddleware, (
 app.get('/api/youves/stats', makeProviderDataRequestHandler(youvesStatsProvider));
 
 app.get('/api/liquidity-baking/stats', makeProviderDataRequestHandler(liquidityBakingStatsProvider));
+
+app.use('/ipfs', ipfsRouter);
 
 startMTPelerinAssetsUpdater();
 
