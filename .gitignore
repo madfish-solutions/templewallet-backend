@@ -111,5 +111,3 @@ yarn-error.log*
 .idea
 
 .DS_Store
-
-.vscode
