@@ -44,12 +44,28 @@ const createRateLimitMiddleware = (limiter: RateLimiterRedis) => {
 
 export const ipfsGatewayRequestsRateLimitMiddleware = createRateLimitMiddleware(ipfsGatewayRequestsRateLimiter);
 
-/** Does not implement rate limiting by IPFS size completely, use `assertSufficientBandwidth` before responding */
+/** Cheap blocked-IP probe; pair with `assertFitsBandwidth` and `consumeBandwidth`. */
 export const ipfsGatewayBandwidthRateLimitMiddleware = createRateLimitMiddleware(ipfsGatewayBandwidthRateLimiter);
 
-export const assertSufficientBandwidth = async (req: Request, ipfsSize: number) => {
+export const assertFitsBandwidth = async (req: Request, bytes: number) => {
+  const limiterRes = await ipfsGatewayBandwidthRateLimiter.get(getIp(req));
+  const available = limiterRes === null ? ipfsGatewayBandwidthRateLimiter.points : limiterRes.remainingPoints + 1;
+  const msBeforeNext = limiterRes === null ? ipfsGatewayBandwidthRateLimiter.msDuration : limiterRes.msBeforeNext;
+
+  if (bytes > available) {
+    throw limiterRes ?? new RateLimiterRes(0, msBeforeNext);
+  }
+
+  return { available, msBeforeNext };
+};
+
+/** Replace the 1-point probe with the number of bytes actually transferred. */
+export const consumeBandwidth = async (req: Request, bytes: number) => {
   const ip = getIp(req);
 
   await ipfsGatewayBandwidthRateLimiter.reward(ip, 1);
-  await ipfsGatewayBandwidthRateLimiter.consume(ip, ipfsSize);
+
+  if (bytes > 0) {
+    await ipfsGatewayBandwidthRateLimiter.consume(ip, bytes);
+  }
 };
