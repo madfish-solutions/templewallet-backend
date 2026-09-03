@@ -5,10 +5,11 @@
     /* Basic Options */
     "target": "ES2020",
     "module": "commonjs",
-    "lib": ["esnext"],
+    "lib": ["esnext", "dom"],
     "allowJs": true,
     "sourceMap": true,
     "outDir": "dist",
+    "rootDir": "src",
     "noEmit": false,
     "isolatedModules": true,
 
@@ -23,6 +24,7 @@
     "esModuleInterop": true,
 
     /* Advanced Options */
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true
   },
 }

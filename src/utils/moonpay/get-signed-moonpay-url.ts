@@ -2,11 +2,16 @@ import crypto from 'crypto';
 
 import { EnvVars } from '../../config';
 
-export const getSignedMoonPayUrl = (originalUrl: string) => {
-  const signature = crypto
-    .createHmac('sha256', EnvVars.MOONPAY_SECRET_KEY)
-    .update(new URL(originalUrl).search)
-    .digest('base64');
+const toHashSignature = (data: string) =>
+  crypto.createHmac('sha256', EnvVars.MOONPAY_SECRET_KEY).update(data).digest('base64');
 
-  return `${originalUrl}&signature=${encodeURIComponent(signature)}`;
+export const getSignedMoonPayUrl = (originalUrl: string, ipAddress: string) => {
+  const ipHash = toHashSignature(ipAddress);
+
+  const url = new URL(originalUrl);
+  url.searchParams.set('allowedIpAddress', ipHash);
+  const signature = toHashSignature(url.search);
+  url.searchParams.set('signature', signature);
+
+  return url.toString();
 };
