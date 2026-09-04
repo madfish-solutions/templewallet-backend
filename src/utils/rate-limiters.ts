@@ -8,16 +8,14 @@ const ipfsGatewayRequestsRateLimiter = new RateLimiterRedis({
   storeClient: redisClient,
   keyPrefix: 'ipfs-gateway-requests',
   points: EnvVars.IPFS_GATEWAY_REQUESTS_POINTS,
-  duration: 30 * 24 * 60 * 60,
-  blockDuration: 3600
+  duration: 30 * 24 * 60 * 60
 });
 
 const ipfsGatewayBandwidthRateLimiter = new RateLimiterRedis({
   storeClient: redisClient,
   keyPrefix: 'ipfs-gateway-bandwidth',
   points: EnvVars.IPFS_GATEWAY_BANDWIDTH_POINTS,
-  duration: 30 * 24 * 60 * 60,
-  blockDuration: 3600
+  duration: 30 * 24 * 60 * 60
 });
 
 const getIp = (req: Request) => (req.headers['do-connecting-ip'] ?? req.ip) as string;
