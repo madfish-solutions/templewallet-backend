@@ -46,7 +46,7 @@ import logger from './utils/logger';
 import { getSignedMoonPayUrl } from './utils/moonpay/get-signed-moonpay-url';
 import SingleQueryDataProvider from './utils/SingleQueryDataProvider';
 import { getExchangeRates } from './utils/tokens';
-import { getWertSessionId } from './utils/wert';
+import { createWertSession, getWertSessionId, wertSessionParamsSchema } from './utils/wert';
 import { youvesStatsProvider } from './utils/youves';
 
 const PINO_LOGGER = {
@@ -437,6 +437,24 @@ app.get('/api/wert-session-id', async (_, res) => {
     } else {
       res.status(500).send({ message: error?.message });
     }
+  }
+});
+
+app.post('/api/wert/session', async (req, res) => {
+  try {
+    const params = await wertSessionParamsSchema.validate(req.body, { abortEarly: false });
+
+    return res.status(200).send({ sessionId: await createWertSession(params) });
+  } catch (error: any) {
+    if (error.name === 'ValidationError') {
+      return res.status(400).send({ error: 'Invalid body', details: error.errors });
+    }
+
+    logger.error({ error }, '[WERT] Failed to create session');
+
+    const { status, data } = getExternalApiErrorPayload(error);
+
+    return res.status(status).send(data);
   }
 });
 
