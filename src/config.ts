@@ -1,4 +1,4 @@
-import { getEnv } from './utils/env';
+import { getEnv, getEnvNat } from './utils/env';
 import { isDefined } from './utils/helpers';
 
 export const MIN_IOS_APP_VERSION = '1.10.445';
@@ -20,8 +20,14 @@ export const EnvVars = {
   EVM_API_URL: getEnv('EVM_API_URL'),
   WERT_API_KEY: getEnv('WERT_API_KEY'),
   GOOGLE_DRIVE_API_KEY: getEnv('GOOGLE_DRIVE_API_KEY'),
-  TEMPLE_ADS_API_URL: getEnv('TEMPLE_ADS_API_URL')
+  TEMPLE_ADS_API_URL: getEnv('TEMPLE_ADS_API_URL'),
+  PINATA_GATEWAY_URL: getEnv('PINATA_GATEWAY_URL'),
+  PINATA_GATEWAY_KEY: getEnv('PINATA_GATEWAY_KEY'),
+  IPFS_GATEWAY_REQUESTS_POINTS: getEnvNat('IPFS_GATEWAY_REQUESTS_POINTS', 1000),
+  IPFS_GATEWAY_BANDWIDTH_POINTS: getEnvNat('IPFS_GATEWAY_BANDWIDTH_POINTS', 1e7)
 };
+
+export const IS_DEVELOPMENT = getEnv('NODE_ENV') === 'development';
 
 for (const name in EnvVars) {
   if (!isDefined(EnvVars[name])) throw new Error(`process.env.${name} is not set.`);

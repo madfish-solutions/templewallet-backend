@@ -1,8 +1,8 @@
 import path from 'node:path';
 import { Worker } from 'node:worker_threads';
 
+import { IS_DEVELOPMENT } from '../config';
 import { redisClient } from '../redis';
-import { getEnv } from '../utils/env';
 import { safePromiseAll } from '../utils/helpers';
 import SingleQueryDataProvider from '../utils/SingleQueryDataProvider';
 
@@ -32,10 +32,9 @@ const fetchAssets = async (): Promise<Omit<MtPelerinAssetsResponse, 'timestamp'>
   const html = await currenciesResponse.text();
   const assets = await new Promise<{ cryptoTokens: MtPelerinToken[]; fiatCurrencies: MtPelerinFiatCurrency[] }>(
     (res, rej) => {
-      const worker = new Worker(
-        path.join(__dirname, `parse-worker.${getEnv('NODE_ENV') === 'development' ? 'ts' : 'js'}`),
-        { workerData: { html, cryptoTokenMetadata } }
-      );
+      const worker = new Worker(path.join(__dirname, `parse-worker.${IS_DEVELOPMENT ? 'ts' : 'js'}`), {
+        workerData: { html, cryptoTokenMetadata }
+      });
 
       worker.on('message', res);
       worker.on('error', rej);
