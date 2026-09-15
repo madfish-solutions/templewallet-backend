@@ -22,6 +22,7 @@ import { getPlatforms } from './notifications/utils/get-platforms.util';
 import { redisClient } from './redis';
 import { evmRouter } from './routers/evm';
 import { googleDriveRouter } from './routers/google-drive';
+import { ipfsRouter } from './routers/ipfs';
 import { koloRouter } from './routers/kolo';
 import { adRulesRouter } from './routers/slise-ad-rules';
 import { templeWalletAdsRouter } from './routers/temple-wallet-ads';
@@ -46,7 +47,7 @@ import logger from './utils/logger';
 import { getSignedMoonPayUrl } from './utils/moonpay/get-signed-moonpay-url';
 import SingleQueryDataProvider from './utils/SingleQueryDataProvider';
 import { getExchangeRates } from './utils/tokens';
-import { getWertSessionId } from './utils/wert';
+import { createWertSession, getWertSessionId, wertSessionParamsSchema } from './utils/wert';
 import { youvesStatsProvider } from './utils/youves';
 
 const PINO_LOGGER = {
@@ -440,6 +441,24 @@ app.get('/api/wert-session-id', async (_, res) => {
   }
 });
 
+app.post('/api/wert/session', async (req, res) => {
+  try {
+    const params = await wertSessionParamsSchema.validate(req.body, { abortEarly: false });
+
+    return res.status(200).send({ sessionId: await createWertSession(params) });
+  } catch (error: any) {
+    if (error.name === 'ValidationError') {
+      return res.status(400).send({ error: 'Invalid body', details: error.errors });
+    }
+
+    logger.error({ error }, '[WERT] Failed to create session');
+
+    const { status, data } = getExternalApiErrorPayload(error);
+
+    return res.status(status).send(data);
+  }
+});
+
 app.post('/api/temple-tap/confirm-airdrop-username', tezosSigAuthMiddleware, (req, res) =>
   handleTempleTapApiProxyRequest(req, res, 'v1/confirm-airdrop-address')
 );
@@ -451,6 +470,8 @@ app.post('/api/temple-tap/check-airdrop-confirmation', tezosSigAuthMiddleware, (
 app.get('/api/youves/stats', makeProviderDataRequestHandler(youvesStatsProvider));
 
 app.get('/api/liquidity-baking/stats', makeProviderDataRequestHandler(liquidityBakingStatsProvider));
+
+app.use('/ipfs', ipfsRouter);
 
 startMTPelerinAssetsUpdater();
 
