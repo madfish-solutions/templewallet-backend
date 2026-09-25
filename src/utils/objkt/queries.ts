@@ -82,7 +82,7 @@ query GetNftSales($since: timestamptz!, $lastId: bigint!, $limit: Int!) {
           _or: [
             {
               marketplace_event_type: {
-                _in: [list_buy, dutch_auction_buy, english_auction_settle, offer_accept, offer_floor_accept]
+                _in: [list_buy, dutch_auction_buy, english_auction_settle]
               }
             }
             { event_type: { _eq: open_edition_buy } }
