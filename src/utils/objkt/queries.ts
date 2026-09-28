@@ -29,6 +29,8 @@ query GetOffersReceived($since: timestamptz!, $lastId: bigint!, $limit: Int!) {
     timestamp
     price
     creator_address
+    level
+    ophash
     currency {
       ...ObjktCurrencyFields
     }
@@ -122,11 +124,11 @@ query GetTokenHolders($tokenPks: [bigint!]!, $limit: Int!, $offset: Int!) {
 }
 `;
 
-export const GET_TOKEN_TRANSFERS_QUERY = `
-query GetTokenTransfers($tokenPks: [bigint!]!, $since: timestamptz!, $lastId: bigint!, $limit: Int!) {
+export const GET_TOKEN_MOVEMENTS_QUERY = `
+query GetTokenMovements($tokenPks: [bigint!]!, $since: timestamptz!, $lastId: bigint!, $limit: Int!) {
   event(
     where: {
-      event_type: { _eq: transfer }
+      event_type: { _in: [transfer, mint] }
       token_pk: { _in: $tokenPks }
       timestamp: { _gte: $since }
       id: { _gt: $lastId }
@@ -137,6 +139,7 @@ query GetTokenTransfers($tokenPks: [bigint!]!, $since: timestamptz!, $lastId: bi
   ) {
     id
     timestamp
+    event_type
     amount
     creator_address
     recipient_address

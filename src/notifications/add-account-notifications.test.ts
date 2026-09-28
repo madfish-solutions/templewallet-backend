@@ -1,6 +1,15 @@
 import { Redis } from 'ioredis';
 import { describe, expect, it, vi } from 'vitest';
 
+vi.mock('../utils/logger', () => ({
+  default: {
+    debug: vi.fn(),
+    error: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn()
+  }
+}));
+
 import { EnvVars } from '../config';
 
 import {
@@ -46,7 +55,8 @@ const createRecordingRedis = (
   return {
     commands,
     pipeline: vi.fn(() => pipeline),
-    publish: vi.fn(async () => 1)
+    publish: vi.fn(async () => 1),
+    del: vi.fn(async () => 1)
   };
 };
 
@@ -171,6 +181,52 @@ describe('addAccountNotifications', () => {
       ACCOUNT_NOTIFICATIONS_EVENTS_CHANNEL,
       JSON.stringify([storedOffer(['tz1a'], 42)])
     );
+  });
+
+  it('retries a failed push and keeps the payload when a later attempt succeeds', async () => {
+    vi.useFakeTimers();
+    const redis = createRecordingRedis();
+    redis.publish.mockRejectedValueOnce(new Error('publish failed'));
+
+    try {
+      const pending = addAccountNotifications(redis as unknown as Redis, [offerInput(['tz1a'])]);
+      await vi.runAllTimersAsync();
+      await expect(pending).resolves.toBeUndefined();
+      expect(redis.publish).toHaveBeenCalledTimes(2);
+      expect(redis.del).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('removes the payload when every push attempt fails so a later sync can publish it', async () => {
+    vi.useFakeTimers();
+    const publishError = new Error('publish failed');
+    const redis = createRecordingRedis(commands =>
+      commands.map(command => {
+        if (command[0] !== 'set') {
+          return [null, 1];
+        }
+
+        return command[1] === getAccountNotificationKey(42) ? [null, 'OK'] : [null, null];
+      })
+    );
+    redis.publish.mockRejectedValue(publishError);
+
+    try {
+      const pending = addAccountNotifications(redis as unknown as Redis, [
+        offerInput(['tz1a'], undefined, 42),
+        offerInput(['tz1b'], undefined, 43)
+      ]);
+      const assertion = expect(pending).rejects.toBe(publishError);
+      await vi.runAllTimersAsync();
+      await assertion;
+      expect(redis.publish).toHaveBeenCalledTimes(6);
+      expect(redis.del).toHaveBeenCalledOnce();
+      expect(redis.del).toHaveBeenCalledWith(getAccountNotificationKey(42));
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('does not publish when a payload write fails', async () => {

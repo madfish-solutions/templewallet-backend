@@ -9,9 +9,14 @@ import {
   GET_NFT_SALES_QUERY,
   GET_OFFERS_RECEIVED_QUERY,
   GET_TOKEN_HOLDERS_QUERY,
-  GET_TOKEN_TRANSFERS_QUERY
+  GET_TOKEN_MOVEMENTS_QUERY
 } from './queries';
+import { getSameBlockMovementsAfterOffers } from './same-block-movements';
 import { ObjktGraphqlEvent } from './types';
+
+vi.mock('./same-block-movements', () => ({
+  getSameBlockMovementsAfterOffers: vi.fn(async () => new Map())
+}));
 
 vi.mock('./client', () => ({
   fetchAllObjktPages: vi.fn(
@@ -24,6 +29,7 @@ vi.mock('./client', () => ({
 }));
 
 const graphql = vi.mocked(objktGraphql);
+const sameBlockMovements = vi.mocked(getSameBlockMovementsAfterOffers);
 
 const token = {
   token_id: '1',
@@ -46,6 +52,8 @@ const event = (overrides: Partial<ObjktGraphqlEvent> = {}): ObjktGraphqlEvent =>
 describe('objkt getters', () => {
   beforeEach(() => {
     graphql.mockReset();
+    sameBlockMovements.mockReset();
+    sameBlockMovements.mockResolvedValue(new Map());
   });
 
   it('maps offer holders at offer time, excluding later buyers, the creator, and incomplete events', async () => {
@@ -74,13 +82,14 @@ describe('objkt getters', () => {
         };
       }
 
-      if (query === GET_TOKEN_TRANSFERS_QUERY) {
+      if (query === GET_TOKEN_MOVEMENTS_QUERY) {
         return {
           event: [
             event({
               id: 50,
               timestamp: '2020-01-01T01:00:00.000Z',
               amount: 1,
+              event_type: 'transfer',
               creator_address: 'tz1old',
               recipient_address: 'tz1new',
               token_pk: 99,
@@ -123,12 +132,80 @@ describe('objkt getters', () => {
       limit: 100,
       offset: 0
     });
-    expect(graphql).toHaveBeenCalledWith(GET_TOKEN_TRANSFERS_QUERY, {
+    expect(graphql).toHaveBeenCalledWith(GET_TOKEN_MOVEMENTS_QUERY, {
       tokenPks: [99],
       since: '2020-01-01T00:00:00.000Z',
       lastId: 0,
       limit: 100
     });
+    expect(sameBlockMovements).not.toHaveBeenCalled();
+  });
+
+  it('asks TzKT to order a transfer that shares the offer timestamp', async () => {
+    graphql.mockImplementation(async query => {
+      if (query === GET_OFFERS_RECEIVED_QUERY) {
+        return {
+          event: [event({ level: 15140977, ophash: 'ophash' })]
+        };
+      }
+
+      if (query === GET_TOKEN_HOLDERS_QUERY) {
+        return {
+          token_holder: [{ token_pk: 99, holder_address: 'tz1new', quantity: 1 }]
+        };
+      }
+
+      if (query === GET_TOKEN_MOVEMENTS_QUERY) {
+        return {
+          event: [
+            event({
+              id: 50,
+              timestamp: '2020-01-01T00:00:00.000Z',
+              amount: 1,
+              event_type: 'transfer',
+              creator_address: 'tz1old',
+              recipient_address: 'tz1new',
+              token_pk: 99,
+              price: null,
+              token: null
+            })
+          ]
+        };
+      }
+
+      throw new Error(`unexpected query ${query}`);
+    });
+    sameBlockMovements.mockResolvedValue(
+      new Map([
+        [
+          10,
+          [
+            {
+              tokenPk: 99,
+              timestamp: '2020-01-01T00:00:00.000Z',
+              amount: 1,
+              sender: 'tz1old',
+              recipient: 'tz1new'
+            }
+          ]
+        ]
+      ])
+    );
+
+    const [offerReceived] = await getOffersReceived('2020-01-01T00:00:00.000Z');
+
+    expect(offerReceived.holderAddresses).toEqual(['tz1old']);
+    expect(sameBlockMovements).toHaveBeenCalledWith([
+      {
+        id: 10,
+        level: 15140977,
+        ophash: 'ophash',
+        timestamp: '2020-01-01T00:00:00.000Z',
+        tokenPk: 99,
+        faContract: 'KT1abc',
+        tokenId: '1'
+      }
+    ]);
   });
 
   it('maps auction bids from recipient_address', async () => {

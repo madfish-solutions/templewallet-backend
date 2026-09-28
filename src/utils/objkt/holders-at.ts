@@ -1,8 +1,8 @@
 import { isDefined, isNonEmptyString } from '../helpers';
 
-import { ObjktTokenHolder, ObjktTokenTransfer } from './types';
+import { ObjktTokenHolder, ObjktTokenMovement } from './types';
 
-const addQuantity = (quantities: Map<string, number>, address: string, delta: number) => {
+const addQuantity = (quantities: Map<string, number>, address: string | undefined, delta: number) => {
   if (!isNonEmptyString(address)) {
     return;
   }
@@ -10,18 +10,26 @@ const addQuantity = (quantities: Map<string, number>, address: string, delta: nu
   quantities.set(address, (quantities.get(address) ?? 0) + delta);
 };
 
+const undoMovement = (quantities: Map<string, number>, movement: ObjktTokenMovement) => {
+  addQuantity(quantities, movement.recipient, -movement.amount);
+  addQuantity(quantities, movement.sender, movement.amount);
+};
+
 export const holdersAtOfferTime = ({
   tokenPk,
   at,
   creatorAddress,
   currentHolders,
-  transfers
+  movements,
+  sameBlockMovementsAfter = []
 }: {
   tokenPk: number;
   at: string;
   creatorAddress: string | null | undefined;
   currentHolders: ObjktTokenHolder[];
-  transfers: ObjktTokenTransfer[];
+  movements: ObjktTokenMovement[];
+  /** Transfers and mints from the offer's block that executed after the offer. */
+  sameBlockMovementsAfter?: ObjktTokenMovement[];
 }) => {
   const atMs = Date.parse(at);
   const quantities = new Map<string, number>();
@@ -32,13 +40,16 @@ export const holdersAtOfferTime = ({
     }
   }
 
-  const laterTransfers = transfers
-    .filter(transfer => transfer.tokenPk === tokenPk && Date.parse(transfer.timestamp) > atMs)
-    .sort((left, right) => right.id - left.id);
+  for (const movement of movements) {
+    if (movement.tokenPk === tokenPk && Date.parse(movement.timestamp) > atMs) {
+      undoMovement(quantities, movement);
+    }
+  }
 
-  for (const transfer of laterTransfers) {
-    addQuantity(quantities, transfer.recipient, -transfer.amount);
-    addQuantity(quantities, transfer.sender, transfer.amount);
+  for (const movement of sameBlockMovementsAfter) {
+    if (movement.tokenPk === tokenPk) {
+      undoMovement(quantities, movement);
+    }
   }
 
   return Array.from(quantities.entries())

@@ -58,6 +58,9 @@ export interface ObjktGraphqlEvent {
   timestamp: string;
   price: number | null;
   amount?: number | null;
+  event_type?: string | null;
+  level?: number | null;
+  ophash?: string | null;
   creator_address?: string | null;
   recipient_address?: string | null;
   token_pk?: number | null;
@@ -71,13 +74,13 @@ export interface ObjktTokenHolder {
   quantity: number;
 }
 
-export interface ObjktTokenTransfer {
-  id: number;
+/** A token balance change. Mints have no sender; burns have no recipient. */
+export interface ObjktTokenMovement {
   tokenPk: number;
   timestamp: string;
   amount: number;
-  sender: string;
-  recipient: string;
+  sender?: string;
+  recipient?: string;
 }
 
 export interface ObjktGraphqlResponse<T> {

@@ -91,8 +91,8 @@ describe('mapObjktEventsToAccountNotifications', () => {
         type: NotificationType.NftSold,
         language: 'en-US',
         title: 'NFT sold for 3 tez',
-        description: 'On Tezzard',
-        content: ['On Tezzard'],
+        description: 'Tezzard',
+        content: ['Tezzard'],
         extensionImageUrl: OBJKT_NOTIFICATION_IMAGE_URL,
         mobileImageUrl: OBJKT_NOTIFICATION_IMAGE_URL,
         sourceUrl: 'https://objkt.com/tokens/KT1abc/1'

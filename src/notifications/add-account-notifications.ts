@@ -1,7 +1,9 @@
+import retry from 'async-retry';
 import { Redis } from 'ioredis';
 
 import { EnvVars } from '../config';
 import { isDefined, isNonEmptyString } from '../utils/helpers';
+import logger from '../utils/logger';
 
 import {
   ACCOUNT_NOTIFICATIONS_EVENTS_CHANNEL,
@@ -27,6 +29,26 @@ interface PendingAccountNotification {
   commandStart: number;
   commandCount: number;
 }
+
+const PUBLISH_MAX_RETRIES = 5;
+const PUBLISH_RETRY_BASE_DELAY_MS = 500;
+const PUBLISH_RETRY_MAX_DELAY_MS = 30_000;
+
+const publishAccountNotifications = (client: Redis, events: AccountNotification[]) => {
+  const payload = JSON.stringify(events);
+
+  return retry(() => client.publish(ACCOUNT_NOTIFICATIONS_EVENTS_CHANNEL, payload), {
+    retries: PUBLISH_MAX_RETRIES,
+    factor: 2,
+    minTimeout: PUBLISH_RETRY_BASE_DELAY_MS,
+    maxTimeout: PUBLISH_RETRY_MAX_DELAY_MS,
+    randomize: true,
+    onRetry: (error, attempt) => {
+      const message = error instanceof Error ? error.message : 'Account notification publish failed';
+      logger.warn(`Account notification publish failed, retrying (${attempt}): ${message}`);
+    }
+  });
+};
 
 const getPayloadTtlSeconds = (notification: Notification, now: number) => {
   let ttlSeconds = EnvVars.ACCOUNT_NOTIFICATION_TTL_SECONDS;
@@ -145,7 +167,14 @@ export const addAccountNotifications = async (
   const shouldPublish = options.publish ?? true;
 
   if (shouldPublish && newlyStoredEvents.length > 0) {
-    await client.publish(ACCOUNT_NOTIFICATIONS_EVENTS_CHANNEL, JSON.stringify(newlyStoredEvents));
+    try {
+      await publishAccountNotifications(client, newlyStoredEvents);
+    } catch (error) {
+      // SET NX would otherwise treat this payload as already delivered and skip the next push.
+      await client.del(...newlyStoredEvents.map(event => getAccountNotificationKey(event.id)));
+
+      throw error;
+    }
   }
 
   if (commandErrors.length > 0) {

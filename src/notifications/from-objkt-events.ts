@@ -135,7 +135,7 @@ const mapObjktNftSoldToNotification = (sale: ObjktNftSold): AccountNotificationI
       createdAt: sale.timestamp,
       type: NotificationType.NftSold,
       title: `NFT sold for ${amount}`,
-      description: `On ${nftName}`,
+      description: nftName,
       token: sale.token
     }),
     accountAddresses: [sale.sellerAddress]
