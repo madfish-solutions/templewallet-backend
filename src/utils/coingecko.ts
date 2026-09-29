@@ -1,120 +1,64 @@
-import { AxiosError } from 'axios';
+import { EnvVars } from '../config';
 
-import { isDefined, range, safePromiseAll } from './helpers';
-import logger from './logger';
 import { makeBuildQueryFn } from './makeBuildQueryFn';
 import SingleQueryDataProvider from './SingleQueryDataProvider';
 
-type CoinsListParams = {
-  include_platform?: boolean;
-};
-type MarketsParams = {
-  vs_currency?: string;
-  ids: string[];
-  order?:
-    | 'market_cap_desc'
-    | 'gecko_desc'
-    | 'gecko_asc'
-    | 'market_cap_asc'
-    | 'market_cap_desc'
-    | 'volume_asc'
-    | 'volume_desc'
-    | 'id_asc'
-    | 'id_desc';
-  per_page?: number;
-  page?: number;
-  sparkline?: boolean;
-};
+interface AssetPlatform {
+  id: string;
+  chain_identifier: number | null;
+  name: string;
+  shortname: string;
+  native_coin_id: string | null;
+  image: Record<'thumb' | 'small' | 'large', string | null>;
+}
 
-type CoinsListItem = {
-  id: string;
-  symbol: string;
-  name: string;
-};
-type Market = {
-  id: string;
-  symbol: string;
-  name: string;
-  image?: string;
-  current_price: number;
-  market_cap: number;
-  market_cap_rank: number;
-  total_volume: number;
-  high_24h: number;
-  low_24h: number;
-  price_change_24h: number;
-  price_change_percentage_24h: number;
-  market_cap_change_24h: number;
-  market_cap_change_percentage_24h: number;
-  circulating_supply: number;
-  total_supply: number;
-  last_updated: string;
-};
+interface GetPricesParams {
+  ids: string[];
+  vs_currencies: string[];
+}
+
+export type CoinsPrices = Record<string, Record<string, number>>;
 
 const COINGECKO_BASE_URL = 'https://api.coingecko.com/api/v3';
 
-const buildQuery = makeBuildQueryFn<CoinsListParams | MarketsParams, CoinsListItem[] | Market[]>(COINGECKO_BASE_URL);
+const buildQuery = makeBuildQueryFn<object, AssetPlatform[] | CoinsPrices>(COINGECKO_BASE_URL, undefined, {
+  headers: { [EnvVars.IS_COINGECKO_DEMO ? 'x-cg-demo-api-key' : 'x-cg-pro-api-key']: EnvVars.COINGECKO_API_KEY }
+});
 
-const getCoins = buildQuery<CoinsListParams, CoinsListItem[]>('/coins/list', ['include_platform']);
-const getMarkets = buildQuery<MarketsParams, Market[]>(
-  '/coins/markets',
-  ({ vs_currency = 'usd', ids, order = 'market_cap_desc', per_page = 100, page = 1, sparkline = false }) => ({
-    vs_currency,
-    ids: ids.join(','),
-    order,
-    per_page,
-    page,
-    sparkline
-  })
+const getAssetPlatforms = buildQuery<object, AssetPlatform[]>('/asset_platforms');
+const getPrices = buildQuery<GetPricesParams, CoinsPrices>('/simple/price', ({ ids, vs_currencies }) => ({
+  ids: ids.join(','),
+  vs_currencies: vs_currencies.join(',')
+}));
+
+const FIAT_CURRENCIES_CODES = [
+  'usd',
+  'eur',
+  'gbp',
+  'jpy',
+  'aud',
+  'cad',
+  'chf',
+  'cny',
+  'dkk',
+  'hkd',
+  'idr',
+  'inr',
+  'krw',
+  'mxn',
+  'nzd',
+  'pln',
+  'sek',
+  'sgd',
+  'thb',
+  'try',
+  'twd',
+  'uah',
+  'zar'
+];
+const COINS_IDS = ['tezos', 'bitcoin'];
+
+export const assetPlatformsProvider = new SingleQueryDataProvider(24 * 3600 * 1000, () => getAssetPlatforms({}));
+export const pricesProvider = new SingleQueryDataProvider(15 * 60 * 1000, async () =>
+  getPrices({ ids: COINS_IDS, vs_currencies: FIAT_CURRENCIES_CODES })
 );
-
-const coinsListProvider = new SingleQueryDataProvider(24 * 3600 * 1000, () => getCoins({}));
-
-const getMarketsBySymbols = async (symbols: string[]) => {
-  const { data: coins, error: coinsError } = await coinsListProvider.getState();
-  if (coinsError) {
-    throw coinsError;
-  }
-  const matchingCoins =
-    coins?.filter(({ symbol }) =>
-      symbols.some(matchingSymbol => matchingSymbol.toLowerCase() === symbol.toLowerCase())
-    ) ?? [];
-  const pagesNumbers = range(1, matchingCoins.length + 1, 100);
-  const ids = matchingCoins.map(({ id }) => id);
-  const chunks = await safePromiseAll(
-    pagesNumbers.map(pageNumber =>
-      getMarkets({
-        ids,
-        page: pageNumber
-      })
-    )
-  );
-
-  return chunks.flat();
-};
-
-const createCoingeckoExchangeRateProvider = (tokenSymbol: string) =>
-  new SingleQueryDataProvider(60000, async () => {
-    try {
-      const [market] = await getMarketsBySymbols([tokenSymbol]);
-
-      return market.current_price;
-    } catch (e) {
-      if (!(e instanceof AxiosError)) {
-        logger.error(`Request for ${tokenSymbol} exchange rate failed with unknown error`);
-      } else if (isDefined(e.response) && isDefined(e.response.data)) {
-        logger.error(
-          `Request for ${tokenSymbol} exchange rate failed with status ${e.response.status} and message ${e.response.data}`
-        );
-      } else if (isDefined(e.response) && isDefined(e.response.status)) {
-        logger.error(`Request for ${tokenSymbol} exchange rate failed with status ${e.response.status}`);
-      } else {
-        logger.error(`Request for ${tokenSymbol} exchange rate failed without response`);
-      }
-
-      throw e;
-    }
-  });
-
-export const tezExchangeRateProvider = createCoingeckoExchangeRateProvider('xtz');
-export const btcExchangeRateProvider = createCoingeckoExchangeRateProvider('btc');

@@ -2,7 +2,7 @@ import { BigNumber } from 'bignumber.js';
 
 import { redisClient } from '../redis';
 
-import { tezExchangeRateProvider } from './coingecko';
+import { pricesProvider } from './coingecko';
 import { isDefined } from './helpers';
 import logger from './logger';
 import SingleQueryDataProvider, { SingleQueryDataProviderState } from './SingleQueryDataProvider';
@@ -33,9 +33,10 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
   logger.info('Getting exchange rates of tokens which are known to 3route...');
   const { data: tokens, error: tokensError } = await tokensListProvider.getState();
   const { data: exchangeRatesInputs, error: exchangeRatesError } = await threeRouteExchangeRatesProvider.getState();
-  const { data: tezExchangeRate, error: tezExchangeRateError } = await tezExchangeRateProvider.getState();
+  const { data: prices, error: pricesError } = await pricesProvider.getState();
+  const tezExchangeRate = prices?.tezos?.usd;
 
-  const error = tokensError ?? exchangeRatesError ?? tezExchangeRateError;
+  const error = tokensError ?? exchangeRatesError ?? pricesError;
   if (error) {
     throw error;
   }
