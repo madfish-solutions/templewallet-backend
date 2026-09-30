@@ -38,7 +38,7 @@ import { getAliceBobEstimationPayload } from './utils/alice-bob/get-alice-bob-es
 import { getAliceBobOrderInfo } from './utils/alice-bob/get-alice-bob-order-info';
 import { getAliceBobPairInfo } from './utils/alice-bob/get-alice-bob-pair-info';
 import { getAliceBobPairsInfo } from './utils/alice-bob/get-alice-bob-pairs-info';
-import { assetPlatformsProvider } from './utils/coingecko';
+import { tezosMarketsProvider } from './utils/coingecko';
 import { CodedError } from './utils/errors';
 import { exolixNetworksMap } from './utils/exolix-networks-map';
 import { coinGeckoTokens } from './utils/gecko-tokens';
@@ -191,8 +191,7 @@ app.get('/api/abtest', (_, res) => {
   res.json(data);
 });
 
-app.get('/api/asset-platforms', makeProviderDataRequestHandler(assetPlatformsProvider));
-
+app.get('/api/tezos-markets', makeProviderDataRequestHandler(tezosMarketsProvider));
 app.use('/api/exchange-rates', exchangeRatesRouter);
 
 app.get('/api/moonpay-sign', async (req, res) => {
