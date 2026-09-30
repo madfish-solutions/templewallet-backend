@@ -53,7 +53,7 @@ const getPrices = buildQuery<GetPricesParams, CoinsPrices>('/simple/price', ({ i
   ids: ids.join(','),
   vs_currencies: vs_currencies.join(',')
 }));
-const getMarketsPage = buildQuery<MarketsParams, Market[]>('/coins/markets');
+const getMarketsPage = buildQuery<MarketsParams, Market[]>('/coins/markets', ['vs_currency', 'category']);
 
 const FIAT_CURRENCIES_CODES = [
   'usd',
