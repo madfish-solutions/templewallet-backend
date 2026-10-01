@@ -44,7 +44,7 @@ import { getAliceBobEstimationPayload } from './utils/alice-bob/get-alice-bob-es
 import { getAliceBobOrderInfo } from './utils/alice-bob/get-alice-bob-order-info';
 import { getAliceBobPairInfo } from './utils/alice-bob/get-alice-bob-pair-info';
 import { getAliceBobPairsInfo } from './utils/alice-bob/get-alice-bob-pairs-info';
-import { btcExchangeRateProvider, tezExchangeRateProvider } from './utils/coingecko';
+import { pricesProvider } from './utils/coingecko';
 import { CodedError } from './utils/errors';
 import { exolixNetworksMap } from './utils/exolix-networks-map';
 import { coinGeckoTokens } from './utils/gecko-tokens';
@@ -125,6 +125,17 @@ const makeProviderDataRequestHandler = <T, U>(
     }
   };
 };
+
+const makeExchangeRateRequestHandler = (coinId: string) =>
+  makeProviderDataRequestHandler(pricesProvider, prices => {
+    const value = prices[coinId]?.['usd'];
+
+    if (isDefined(value)) {
+      return value;
+    }
+
+    throw new Error(`${coinId} exchange rate not found`);
+  });
 
 app.use('/api/kolo', koloRouter);
 
@@ -225,26 +236,22 @@ app.get('/api/abtest', (_, res) => {
   res.json(data);
 });
 
-app.get('/api/exchange-rates/tez', makeProviderDataRequestHandler(tezExchangeRateProvider));
-app.get('/api/exchange-rates/btc', makeProviderDataRequestHandler(btcExchangeRateProvider));
+app.get('/api/exchange-rates/tez', makeExchangeRateRequestHandler('tezos'));
+app.get('/api/exchange-rates/btc', makeExchangeRateRequestHandler('bitcoin'));
 
-app.get('/api/exchange-rates', async (_req, res) => {
-  const tokensExchangeRates = await getExchangeRates();
-  const { data: tezExchangeRate, error: tezExchangeRateError } = await getProviderStateWithTimeout(
-    tezExchangeRateProvider
-  );
+app.get(
+  '/api/exchange-rates',
+  makeProviderDataRequestHandler(pricesProvider, async prices => {
+    const tokensExchangeRates = await getExchangeRates();
+    const tezExchangeRate = prices.tezos.usd;
 
-  if (tezExchangeRateError !== undefined) {
-    return res.status(500).send({
-      error: tezExchangeRateError.message
-    });
-  }
+    if (!isDefined(tezExchangeRate)) {
+      throw new Error('TEZ exchange rate not found');
+    }
 
-  res
-    .status(200)
-    .header('Cache-Control', 'public, max-age=60')
-    .json([...tokensExchangeRates, { exchangeRate: tezExchangeRate.toString() }]);
-});
+    return [...tokensExchangeRates, { exchangeRate: tezExchangeRate.toString() }];
+  })
+);
 
 app.get('/api/moonpay-sign', async (req, res) => {
   try {
