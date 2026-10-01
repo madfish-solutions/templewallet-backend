@@ -36,6 +36,7 @@ const PUBLISH_RETRY_MAX_DELAY_MS = 30_000;
 
 const publishAccountNotifications = (client: Redis, events: AccountNotification[]) => {
   const payload = JSON.stringify(events);
+  logger.info('publishAccountNotifications', payload);
 
   return retry(() => client.publish(ACCOUNT_NOTIFICATIONS_EVENTS_CHANNEL, payload), {
     retries: PUBLISH_MAX_RETRIES,
@@ -166,6 +167,7 @@ export const addAccountNotifications = async (
   const { newlyStoredEvents, commandErrors } = collectPipelineOutcome(pendingEvents, replies);
   const shouldPublish = options.publish ?? true;
 
+  logger.info('addAccountNotifications', JSON.stringify({ shouldPublish, items, newlyStoredEvents }));
   if (shouldPublish && newlyStoredEvents.length > 0) {
     try {
       await publishAccountNotifications(client, newlyStoredEvents);

@@ -1,4 +1,5 @@
 import { isDefined } from '../utils/helpers';
+import logger from '../utils/logger';
 
 import { AccountNotification } from './notification.interface';
 import { accountNotificationEventsSchema } from './notification.schema';
@@ -55,6 +56,7 @@ export class AccountNotificationsHub {
   }
 
   dispatch(notification: AccountNotification) {
+    logger.info('dispatch', JSON.stringify(notification));
     const sentConnections = new Set<AccountNotificationConnection>();
 
     for (const address of notification.accountAddresses) {
@@ -81,6 +83,7 @@ export class AccountNotificationsHub {
           continue;
         }
 
+        logger.info('sending notification', JSON.stringify({ matchingAddresses, notification }));
         connection.send({
           type: 'notification',
           notification: {
@@ -93,6 +96,7 @@ export class AccountNotificationsHub {
   }
 
   dispatchMessage(message: string) {
+    logger.info('dispatchMessage', message);
     for (const notification of parseAccountNotificationEvents(message)) {
       this.dispatch(notification);
     }
