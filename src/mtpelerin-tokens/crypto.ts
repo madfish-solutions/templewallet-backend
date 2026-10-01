@@ -3,7 +3,7 @@ import * as yup from 'yup';
 
 import { mtPelerinCurrenciesUrl, mtPelerinTokensMetadataUrl } from './common';
 
-export type MTPelerinNetwork =
+type MTPelerinNetwork =
   | 'arbitrum_mainnet'
   | 'avalanche_mainnet'
   | 'base_mainnet'

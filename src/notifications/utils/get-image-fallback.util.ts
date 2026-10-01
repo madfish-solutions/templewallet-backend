@@ -1,7 +1,11 @@
-import { DEFAULT_IMAGE_URLS } from '../default-image-fallbacks';
-import { NotificationType, PlatformType } from '../notification.interface';
+import { DEFAULT_IMAGE_URLS, OBJKT_NOTIFICATION_IMAGE_URL } from '../default-image-fallbacks';
+import { isAccountNotificationType, NotificationType, PlatformType } from '../notification.interface';
 
 export const getImageFallback = (platform: PlatformType, notificationType: NotificationType) => {
+  if (isAccountNotificationType(notificationType)) {
+    return OBJKT_NOTIFICATION_IMAGE_URL;
+  }
+
   if (platform === PlatformType.Mobile) {
     switch (notificationType) {
       case NotificationType.PlatformUpdate:

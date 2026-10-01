@@ -5,16 +5,23 @@ require('./process-safety');
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import express, { Request, Response } from 'express';
-import firebaseAdmin from 'firebase-admin';
+import { initializeApp } from 'firebase-admin';
+import { getAppCheck } from 'firebase-admin/app-check';
+import { createServer } from 'http';
 import { stdSerializers } from 'pino';
 import pinoHttp from 'pino-http';
 
-import { MIN_ANDROID_APP_VERSION, MIN_IOS_APP_VERSION } from './config';
+import { EnvVars, MIN_ANDROID_APP_VERSION, MIN_IOS_APP_VERSION } from './config';
 import getDAppsStats from './getDAppsStats';
 import { getMagicSquareQuestParticipants, startMagicSquareQuest } from './magic-square';
 import { basicAuth } from './middlewares/basic-auth.middleware';
+import { validateGetNotificationsQuery } from './middlewares/validate-get-notifications-query.middleware';
 import { getMTPelerinAssets, startMTPelerinAssetsUpdater } from './mtpelerin-tokens';
+import { attachAccountNotificationsWebSocket } from './notifications/account-notifications-ws';
+import { startAccountNotificationsCleanup } from './notifications/cleanup-account-notifications';
+import { getAccountNotifications } from './notifications/get-account-notifications';
 import { Notification, PlatformType } from './notifications/notification.interface';
+import { startObjktNotificationsSync } from './notifications/sync-objkt-notifications';
 import { getImageFallback } from './notifications/utils/get-image-fallback.util';
 import { getNotifications } from './notifications/utils/get-notifications.util';
 import { getParsedContent } from './notifications/utils/get-parsed-content.util';
@@ -37,11 +44,11 @@ import { getAliceBobEstimationPayload } from './utils/alice-bob/get-alice-bob-es
 import { getAliceBobOrderInfo } from './utils/alice-bob/get-alice-bob-order-info';
 import { getAliceBobPairInfo } from './utils/alice-bob/get-alice-bob-pair-info';
 import { getAliceBobPairsInfo } from './utils/alice-bob/get-alice-bob-pairs-info';
-import { btcExchangeRateProvider, tezExchangeRateProvider } from './utils/coingecko';
+import { pricesProvider } from './utils/coingecko';
 import { CodedError } from './utils/errors';
 import { exolixNetworksMap } from './utils/exolix-networks-map';
 import { coinGeckoTokens } from './utils/gecko-tokens';
-import { getExternalApiErrorPayload, isDefined, isNonEmptyString, isTruthy } from './utils/helpers';
+import { getExternalApiErrorPayload, isDefined, isNonEmptyString, isTruthy, safePromiseAll } from './utils/helpers';
 import { liquidityBakingStatsProvider } from './utils/liquidity-baking';
 import logger from './utils/logger';
 import { getSignedMoonPayUrl } from './utils/moonpay/get-signed-moonpay-url';
@@ -86,18 +93,10 @@ app.use(bodyParser.json());
  */
 app.set('trust proxy', true);
 
-const androidApp = firebaseAdmin.initializeApp(
-  {
-    projectId: 'templewallet-fa3b3'
-  },
-  'androidApp'
-);
-const iosApp = firebaseAdmin.initializeApp(
-  {
-    projectId: 'templewallet-fa3b3'
-  },
-  'iosApp'
-);
+const androidApp = initializeApp({ projectId: 'templewallet-fa3b3' }, 'androidApp');
+const androidAppCheck = getAppCheck(androidApp);
+const iosApp = initializeApp({ projectId: 'templewallet-fa3b3' }, 'iosApp');
+const iosAppCheck = getAppCheck(iosApp);
 
 const getProviderStateWithTimeout = <T>(provider: SingleQueryDataProvider<T>) =>
   Promise.race([
@@ -127,6 +126,17 @@ const makeProviderDataRequestHandler = <T, U>(
   };
 };
 
+const makeExchangeRateRequestHandler = (coinId: string) =>
+  makeProviderDataRequestHandler(pricesProvider, prices => {
+    const value = prices[coinId]?.['usd'];
+
+    if (isDefined(value)) {
+      return value;
+    }
+
+    throw new Error(`${coinId} exchange rate not found`);
+  });
+
 app.use('/api/kolo', koloRouter);
 
 app.get('/api/top-coins', (_req, res) => {
@@ -151,14 +161,21 @@ app.get('/api/tkey', async (_req, res) => {
   res.send(await getTkeyStats());
 });
 
-app.get('/api/notifications', async (_req, res) => {
+app.get('/api/notifications', validateGetNotificationsQuery, async (req, res) => {
   try {
-    const { platform, startFromTime } = _req.query;
-    const data = await getNotifications(
-      redisClient,
-      platform === PlatformType.Mobile ? PlatformType.Mobile : PlatformType.Extension,
-      Number(startFromTime) ?? 0
-    );
+    const { platform, startFromTime, startID, accountAddresses } = req.notificationsQuery;
+    const [notifications, accountNotifications] = await safePromiseAll([
+      getNotifications(redisClient, platform, startFromTime),
+      getAccountNotifications(redisClient, accountAddresses, startFromTime, startID)
+    ]);
+    const data = notifications.concat(accountNotifications).sort((a, b) => {
+      const createdAtDiff = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      if (createdAtDiff !== 0) {
+        return createdAtDiff;
+      }
+
+      return b.id - a.id;
+    });
 
     res.status(200).send(data);
   } catch (error) {
@@ -219,26 +236,22 @@ app.get('/api/abtest', (_, res) => {
   res.json(data);
 });
 
-app.get('/api/exchange-rates/tez', makeProviderDataRequestHandler(tezExchangeRateProvider));
-app.get('/api/exchange-rates/btc', makeProviderDataRequestHandler(btcExchangeRateProvider));
+app.get('/api/exchange-rates/tez', makeExchangeRateRequestHandler('tezos'));
+app.get('/api/exchange-rates/btc', makeExchangeRateRequestHandler('bitcoin'));
 
-app.get('/api/exchange-rates', async (_req, res) => {
-  const tokensExchangeRates = await getExchangeRates();
-  const { data: tezExchangeRate, error: tezExchangeRateError } = await getProviderStateWithTimeout(
-    tezExchangeRateProvider
-  );
+app.get(
+  '/api/exchange-rates',
+  makeProviderDataRequestHandler(pricesProvider, async prices => {
+    const tokensExchangeRates = await getExchangeRates();
+    const tezExchangeRate = prices.tezos.usd;
 
-  if (tezExchangeRateError !== undefined) {
-    return res.status(500).send({
-      error: tezExchangeRateError.message
-    });
-  }
+    if (!isDefined(tezExchangeRate)) {
+      throw new Error('TEZ exchange rate not found');
+    }
 
-  res
-    .status(200)
-    .header('Cache-Control', 'public, max-age=60')
-    .json([...tokensExchangeRates, { exchangeRate: tezExchangeRate.toString() }]);
-});
+    return [...tokensExchangeRates, { exchangeRate: tezExchangeRate.toString() }];
+  })
+);
 
 app.get('/api/moonpay-sign', async (req, res) => {
   try {
@@ -353,9 +366,9 @@ app.get('/api/mobile-check', async (_req, res) => {
 
   try {
     if (platform === 'ios') {
-      await iosApp.appCheck().verifyToken(appCheckToken as unknown as string);
+      await iosAppCheck.verifyToken(String(appCheckToken));
     } else {
-      await androidApp.appCheck().verifyToken(appCheckToken as unknown as string);
+      await androidAppCheck.verifyToken(String(appCheckToken));
     }
 
     res.status(200).send({
@@ -367,7 +380,7 @@ app.get('/api/mobile-check', async (_req, res) => {
     res.status(200).send({
       minIosVersion: MIN_IOS_APP_VERSION,
       minAndroidVersion: MIN_ANDROID_APP_VERSION,
-      isAppCheckFailed: process.env.SHOULD_APP_CHECK_BLOCK_THE_APP === 'true' // this flag is intentionally false for development
+      isAppCheckFailed: EnvVars.SHOULD_APP_CHECK_BLOCK_THE_APP === 'true' // this flag is intentionally false for development
     });
   }
 });
@@ -474,7 +487,11 @@ app.get('/api/liquidity-baking/stats', makeProviderDataRequestHandler(liquidityB
 app.use('/ipfs', ipfsRouter);
 
 startMTPelerinAssetsUpdater();
+startAccountNotificationsCleanup();
+startObjktNotificationsSync();
 
 // start the server listening for requests
-const port = Boolean(process.env.PORT) ? process.env.PORT : 3000;
-app.listen(port, () => console.info(`Server is running on port ${port}...`));
+const port = EnvVars.PORT;
+const server = createServer(app);
+attachAccountNotificationsWebSocket(server, { redis: redisClient });
+server.listen(port, () => console.info(`Server is running on port ${port}...`));

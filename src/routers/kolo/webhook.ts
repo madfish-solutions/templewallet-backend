@@ -3,28 +3,28 @@ import * as yup from 'yup';
 
 import logger from '../../utils/logger';
 
-export interface UserVerificationWebhookEventPayload {
+interface UserVerificationWebhookEventPayload {
   expires_at?: number;
   review_comment?: string;
 }
 
-export type UserVerificationEventType =
+type UserVerificationEventType =
   | 'verification.reset'
   | 'verification.rejected'
   | 'verification.completed'
   | 'verification.retry_required'
   | 'verification.on_hold';
 
-export interface UserVerificationWebhookEvent {
+interface UserVerificationWebhookEvent {
   event_id?: string;
   event: UserVerificationEventType;
   user_email: string;
   payload: UserVerificationWebhookEventPayload;
 }
 
-export type CardEventType = 'card.issued' | 'card.provisioning.completed';
+type CardEventType = 'card.issued' | 'card.provisioning.completed';
 
-export interface CardWebhookEventPayload {
+interface CardWebhookEventPayload {
   uuid: string;
   currency: string;
   brand: 'MASTERCARD' | 'VISA';
@@ -32,7 +32,7 @@ export interface CardWebhookEventPayload {
   mask: string;
 }
 
-export interface CardWebhookEvent {
+interface CardWebhookEvent {
   event_id?: string;
   event: CardEventType;
   user_email: string;
