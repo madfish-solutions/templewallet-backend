@@ -21,6 +21,7 @@ import { getParsedContent } from './notifications/utils/get-parsed-content.util'
 import { getPlatforms } from './notifications/utils/get-platforms.util';
 import { redisClient } from './redis';
 import { evmRouter } from './routers/evm';
+import { exolixRouter } from './routers/exolix';
 import { googleDriveRouter } from './routers/google-drive';
 import { ipfsRouter } from './routers/ipfs';
 import { koloRouter } from './routers/kolo';
@@ -132,6 +133,8 @@ app.use('/api/kolo', koloRouter);
 app.get('/api/top-coins', (_req, res) => {
   res.status(200).send(coinGeckoTokens);
 });
+
+app.use('/api/exolix', exolixRouter);
 
 app.get('/api/exolix-networks-map', (_req, res) => {
   res.status(200).send(exolixNetworksMap);
