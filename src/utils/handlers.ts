@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
 
-import SingleQueryDataProvider from './SingleQueryDataProvider';
+import SingleQueryDataProvider, { SingleQueryDataProviderState } from './SingleQueryDataProvider';
 
-const getProviderStateWithTimeout = <T>(provider: SingleQueryDataProvider<T>) =>
+export const getProviderStateWithTimeout = <T>(provider: SingleQueryDataProvider<T>) =>
   Promise.race([
     provider.getState(),
-    new Promise<{ data?: undefined; error: Error }>(resolve =>
+    new Promise<SingleQueryDataProviderState<T>>(resolve =>
       setTimeout(() => resolve({ error: new Error('Response timed out') }), 30000)
     )
   ]);

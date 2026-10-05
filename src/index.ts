@@ -38,15 +38,17 @@ import { getAliceBobEstimationPayload } from './utils/alice-bob/get-alice-bob-es
 import { getAliceBobOrderInfo } from './utils/alice-bob/get-alice-bob-order-info';
 import { getAliceBobPairInfo } from './utils/alice-bob/get-alice-bob-pair-info';
 import { getAliceBobPairsInfo } from './utils/alice-bob/get-alice-bob-pairs-info';
-import { tezosMarketsProvider } from './utils/coingecko';
+import { pricesProvider, tezosMarketsProvider } from './utils/coingecko';
 import { CodedError } from './utils/errors';
 import { exolixNetworksMap } from './utils/exolix-networks-map';
 import { coinGeckoTokens } from './utils/gecko-tokens';
-import { makeProviderDataRequestHandler } from './utils/handlers';
+import { getProviderStateWithTimeout, makeProviderDataRequestHandler } from './utils/handlers';
 import { getExternalApiErrorPayload, isDefined, isNonEmptyString, isTruthy } from './utils/helpers';
 import { liquidityBakingStatsProvider } from './utils/liquidity-baking';
 import logger from './utils/logger';
 import { getSignedMoonPayUrl } from './utils/moonpay/get-signed-moonpay-url';
+import SingleQueryDataProvider from './utils/SingleQueryDataProvider';
+import { getTokensExchangeRatesTimestamp } from './utils/tokens';
 import { createWertSession, getWertSessionId, wertSessionParamsSchema } from './utils/wert';
 import { youvesStatsProvider } from './utils/youves';
 
@@ -100,6 +102,31 @@ const iosApp = firebaseAdmin.initializeApp(
 );
 
 app.use('/api/kolo', koloRouter);
+
+app.get('/api/providers-health', async (_, res) => {
+  const providers: SingleQueryDataProvider<unknown>[] = [
+    tezosMarketsProvider,
+    pricesProvider,
+    liquidityBakingStatsProvider,
+    youvesStatsProvider
+  ];
+  const providersResults = await Promise.allSettled([
+    getMTPelerinAssets().then(data => data.timestamp),
+    getTokensExchangeRatesTimestamp().then(ts => ts ?? null),
+    ...providers.map(provider => getProviderStateWithTimeout(provider).then(state => state.dataTimestamp ?? null))
+  ]);
+  const [mtPelerinAssets, tokensExchangeRates, tezosMarkets, prices, liquidityBakingStats, youvesStats] =
+    providersResults.map(result => (result.status === 'fulfilled' ? result.value : null));
+
+  res.status(200).send({
+    mtPelerinAssets,
+    tokensExchangeRates,
+    tezosMarkets,
+    prices,
+    liquidityBakingStats,
+    youvesStats
+  });
+});
 
 app.get('/api/top-coins', (_req, res) => {
   res.status(200).send(coinGeckoTokens);

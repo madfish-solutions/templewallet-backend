@@ -82,6 +82,12 @@ const getTokensExchangeRates = async (): Promise<TokenExchangeRateEntry[]> => {
 
 const tokensExchangeRatesProvider = new SingleQueryDataProvider(30000, getTokensExchangeRates);
 
+export const getTokensExchangeRatesTimestamp = async () => {
+  const { dataTimestamp } = await tokensExchangeRatesProvider.getState();
+
+  return dataTimestamp;
+};
+
 const getExchangeRatesFromDB = async (): Promise<TokenExchangeRateEntry[]> => {
   const rawValue = await redisClient.get(EXCHANGE_RATES_STORAGE_KEY);
 
