@@ -53,9 +53,10 @@ export default class DataProvider<T, A extends any[]> {
       return subscription.dataProvider.getState();
     }
     try {
+      const dataTimestamp = Date.now();
       const data = await this.fetchFn(...args);
 
-      return { data };
+      return { data, dataTimestamp };
     } catch (error) {
       return { error: error as Error };
     }
