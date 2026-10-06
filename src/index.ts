@@ -4,7 +4,7 @@ require('./process-safety');
 
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import express, { Request, Response } from 'express';
+import express from 'express';
 import firebaseAdmin from 'firebase-admin';
 import { stdSerializers } from 'pino';
 import pinoHttp from 'pino-http';
@@ -21,6 +21,7 @@ import { getParsedContent } from './notifications/utils/get-parsed-content.util'
 import { getPlatforms } from './notifications/utils/get-platforms.util';
 import { redisClient } from './redis';
 import { evmRouter } from './routers/evm';
+import { exchangeRatesRouter } from './routers/exchange-rates';
 import { exolixRouter } from './routers/exolix';
 import { googleDriveRouter } from './routers/google-drive';
 import { ipfsRouter } from './routers/ipfs';
@@ -38,16 +39,17 @@ import { getAliceBobEstimationPayload } from './utils/alice-bob/get-alice-bob-es
 import { getAliceBobOrderInfo } from './utils/alice-bob/get-alice-bob-order-info';
 import { getAliceBobPairInfo } from './utils/alice-bob/get-alice-bob-pair-info';
 import { getAliceBobPairsInfo } from './utils/alice-bob/get-alice-bob-pairs-info';
-import { btcExchangeRateProvider, tezExchangeRateProvider } from './utils/coingecko';
+import { pricesProvider, tezosMarketsProvider } from './utils/coingecko';
 import { CodedError } from './utils/errors';
 import { exolixNetworksMap } from './utils/exolix-networks-map';
 import { coinGeckoTokens } from './utils/gecko-tokens';
+import { getProviderStateWithTimeout, makeProviderDataRequestHandler } from './utils/handlers';
 import { getExternalApiErrorPayload, isDefined, isNonEmptyString, isTruthy } from './utils/helpers';
 import { liquidityBakingStatsProvider } from './utils/liquidity-baking';
 import logger from './utils/logger';
 import { getSignedMoonPayUrl } from './utils/moonpay/get-signed-moonpay-url';
 import SingleQueryDataProvider from './utils/SingleQueryDataProvider';
-import { getExchangeRates } from './utils/tokens';
+import { getTokensExchangeRatesTimestamp } from './utils/tokens';
 import { createWertSession, getWertSessionId, wertSessionParamsSchema } from './utils/wert';
 import { youvesStatsProvider } from './utils/youves';
 
@@ -81,6 +83,7 @@ app.use(bodyParser.json());
  *
  * Currently, there are available headers:
  * - `['do-connecting-ip']`: `string`
+ 
  * - `['x-forwarded-for']`: `${string},${string}`
  *
  * This approach is gonna be more agnostic to the environment.
@@ -100,35 +103,32 @@ const iosApp = firebaseAdmin.initializeApp(
   'iosApp'
 );
 
-const getProviderStateWithTimeout = <T>(provider: SingleQueryDataProvider<T>) =>
-  Promise.race([
-    provider.getState(),
-    new Promise<{ data?: undefined; error: Error }>(resolve =>
-      setTimeout(() => resolve({ error: new Error('Response timed out') }), 30000)
-    )
-  ]);
-
-const makeProviderDataRequestHandler = <T, U>(
-  provider: SingleQueryDataProvider<T>,
-  transformFn?: (data: T) => U,
-  cacheControl = 'public, max-age=60'
-) => {
-  return async (_req: Request, res: Response) => {
-    const { data, error } = await getProviderStateWithTimeout(provider);
-    if (error) {
-      res.status(500).send({ error: error.message });
-    } else {
-      if (data !== undefined) {
-        res
-          .status(200)
-          .header('Cache-Control', cacheControl)
-          .json(transformFn ? transformFn(data) : data);
-      }
-    }
-  };
-};
-
 app.use('/api/kolo', koloRouter);
+
+app.get('/api/providers-health', async (_, res) => {
+  const providers: SingleQueryDataProvider<unknown>[] = [
+    tezosMarketsProvider,
+    pricesProvider,
+    liquidityBakingStatsProvider,
+    youvesStatsProvider
+  ];
+  const providersResults = await Promise.allSettled([
+    getMTPelerinAssets().then(data => data.timestamp),
+    getTokensExchangeRatesTimestamp().then(ts => ts ?? null),
+    ...providers.map(provider => getProviderStateWithTimeout(provider).then(state => state.dataTimestamp ?? null))
+  ]);
+  const [mtPelerinAssets, tokensExchangeRates, tezosMarkets, prices, liquidityBakingStats, youvesStats] =
+    providersResults.map(result => (result.status === 'fulfilled' ? result.value : null));
+
+  res.status(200).send({
+    mtPelerinAssets,
+    tokensExchangeRates,
+    tezosMarkets,
+    prices,
+    liquidityBakingStats,
+    youvesStats
+  });
+});
 
 app.get('/api/top-coins', (_req, res) => {
   res.status(200).send(coinGeckoTokens);
@@ -222,26 +222,8 @@ app.get('/api/abtest', (_, res) => {
   res.json(data);
 });
 
-app.get('/api/exchange-rates/tez', makeProviderDataRequestHandler(tezExchangeRateProvider));
-app.get('/api/exchange-rates/btc', makeProviderDataRequestHandler(btcExchangeRateProvider));
-
-app.get('/api/exchange-rates', async (_req, res) => {
-  const tokensExchangeRates = await getExchangeRates();
-  const { data: tezExchangeRate, error: tezExchangeRateError } = await getProviderStateWithTimeout(
-    tezExchangeRateProvider
-  );
-
-  if (tezExchangeRateError !== undefined) {
-    return res.status(500).send({
-      error: tezExchangeRateError.message
-    });
-  }
-
-  res
-    .status(200)
-    .header('Cache-Control', 'public, max-age=60')
-    .json([...tokensExchangeRates, { exchangeRate: tezExchangeRate.toString() }]);
-});
+app.get('/api/tezos-markets', makeProviderDataRequestHandler(tezosMarketsProvider));
+app.use('/api/exchange-rates', exchangeRatesRouter);
 
 app.get('/api/moonpay-sign', async (req, res) => {
   try {
