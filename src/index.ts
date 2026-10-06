@@ -22,6 +22,7 @@ import { getPlatforms } from './notifications/utils/get-platforms.util';
 import { redisClient } from './redis';
 import { evmRouter } from './routers/evm';
 import { exchangeRatesRouter } from './routers/exchange-rates';
+import { exolixRouter } from './routers/exolix';
 import { googleDriveRouter } from './routers/google-drive';
 import { ipfsRouter } from './routers/ipfs';
 import { koloRouter } from './routers/kolo';
@@ -82,6 +83,7 @@ app.use(bodyParser.json());
  *
  * Currently, there are available headers:
  * - `['do-connecting-ip']`: `string`
+ 
  * - `['x-forwarded-for']`: `${string},${string}`
  *
  * This approach is gonna be more agnostic to the environment.
@@ -131,6 +133,8 @@ app.get('/api/providers-health', async (_, res) => {
 app.get('/api/top-coins', (_req, res) => {
   res.status(200).send(coinGeckoTokens);
 });
+
+app.use('/api/exolix', exolixRouter);
 
 app.get('/api/exolix-networks-map', (_req, res) => {
   res.status(200).send(exolixNetworksMap);
