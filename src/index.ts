@@ -83,7 +83,6 @@ app.use(bodyParser.json());
  *
  * Currently, there are available headers:
  * - `['do-connecting-ip']`: `string`
- 
  * - `['x-forwarded-for']`: `${string},${string}`
  *
  * This approach is gonna be more agnostic to the environment.
