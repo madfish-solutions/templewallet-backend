@@ -37,9 +37,12 @@ const kFormatter = (num: number): string => {
 
 const formatObjktAmount = (amount: number, currency: ObjktCurrency | null) => {
   const decimals = currency?.decimals ?? 0;
-  const symbol = currency?.symbol;
+  let symbol = currency?.symbol || 'tokens';
   const value = new BigNumber(amount).shiftedBy(-decimals);
   const formattedAmount = value.abs().lt(FULL_DECIMALS_AMOUNT_LIMIT) ? value.toFixed() : kFormatter(value.toNumber());
+  if (symbol === 'tez') {
+    symbol = 'TEZ';
+  }
 
   return `${formattedAmount} ${isNonEmptyString(symbol) ? symbol : 'tokens'}`;
 };

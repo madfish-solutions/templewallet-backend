@@ -33,7 +33,7 @@ describe('mapObjktEventsToAccountNotifications', () => {
         createdAt: '2026-09-17T09:00:00.000Z',
         type: NotificationType.OfferReceived,
         language: 'en-US',
-        title: 'New offer for 1.5 tez',
+        title: 'New offer for 1.5 TEZ',
         description: 'On Tezzard',
         content: ['On Tezzard'],
         extensionImageUrl: OBJKT_NOTIFICATION_IMAGE_URL,
@@ -75,7 +75,7 @@ describe('mapObjktEventsToAccountNotifications', () => {
         createdAt: '2026-09-17T09:01:00.000Z',
         type: NotificationType.AuctionBid,
         language: 'en-US',
-        title: 'New bid for 2 tez',
+        title: 'New bid for 2 TEZ',
         description: 'On Tezzard',
         content: ['On Tezzard'],
         extensionImageUrl: OBJKT_NOTIFICATION_IMAGE_URL,
@@ -90,7 +90,7 @@ describe('mapObjktEventsToAccountNotifications', () => {
         createdAt: '2026-09-17T09:02:00.000Z',
         type: NotificationType.NftSold,
         language: 'en-US',
-        title: 'NFT sold for 3 tez',
+        title: 'NFT sold for 3 TEZ',
         description: 'Tezzard',
         content: ['Tezzard'],
         extensionImageUrl: OBJKT_NOTIFICATION_IMAGE_URL,
@@ -159,8 +159,8 @@ describe('mapObjktEventsToAccountNotifications', () => {
 
     expect(unnamed.notification.title).toBe('New offer for 5 tokens');
     expect(unnamed.notification.description).toBe('On #99');
-    expect(thousands.notification.title).toBe('New offer for 1K tez');
-    expect(millions.notification.title).toBe('New offer for 1M tez');
-    expect(billions.notification.title).toBe('New offer for 1B tez');
+    expect(thousands.notification.title).toBe('New offer for 1K TEZ');
+    expect(millions.notification.title).toBe('New offer for 1M TEZ');
+    expect(billions.notification.title).toBe('New offer for 1B TEZ');
   });
 });

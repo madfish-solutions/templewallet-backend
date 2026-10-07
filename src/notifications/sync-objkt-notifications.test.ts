@@ -100,7 +100,7 @@ describe('syncObjktNotifications', () => {
     );
     expect(addNotifications).toHaveBeenCalledOnce();
     expect(addNotifications.mock.calls[0][0]).toBe(redis);
-    expect(addNotifications.mock.calls[0][1][0].notification.title).toBe('New offer for 1.5 tez');
+    expect(addNotifications.mock.calls[0][1][0].notification.title).toBe('New offer for 1.5 TEZ');
     expect(addNotifications.mock.calls[0][2]).toEqual({ publish: true });
     expect(redis.set).toHaveBeenCalledWith(
       'account-notifications-objkt-sync-at',

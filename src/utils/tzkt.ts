@@ -6,7 +6,7 @@ import { isDefined } from './helpers';
 import logger from './logger';
 import { makeBuildQueryFn } from './makeBuildQueryFn';
 
-export type BcdTokenData = {
+export interface BcdTokenData {
   network: string;
   contract: string;
   token_id: number;
@@ -21,62 +21,44 @@ export type BcdTokenData = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   token_info?: Record<string, any>;
   supply?: string;
-};
+}
 
 const TZKT_BASE_URL = 'https://api.tzkt.io/v1';
 
-type SeriesParams = {
+interface SeriesParams {
   addresses: string[];
   period: 'day' | 'month' | 'year';
   name: 'users' | 'operation';
-};
+}
 
-type AccountTokenBalancesParams = {
+interface AccountTokenBalancesParams {
   network: string;
   address: string;
   offset?: number;
   size?: number;
   contract?: string;
-};
+}
 
-type ContractTokensParams = {
+interface ContractTokensParams {
   contract: string;
   limit?: number;
   offset?: number;
   tokenId?: number;
-};
+}
 
-type TokensMetadataParams = {
+interface TokensMetadataParams {
   limit?: number;
   offset?: number;
   contract?: string;
   tokenId?: number;
-};
+}
 
-type DAppsListItem = {
-  name: string;
-  dappUrl: string;
-  type: string;
-  logo: string;
-  slug: string;
-  categories: string[];
-};
-
-type DAppDetails = DAppsListItem & {
-  contracts?: {
-    network: string;
-    address: string;
-  }[];
-  tokens?: TzktTokenData[];
-  dex_tokens?: TzktTokenData[];
-};
-
-type AccountTokenBalancesResponse = {
+interface AccountTokenBalancesResponse {
   balances: (TzktTokenData & {
     balance: string;
   })[];
   total: number;
-};
+}
 
 export interface TzktTransaction {
   id: number;
@@ -98,24 +80,24 @@ interface TzktTokenBalance {
   balance: string;
 }
 
-type TransactionsByHashParams = {
+interface TransactionsByHashParams {
   hash: string;
-};
+}
 
-type TokenTransfersParams = {
+interface TokenTransfersParams {
   level: number;
   contract: string;
   tokenId: string;
   limit: number;
   offset: number;
-};
+}
 
-type TokenBalancesParams = {
+interface TokenBalancesParams {
   account: string;
   contract: string;
-};
+}
 
-type TzktTokenData = {
+interface TzktTokenData {
   contract: {
     address: string;
     alias?: string;
@@ -132,7 +114,7 @@ type TzktTokenData = {
     extras?: Record<string, any>;
   };
   totalSupply?: string;
-};
+}
 
 const TZKT_REQUEST_TIMEOUT_MS = 30_000;
 const TZKT_MAX_CONCURRENT_REQUESTS = 4;
@@ -205,8 +187,6 @@ const buildTzktQuery = makeBuildQueryFn<
   | TokenTransfersParams
   | TokenBalancesParams,
   | [number, number][]
-  | DAppsListItem[]
-  | DAppDetails
   | AccountTokenBalancesResponse
   | TzktTokenData[]
   | TzktTransaction[]

@@ -66,7 +66,7 @@ const offerInput = (accountAddresses: string[], expirationDate?: string, id = 42
     createdAt: '2020-01-01T00:00:00.000Z',
     type: NotificationType.OfferReceived as const,
     language: 'en-US',
-    title: 'New offer for 1.5 tez',
+    title: 'New offer for 1.5 TEZ',
     description: 'On Tezzard',
     content: ['On Tezzard'],
     extensionImageUrl: 'https://icon.test',

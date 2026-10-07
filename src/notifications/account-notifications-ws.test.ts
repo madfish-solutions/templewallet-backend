@@ -19,7 +19,7 @@ const offer = (id: number, accountAddresses: string[]): AccountNotification => (
   type: NotificationType.OfferReceived,
   platforms: [PlatformType.Mobile, PlatformType.Extension],
   language: 'en-US',
-  title: 'New offer for 1 tez',
+  title: 'New offer for 1 TEZ',
   description: 'On Tezzard',
   content: ['On Tezzard'],
   extensionImageUrl: 'https://icon.test',
