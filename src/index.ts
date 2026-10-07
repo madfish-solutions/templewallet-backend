@@ -4,7 +4,7 @@ require('./process-safety');
 
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import express, { Request, Response } from 'express';
+import express from 'express';
 import { initializeApp } from 'firebase-admin';
 import { getAppCheck } from 'firebase-admin/app-check';
 import { createServer } from 'http';
