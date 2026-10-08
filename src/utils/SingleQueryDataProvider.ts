@@ -6,16 +6,19 @@ import PromisifiedSemaphore from './PromisifiedSemaphore';
 interface SingleQueryDataProviderStateCommon<T> {
   data?: T;
   error?: Error;
+  dataTimestamp?: number;
 }
 
 interface SingleQueryDataProviderStateReady<T> extends SingleQueryDataProviderStateCommon<T> {
   data: T;
+  dataTimestamp: number;
   error?: undefined;
 }
 
 interface SingleQueryDataProviderStateError<T> extends SingleQueryDataProviderStateCommon<T> {
   data?: undefined;
   error: Error;
+  dataTimestamp?: undefined;
 }
 
 export type SingleQueryDataProviderState<T> =
@@ -56,8 +59,9 @@ export default class SingleQueryDataProvider<T> {
 
   async makeFetchAttempt(c = 1) {
     try {
+      const dataTimestamp = Date.now();
       const result = await this.fetchFn();
-      await this.state.setData({ data: result });
+      await this.state.setData({ data: result, dataTimestamp });
     } catch (e) {
       const error = e as Error;
       const timeSlot = 1000;
