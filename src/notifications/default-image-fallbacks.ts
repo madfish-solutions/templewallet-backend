@@ -1,5 +1,8 @@
 const IMAGES_BUCKET_URL = 'https://generic-objects.fra1.digitaloceanspaces.com/notification-icons';
 
+export const OBJKT_NOTIFICATION_IMAGE_URL =
+  'https://temple-wallet-prod-bucket.nyc3.cdn.digitaloceanspaces.com/icons/objkt.svg';
+
 export const DEFAULT_IMAGE_URLS = {
   extension: {
     news: `${IMAGES_BUCKET_URL}/extension/news.svg`,
