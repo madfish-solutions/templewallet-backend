@@ -127,6 +127,10 @@ export const attachAccountNotificationsWebSocket = (server: Server, options: Acc
       }
     });
 
+    socket.on('error', error => {
+      logger.error('Account notification socket error', error);
+    });
+
     socket.on('close', () => {
       hub.removeConnection(connection);
     });
