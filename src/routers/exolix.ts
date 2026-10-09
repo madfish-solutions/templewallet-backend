@@ -1,3 +1,4 @@
+import BigNumber from 'bignumber.js';
 import { Request, Response, Router } from 'express';
 import * as yup from 'yup';
 
@@ -7,6 +8,14 @@ import { EnvVars } from '../config';
 const EXOLIX_API_URL = 'https://exolix.com/api/v2';
 const REQUEST_TIMEOUT_MS = 30000;
 const codeSchema = yup.string().max(128).required();
+const amountSchema = yup
+  .mixed<string | number>()
+  .required()
+  .test('amount', 'Invalid amount', value => {
+    const amount = new BigNumber(value);
+
+    return amount.isFinite() && amount.gte(0) && amount.lte(Number.MAX_VALUE);
+  });
 const currenciesQuerySchema = yup.object({
   page: yup.number().integer().positive().default(1),
   size: yup.number().integer().positive().max(100).default(100),
@@ -17,13 +26,14 @@ const rateQuerySchema = yup.object({
   networkFrom: codeSchema,
   coinTo: codeSchema,
   networkTo: codeSchema,
-  amount: yup.number().min(0).max(Number.MAX_VALUE).required(),
-  rateType: yup.string().oneOf(['fixed']).default('fixed')
+  amount: amountSchema,
+  rateType: yup.string().oneOf(['fixed', 'float']).default('fixed')
 });
 const transactionBodySchema = rateQuerySchema.shape({
-  amount: yup.number().positive().max(Number.MAX_VALUE).required(),
+  amount: amountSchema.test('positive', 'Amount must be positive', value => new BigNumber(value).gt(0)),
   withdrawalAddress: yup.string().max(512).required(),
-  withdrawalExtraId: yup.string().max(512).default('')
+  withdrawalExtraId: yup.string().max(512).default(''),
+  refundAddress: yup.string().max(512).optional()
 });
 const transactionIdSchema = yup
   .string()
