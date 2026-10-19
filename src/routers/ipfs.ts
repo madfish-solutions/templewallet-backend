@@ -4,6 +4,7 @@ import { Writable } from 'node:stream';
 import { RateLimiterRes } from 'rate-limiter-flexible';
 
 import { EnvVars } from '../config';
+import { isAbortError } from '../utils/errors';
 import { isDefined } from '../utils/helpers';
 import logger from '../utils/logger';
 import {
@@ -33,13 +34,13 @@ const sendTooManyRequests = (res: Response, retryAfterMs: number) =>
     .setHeader('Retry-After', Math.ceil(retryAfterMs / 1000))
     .json({ error: 'Too many requests. Please try again later' });
 
-const buildGatewayUrl = (req: Request) => {
+const buildGatewayUrl = (req: Request, apiKey: string) => {
   const gatewayUrl = new URL(EnvVars.PINATA_GATEWAY_URL);
   gatewayUrl.pathname = `/ipfs${req.path}`;
   for (const key in req.query) {
     gatewayUrl.searchParams.set(key, req.query[key] as string);
   }
-  gatewayUrl.searchParams.set('pinataGatewayToken', EnvVars.PINATA_GATEWAY_KEY);
+  gatewayUrl.searchParams.set('pinataGatewayToken', apiKey);
 
   return gatewayUrl;
 };
@@ -128,6 +129,32 @@ const pipeGatewayBody = async (
   );
 };
 
+const gatewayKeys = EnvVars.PINATA_GATEWAY_KEYS;
+const gatewayKeysCount = gatewayKeys.length;
+let lastWorkingKeyIndex = 0;
+
+const makeFileRequest = async (req: Request, abortController: AbortController) => {
+  for (let i = 0; i < gatewayKeysCount; i++, lastWorkingKeyIndex = (lastWorkingKeyIndex + 1) % gatewayKeysCount) {
+    const apiKey = gatewayKeys[lastWorkingKeyIndex];
+    const isLast = i === gatewayKeysCount - 1;
+
+    try {
+      console.log('Fetching from gateway', apiKey);
+      const response = await fetch(buildGatewayUrl(req, apiKey).toString(), { signal: abortController.signal });
+
+      if (response.status === 200 || isLast) {
+        return response;
+      }
+    } catch (error) {
+      if (isAbortError(error) || isLast) {
+        throw error;
+      }
+    }
+  }
+
+  throw new Error('Should not happen');
+};
+
 ipfsRouter.get(
   '/**',
   (req, res, next) => {
@@ -156,7 +183,7 @@ ipfsRouter.get(
     const streamState = { bandwidthExceeded: false, msBeforeNext: 0 };
 
     try {
-      const response = await fetch(buildGatewayUrl(req).toString(), { signal: abortController.signal });
+      const response = await makeFileRequest(req, abortController);
 
       if (await rejectIfNotOk(response, res, abortUpstream)) {
         return;
