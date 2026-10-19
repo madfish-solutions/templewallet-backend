@@ -34,8 +34,8 @@ const sendTooManyRequests = (res: Response, retryAfterMs: number) =>
     .setHeader('Retry-After', Math.ceil(retryAfterMs / 1000))
     .json({ error: 'Too many requests. Please try again later' });
 
-const buildGatewayUrl = (req: Request, apiKey: string) => {
-  const gatewayUrl = new URL(EnvVars.PINATA_GATEWAY_URL);
+const buildGatewayUrl = (req: Request, gatewayRootUrl: string, apiKey: string) => {
+  const gatewayUrl = new URL(gatewayRootUrl);
   gatewayUrl.pathname = `/ipfs${req.path}`;
   for (const key in req.query) {
     gatewayUrl.searchParams.set(key, req.query[key] as string);
@@ -130,17 +130,21 @@ const pipeGatewayBody = async (
 };
 
 const gatewayKeys = EnvVars.PINATA_GATEWAY_KEYS;
+const gatewayUrls = EnvVars.PINATA_GATEWAY_URLS;
 const gatewayKeysCount = gatewayKeys.length;
 let lastWorkingKeyIndex = 0;
 
 const makeFileRequest = async (req: Request, abortController: AbortController) => {
   for (let i = 0; i < gatewayKeysCount; i++, lastWorkingKeyIndex = (lastWorkingKeyIndex + 1) % gatewayKeysCount) {
     const apiKey = gatewayKeys[lastWorkingKeyIndex];
+    const gatewayRootUrl = gatewayUrls[lastWorkingKeyIndex];
     const isLast = i === gatewayKeysCount - 1;
 
     try {
-      console.log('Fetching from gateway', apiKey);
-      const response = await fetch(buildGatewayUrl(req, apiKey).toString(), { signal: abortController.signal });
+      console.log('Fetching from gateway', gatewayRootUrl, apiKey);
+      const response = await fetch(buildGatewayUrl(req, gatewayRootUrl, apiKey).toString(), {
+        signal: abortController.signal
+      });
 
       if (response.status === 200 || isLast) {
         return response;
