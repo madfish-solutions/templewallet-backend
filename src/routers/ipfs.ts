@@ -141,7 +141,6 @@ const makeFileRequest = async (req: Request, abortController: AbortController) =
     const isLast = i === gatewayKeysCount - 1;
 
     try {
-      console.log('Fetching from gateway', gatewayRootUrl, apiKey);
       const response = await fetch(buildGatewayUrl(req, gatewayRootUrl, apiKey).toString(), {
         signal: abortController.signal
       });
