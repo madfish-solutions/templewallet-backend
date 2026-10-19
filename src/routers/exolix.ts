@@ -3,6 +3,7 @@ import { Request, Response, Router } from 'express';
 import * as yup from 'yup';
 
 import { EnvVars } from '../config';
+import { isAbortError, isTimeoutError } from '../utils/errors';
 
 // Docs: https://exolix.com/developers
 const EXOLIX_API_URL = 'https://exolix.com/api/v2';
@@ -75,7 +76,7 @@ async function proxyExolixRequest(res: Response, { endpoint, query, body }: Exol
 
     res.status(response.status).type('application/json').send(responseBody.split(apiKey).join('[REDACTED]'));
   } catch (error) {
-    const isTimeout = error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError');
+    const isTimeout = isTimeoutError(error) || isAbortError(error);
     res.status(isTimeout ? 504 : 502).json({ error: isTimeout ? 'Exolix API timed out' : 'Exolix API request failed' });
   }
 }
