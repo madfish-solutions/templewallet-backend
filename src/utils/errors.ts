@@ -19,3 +19,9 @@ export class CodedError extends Error {
     return res;
   }
 }
+
+export const isAbortError = (error: unknown): error is Error & { name: 'AbortError' } =>
+  error instanceof Error && error.name === 'AbortError';
+
+export const isTimeoutError = (error: unknown): error is Error & { name: 'TimeoutError' } =>
+  error instanceof Error && error.name === 'TimeoutError';
