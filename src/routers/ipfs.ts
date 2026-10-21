@@ -134,6 +134,7 @@ const gatewayUrls = EnvVars.PINATA_GATEWAY_URLS;
 const gatewayKeysCount = gatewayKeys.length;
 let lastWorkingKeyIndex = 0;
 
+const RESPONSE_STATUSES_FOR_RETRY = new Set([401, 402, 403, 429]);
 const makeFileRequest = async (req: Request, abortController: AbortController) => {
   for (let i = 0; i < gatewayKeysCount; i++, lastWorkingKeyIndex = (lastWorkingKeyIndex + 1) % gatewayKeysCount) {
     const apiKey = gatewayKeys[lastWorkingKeyIndex];
@@ -144,8 +145,9 @@ const makeFileRequest = async (req: Request, abortController: AbortController) =
       const response = await fetch(buildGatewayUrl(req, gatewayRootUrl, apiKey).toString(), {
         signal: abortController.signal
       });
+      const responseCode = response.status;
 
-      if (response.status === 200 || isLast) {
+      if (responseCode === 200 || !RESPONSE_STATUSES_FOR_RETRY.has(responseCode) || isLast) {
         return response;
       }
     } catch (error) {
