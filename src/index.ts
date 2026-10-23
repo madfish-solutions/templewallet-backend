@@ -41,6 +41,7 @@ import { getAliceBobPairInfo } from './utils/alice-bob/get-alice-bob-pair-info';
 import { getAliceBobPairsInfo } from './utils/alice-bob/get-alice-bob-pairs-info';
 import { pricesProvider, tezosMarketsProvider } from './utils/coingecko';
 import { CodedError } from './utils/errors';
+import { getFastWithdrawalProviders } from './utils/etherlink-fast-withdrawal';
 import { exolixNetworksMap } from './utils/exolix-networks-map';
 import { coinGeckoTokens } from './utils/gecko-tokens';
 import { getProviderStateWithTimeout, makeProviderDataRequestHandler } from './utils/handlers';
@@ -440,6 +441,20 @@ app.post('/api/wert/session', async (req, res) => {
     const { status, data } = getExternalApiErrorPayload(error);
 
     return res.status(status).send(data);
+  }
+});
+
+app.get('/api/etherlink-bridge/fast-withdrawal-providers', async (_req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+
+  try {
+    res.status(200).json(await getFastWithdrawalProviders());
+  } catch (error) {
+    const { status, data } = getExternalApiErrorPayload(error);
+
+    logger.error({ status, data }, '[ETHERLINK BRIDGE] Failed to load fast withdrawal providers');
+
+    res.status(status).json(data);
   }
 });
 
