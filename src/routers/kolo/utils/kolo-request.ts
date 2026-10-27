@@ -4,7 +4,7 @@ import { EnvVars } from '../../../config';
 
 import { generateKoloRequestSignature } from './sign-request';
 
-export const koloApi = axios.create({
+const koloApi = axios.create({
   baseURL: EnvVars.KOLO_BASE_URL
 });
 

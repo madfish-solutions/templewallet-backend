@@ -1,0 +1,5 @@
+{
+  "entry": ["src/mtpelerin-tokens/parse-worker.ts"],
+  "project": ["src/**/*.{ts,tsx,js,jsx}"],
+  "tags": ["-knipignore"]
+}

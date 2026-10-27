@@ -59,5 +59,3 @@ koloRouter.get('/crypto-address', async (req, res) => {
 });
 
 registerKoloWebhookRoute(koloRouter);
-
-export default koloRouter;
