@@ -7,6 +7,7 @@ import { EnvVars } from '../config';
 import { isAbortError } from '../utils/errors';
 import { isDefined } from '../utils/helpers';
 import logger from '../utils/logger';
+import { countPinataGatewayCall, getPinataGatewayUsage } from '../utils/pinata-usage';
 import {
   assertFitsBandwidth,
   consumeBandwidth,
@@ -48,7 +49,7 @@ const buildGatewayUrl = (req: Request, gatewayRootUrl: string, apiKey: string) =
 const rejectIfNotOk = async (response: globalThis.Response, res: Response, abortUpstream: () => void) => {
   if (response.status === 404) {
     abortUpstream();
-    res.status(404).json({ error: 'Not found' });
+    res.status(404).setHeader('Cache-Control', 'public, max-age=86400').json({ error: 'Not found' });
 
     return true;
   }
@@ -134,12 +135,18 @@ const gatewayUrls = EnvVars.PINATA_GATEWAY_URLS;
 const gatewayKeysCount = gatewayKeys.length;
 let lastWorkingKeyIndex = 0;
 
+export const getPinataGatewayStats = async () => ({
+  activeAccount: lastWorkingKeyIndex + 1,
+  ...(await getPinataGatewayUsage(gatewayKeysCount))
+});
+
 const RESPONSE_STATUSES_FOR_RETRY = new Set([401, 402, 403, 429]);
 const makeFileRequest = async (req: Request, abortController: AbortController) => {
   for (let i = 0; i < gatewayKeysCount; i++, lastWorkingKeyIndex = (lastWorkingKeyIndex + 1) % gatewayKeysCount) {
     const apiKey = gatewayKeys[lastWorkingKeyIndex];
     const gatewayRootUrl = gatewayUrls[lastWorkingKeyIndex];
     const isLast = i === gatewayKeysCount - 1;
+    void countPinataGatewayCall(lastWorkingKeyIndex + 1);
 
     try {
       const response = await fetch(buildGatewayUrl(req, gatewayRootUrl, apiKey).toString(), {

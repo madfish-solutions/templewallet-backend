@@ -24,7 +24,7 @@ import { evmRouter } from './routers/evm';
 import { exchangeRatesRouter } from './routers/exchange-rates';
 import { exolixRouter } from './routers/exolix';
 import { googleDriveRouter } from './routers/google-drive';
-import { ipfsRouter } from './routers/ipfs';
+import { getPinataGatewayStats, ipfsRouter } from './routers/ipfs';
 import { koloRouter } from './routers/kolo';
 import { adRulesRouter } from './routers/slise-ad-rules';
 import { templeWalletAdsRouter } from './routers/temple-wallet-ads';
@@ -211,8 +211,8 @@ app.post('/api/notifications', basicAuth, async (req, res) => {
 });
 
 app.get('/api/dapps', (req, res) => {
-  // This request has 'platform' query parameter for the case we need to filter dapps by the client platform
-  const data = getDAppsStats();
+  const platform = req.query.platform;
+  const data = getDAppsStats(typeof platform === 'string' ? platform : undefined);
 
   res.status(200).header('Cache-Control', 'public, max-age=300').send(data);
 });
@@ -469,6 +469,18 @@ app.post('/api/temple-tap/check-airdrop-confirmation', tezosSigAuthMiddleware, (
 app.get('/api/youves/stats', makeProviderDataRequestHandler(youvesStatsProvider));
 
 app.get('/api/liquidity-baking/stats', makeProviderDataRequestHandler(liquidityBakingStatsProvider));
+
+app.get('/api/pinata/stats', async (_req, res) => {
+  try {
+    res
+      .status(200)
+      .header('Cache-Control', 'public, max-age=60')
+      .send(await getPinataGatewayStats());
+  } catch (error) {
+    logger.error({ error }, 'Failed to read Pinata gateway usage');
+    res.status(500).send({ error: 'Unable to retrieve Pinata gateway usage' });
+  }
+});
 
 app.use('/ipfs', ipfsRouter);
 
