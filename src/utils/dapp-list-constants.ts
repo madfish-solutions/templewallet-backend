@@ -110,7 +110,7 @@ export const DAPPS_LIST: DappListItem[] = [
     name: 'Etherlink Bridge',
     dappUrl: 'https://bridge.etherlink.com/',
     type: DappType.DeFi,
-    logo: 'https://pbs.twimg.com/profile_images/1984606818983952389/cA_-AAjY_400x400.jpg',
+    logo: 'https://pbs.twimg.com/profile_images/2117183487002202113/8US_SXiC_400x400.jpg',
     slug: 'etherlink-bridge',
     categories: [DappType.DeFi]
   },
@@ -135,7 +135,7 @@ export const DAPPS_LIST: DappListItem[] = [
     name: 'Tezos X',
     dappUrl: 'https://tezos.com/tezos-x/',
     type: DappType.Other,
-    logo: 'https://pbs.twimg.com/profile_images/1984562534620278784/cRXlDZNX_400x400.jpg',
+    logo: 'https://pbs.twimg.com/profile_images/2117187607327117312/lrmKXgVR_400x400.png',
     slug: 'tezos-x',
     categories: [DappType.Other]
   },
