@@ -1,8 +1,22 @@
 export enum NotificationType {
   News = 'News',
   PlatformUpdate = 'PlatformUpdate',
-  SecurityNote = 'SecurityNote'
+  SecurityNote = 'SecurityNote',
+  OfferReceived = 'OfferReceived',
+  AuctionBid = 'AuctionBid',
+  NftSold = 'NftSold'
 }
+
+export type AccountNotificationType =
+  | NotificationType.OfferReceived
+  | NotificationType.AuctionBid
+  | NotificationType.NftSold;
+
+export const ACCOUNT_NOTIFICATION_TYPES: AccountNotificationType[] = [
+  NotificationType.OfferReceived,
+  NotificationType.AuctionBid,
+  NotificationType.NftSold
+];
 
 export enum PlatformType {
   Mobile = 'Mobile',
@@ -29,3 +43,11 @@ export interface Notification {
   expirationDate?: string;
   isMandatory?: boolean;
 }
+
+export interface AccountNotification extends Notification {
+  type: AccountNotificationType;
+  accountAddresses: string[];
+}
+
+export const isAccountNotificationType = (type: unknown): type is AccountNotificationType =>
+  ACCOUNT_NOTIFICATION_TYPES.some(accountNotificationType => accountNotificationType === type);

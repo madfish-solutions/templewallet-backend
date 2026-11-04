@@ -1,5 +1,6 @@
-import axios from 'axios';
 import memoizee from 'memoizee';
+
+import { getTzktTokenBalances } from './utils/tzkt';
 
 const BURN_ADDRESS = 'tz1burnburnburnburnburnburnburjAYjjX';
 const INCENTIVES_ADDRESS = 'tz1Ntpk55Q6AVJHVrCs1uN4HyTTxBbVMFZcb';
@@ -12,11 +13,9 @@ const TOTAL_SUPPLY_WITH_DECIMALS = TOTAL_SUPPLY / 10n ** DECIMALS;
 
 const getTkeyBalance = memoizee(
   async (holder: string) => {
-    const response = await axios.get(
-      `https://api.tzkt.io/v1/tokens/balances?account=${holder}&token.contract=${CONTRACT}`
-    );
+    const balances = await getTzktTokenBalances({ account: holder, contract: CONTRACT });
 
-    return BigInt(response.data[0].balance) / 10n ** DECIMALS;
+    return BigInt(balances[0].balance) / 10n ** DECIMALS;
   },
   {
     maxAge: 1000 * 60 * 60 // 1 hour
