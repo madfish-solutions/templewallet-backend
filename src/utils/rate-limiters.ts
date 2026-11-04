@@ -6,16 +6,16 @@ import { redisClient } from '../redis';
 
 const ipfsGatewayRequestsRateLimiter = new RateLimiterRedis({
   storeClient: redisClient,
-  keyPrefix: 'ipfs-gateway-requests',
+  keyPrefix: 'ipfs-gateway-requests-daily',
   points: EnvVars.IPFS_GATEWAY_REQUESTS_POINTS,
-  duration: 30 * 24 * 60 * 60
+  duration: 24 * 60 * 60
 });
 
 const ipfsGatewayBandwidthRateLimiter = new RateLimiterRedis({
   storeClient: redisClient,
-  keyPrefix: 'ipfs-gateway-bandwidth',
+  keyPrefix: 'ipfs-gateway-bandwidth-daily',
   points: EnvVars.IPFS_GATEWAY_BANDWIDTH_POINTS,
-  duration: 30 * 24 * 60 * 60
+  duration: 24 * 60 * 60
 });
 
 const getIp = (req: Request) => (req.headers['do-connecting-ip'] ?? req.ip) as string;
