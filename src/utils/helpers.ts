@@ -8,11 +8,6 @@ type Truthy<T> = T extends null | undefined | false | '' | 0 | 0n ? never : T;
 
 type AwaitedTuple<T extends readonly unknown[] | []> = { -readonly [K in keyof T]: Awaited<T[K]> };
 
-export const range = (start: number, end: number, step = 1) =>
-  Array(Math.ceil((end - start) / step))
-    .fill(0)
-    .map((_x, index) => start + step * index);
-
 export const pick = <T extends object, U extends keyof T>(obj: T, keys: U[]) => {
   const newObj: Partial<T> = {};
   keys.forEach(key => {
