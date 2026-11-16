@@ -110,9 +110,7 @@ const parseCryptoTokenMetadata = (value: unknown): MtPelerinTokenMetadata[] => {
 };
 
 export const fetchCryptoTokenMetadata = async (): Promise<MtPelerinTokenMetadata[]> => {
-  console.log('fetch', mtPelerinTokensMetadataUrl);
   const response = await fetch(mtPelerinTokensMetadataUrl);
-  console.log('response', response);
 
   if (!response.ok) {
     throw new Error(`Mt Pelerin metadata endpoint returned status ${response.status}`);
