@@ -15,14 +15,23 @@ import {
 const SCAN_COUNT = 200;
 const PIPELINE_FLUSH_EVERY = 100;
 const CLEANUP_LOCK_TTL_SECONDS = 9 * 60;
+const MAXMEMORY_CLEANUP_RATIO = 0.8;
 
-const parseUsedMemoryBytes = (info: string) => {
-  const match = /used_memory:(\d+)/.exec(info);
+const parseMemoryInfoBytes = (info: string, field: 'used_memory' | 'maxmemory') => {
+  const match = new RegExp(`^${field}:(\\d+)`, 'm').exec(info);
   if (!isDefined(match)) {
     return undefined;
   }
 
   return Number(match[1]);
+};
+
+const getCleanupThresholdBytes = (info: string) => {
+  const maxMemoryBytes = parseMemoryInfoBytes(info, 'maxmemory');
+
+  return isDefined(maxMemoryBytes) && maxMemoryBytes > 0
+    ? Math.floor(maxMemoryBytes * MAXMEMORY_CLEANUP_RATIO)
+    : EnvVars.ACCOUNT_NOTIFICATION_MEMORY_WATERMARK_BYTES;
 };
 
 const scanKeys = async (client: Redis, match: string, onKey: (key: string) => Promise<void> | void) => {
@@ -111,8 +120,9 @@ const deleteOldPayloads = async (client: Redis, scoreCutoff: number) => {
 
 export const cleanupAccountNotificationsIfNeeded = async (client: Redis) => {
   const info = await client.info('memory');
-  const usedMemoryBytes = parseUsedMemoryBytes(info);
-  if (!isDefined(usedMemoryBytes) || usedMemoryBytes < EnvVars.ACCOUNT_NOTIFICATION_MEMORY_WATERMARK_BYTES) {
+  const usedMemoryBytes = parseMemoryInfoBytes(info, 'used_memory');
+  const thresholdBytes = getCleanupThresholdBytes(info);
+  if (!isDefined(usedMemoryBytes) || usedMemoryBytes < thresholdBytes) {
     return;
   }
 
@@ -124,9 +134,7 @@ export const cleanupAccountNotificationsIfNeeded = async (client: Redis) => {
   const emergencyScoreCutoff = Date.now() - (EnvVars.ACCOUNT_NOTIFICATION_TTL_SECONDS * 1000) / 2;
   const emergencyIndexCap = Math.max(1, Math.floor(EnvVars.ACCOUNT_NOTIFICATION_INDEX_CAP / 2));
 
-  logger.warn(
-    `Account notifications cleanup started: used_memory=${usedMemoryBytes} watermark=${EnvVars.ACCOUNT_NOTIFICATION_MEMORY_WATERMARK_BYTES}`
-  );
+  logger.warn(`Account notifications cleanup started: used_memory=${usedMemoryBytes} threshold=${thresholdBytes}`);
 
   try {
     await trimIndexes(client, emergencyScoreCutoff, emergencyIndexCap);
